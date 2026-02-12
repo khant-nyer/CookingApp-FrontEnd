@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem 4rem;
 }
@@ -25,7 +25,7 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
@@ -36,22 +36,9 @@ body {
   box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
 }
 
-.header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
 .form {
   display: grid;
   gap: 0.75rem;
-}
-
-label {
-  display: grid;
-  gap: 0.25rem;
-  font-weight: 500;
 }
 
 input,
@@ -62,9 +49,11 @@ button {
 
 input,
 textarea {
+  width: 100%;
   border: 1px solid #cad2d0;
   border-radius: 8px;
   padding: 0.6rem;
+  margin-bottom: 0.5rem;
 }
 
 button {
@@ -74,17 +63,29 @@ button {
   border-radius: 8px;
   padding: 0.6rem 0.8rem;
   cursor: pointer;
+  margin-right: 0.5rem;
 }
 
 button:disabled {
   opacity: 0.7;
 }
 
-.link-btn {
-  margin-top: 0.75rem;
-  width: 100%;
-  background: transparent;
-  color: #0f766e;
+.tab-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.tab {
+  background: #d7eeeb;
+  color: #134e49;
+}
+
+.tab.active {
+  background: #0f766e;
+  color: #fff;
 }
 
 .recipe-list {
@@ -101,12 +102,33 @@ button:disabled {
   border-radius: 8px;
 }
 
-.error {
+pre {
   margin: 0;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #f8fbfa;
+  border: 1px solid #dde9e7;
+  overflow-x: auto;
+  font-size: 0.82rem;
+}
+
+.json-editor {
+  min-height: 150px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+.danger {
+  background: #b42318;
+  margin-top: 0.6rem;
+}
+
+.error {
+  margin: 0 0 0.75rem;
   color: #b42318;
 }
 
-@media (max-width: 840px) {
+@media (max-width: 920px) {
   .grid {
     grid-template-columns: 1fr;
   }
