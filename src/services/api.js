@@ -1,4 +1,8 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+function buildUrl(path) {
+  return `${API_BASE_URL}${path}`;
+}
 
 function getHeaders() {
   return {
@@ -7,12 +11,14 @@ function getHeaders() {
 }
 
 async function request(path, options = {}) {
+  const url = buildUrl(path);
+
   let response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, options);
+    response = await fetch(url, options);
   } catch (networkError) {
     throw new Error(
-      `Cannot connect to backend at ${API_BASE_URL}. Check VITE_API_BASE_URL and ensure backend server is running.`
+      `Cannot connect to backend via ${url}. If running frontend on Vite dev server, keep VITE_API_BASE_URL empty to use proxy, or set it to your backend origin.`
     );
   }
 

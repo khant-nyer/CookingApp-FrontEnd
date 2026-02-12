@@ -70,6 +70,7 @@ export default function BackendExplorer() {
   const [discoverResults, setDiscoverResults] = useState([]);
   const [foodRecipeStatus, setFoodRecipeStatus] = useState(null);
   const [foodStatusId, setFoodStatusId] = useState('1');
+  const [selectedFoodId, setSelectedFoodId] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -124,7 +125,11 @@ export default function BackendExplorer() {
   async function createRecipe() {
     const parsed = parseJson(recipePayload);
     if (parsed.error) return setError(parsed.error);
-    await run(() => api.createRecipe(parsed.data));
+    if (!selectedFoodId) {
+      setError('Please select a food first.');
+      return;
+    }
+    await run(() => api.createRecipeForFoodViaRecipeApi(selectedFoodId, parsed.data));
   }
 
   async function getFoodStatus() {
@@ -275,13 +280,26 @@ export default function BackendExplorer() {
       {activeTab === 'recipes' && (
         <div className="grid">
           <div className="card">
-            <h3>Create recipe (POST /api/recipes)</h3>
+            <h3>Create recipe for selected food (POST /api/recipes/foods/{'{foodId}'})</h3>
             <p className="muted">
               Required: <code>version</code>, at least one <code>ingredients</code> item, and one{' '}
               <code>instructions</code> item.
             </p>
+            <label>
+              Select food
+              <select value={selectedFoodId} onChange={(event) => setSelectedFoodId(event.target.value)}>
+                <option value="">-- Select food --</option>
+                {foods.map((food) => (
+                  <option key={food.id} value={food.id}>
+                    {food.name} (ID: {food.id})
+                  </option>
+                ))}
+              </select>
+            </label>
             <JsonEditor value={recipePayload} onChange={setRecipePayload} />
-            <button onClick={createRecipe}>Create recipe</button>
+            <button onClick={createRecipe} disabled={!selectedFoodId}>
+              Create recipe for selected food
+            </button>
           </div>
 
           <ListCard title="Recipes" items={recipes} onDelete={(id) => run(() => api.deleteRecipe(id))} />
