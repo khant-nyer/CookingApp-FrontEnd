@@ -51,9 +51,15 @@ export default function BackendExplorer() {
   const [ingredients, setIngredients] = useState([]);
   const [recipes, setRecipes] = useState([]);
 
-  const [foodPayload, setFoodPayload] = useState('{\n  "name": "Tom Yum"\n}');
-  const [ingredientPayload, setIngredientPayload] = useState('{\n  "name": "Shrimp"\n}');
-  const [recipePayload, setRecipePayload] = useState('{\n  "title": "Tom Yum Recipe",\n  "description": "Boil and season",\n  "foodId": 1\n}');
+  const [foodPayload, setFoodPayload] = useState(
+    '{\n  "name": "Tom Yum",\n  "category": "Thai",\n  "recipes": []\n}'
+  );
+  const [ingredientPayload, setIngredientPayload] = useState(
+    '{\n  "name": "Shrimp",\n  "category": "Seafood",\n  "description": "Fresh shrimp",\n  "servingAmount": 100,\n  "servingUnit": "G",\n  "nutritionList": [],\n  "nearbyStoreListings": []\n}'
+  );
+  const [recipePayload, setRecipePayload] = useState(
+    '{\n  "version": "v1",\n  "description": "Boil broth, add herbs, season, then add shrimp.",\n  "foodId": 1,\n  "ingredients": [\n    {\n      "ingredientId": 1,\n      "quantity": 100,\n      "unit": "G"\n    }\n  ],\n  "instructions": [\n    {\n      "stepNumber": 1,\n      "description": "Prepare ingredients"\n    },\n    {\n      "stepNumber": 2,\n      "description": "Cook and season"\n    }\n  ]\n}'
+  );
 
   const [ingredientQuery, setIngredientQuery] = useState('shrimp');
   const [nutritionQuery, setNutritionQuery] = useState({ nutrient: 'protein', minValue: '10' });
@@ -195,6 +201,7 @@ export default function BackendExplorer() {
         <div className="grid">
           <div className="card">
             <h3>Create food (POST /api/foods)</h3>
+            <p className="muted">Required: <code>name</code>. Optional: <code>category</code>, <code>recipes</code>.</p>
             <JsonEditor value={foodPayload} onChange={setFoodPayload} />
             <button onClick={createFood}>Create food</button>
 
@@ -212,6 +219,9 @@ export default function BackendExplorer() {
         <div className="grid">
           <div className="card">
             <h3>Create ingredient (POST /api/ingredients)</h3>
+            <p className="muted">
+              Required: <code>name</code>, <code>servingAmount</code>, <code>servingUnit</code>.
+            </p>
             <JsonEditor value={ingredientPayload} onChange={setIngredientPayload} />
             <button onClick={createIngredient}>Create ingredient</button>
 
@@ -266,6 +276,10 @@ export default function BackendExplorer() {
         <div className="grid">
           <div className="card">
             <h3>Create recipe (POST /api/recipes)</h3>
+            <p className="muted">
+              Required: <code>version</code>, at least one <code>ingredients</code> item, and one{' '}
+              <code>instructions</code> item.
+            </p>
             <JsonEditor value={recipePayload} onChange={setRecipePayload} />
             <button onClick={createRecipe}>Create recipe</button>
           </div>

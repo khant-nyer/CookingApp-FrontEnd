@@ -42,3 +42,9 @@ npm run dev
 ```bash
 VITE_API_BASE_URL=http://localhost:3000
 ```
+
+## DTO notes from backend (used to prefill payload editors)
+
+- `FoodDTO` create requires `name`.
+- `IngredientDTO` create requires `name`, `servingAmount`, `servingUnit`.
+- `RecipeDTO` create requires `version`, non-empty `ingredients`, and non-empty `instructions`.
