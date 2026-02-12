@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 function getHeaders() {
   return {
@@ -7,7 +7,14 @@ function getHeaders() {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, options);
+  } catch (networkError) {
+    throw new Error(
+      `Cannot connect to backend at ${API_BASE_URL}. Check VITE_API_BASE_URL and ensure backend server is running.`
+    );
+  }
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));

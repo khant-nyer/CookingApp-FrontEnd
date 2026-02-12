@@ -40,7 +40,7 @@ npm run dev
 ## Environment
 
 ```bash
-VITE_API_BASE_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
 ## DTO notes from backend (used to prefill payload editors)
@@ -48,3 +48,15 @@ VITE_API_BASE_URL=http://localhost:3000
 - `FoodDTO` create requires `name`.
 - `IngredientDTO` create requires `name`, `servingAmount`, `servingUnit`.
 - `RecipeDTO` create requires `version`, non-empty `ingredients`, and non-empty `instructions`.
+
+
+## Troubleshooting
+
+If you see `ERR_CONNECTION_REFUSED` for `/api/...`, frontend is running but backend is unreachable.
+
+- Start backend server first (commonly on port `8080` for Spring Boot).
+- Set API base URL explicitly:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8080 npm run dev
+```
