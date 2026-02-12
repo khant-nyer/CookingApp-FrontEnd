@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
 const initialRecipe = { title: '', description: '', ingredients: '' };
 
 export default function RecipeDashboard() {
-  const { token, user, logout } = useAuth();
   const [recipes, setRecipes] = useState([]);
   const [form, setForm] = useState(initialRecipe);
   const [error, setError] = useState('');
@@ -13,7 +11,8 @@ export default function RecipeDashboard() {
 
   async function loadRecipes() {
     try {
-      const data = await api.getRecipes(token);
+      setError('');
+      const data = await api.getRecipes();
       setRecipes(Array.isArray(data) ? data : data.recipes || []);
     } catch (loadError) {
       setError(loadError.message);
@@ -35,7 +34,7 @@ export default function RecipeDashboard() {
     setError('');
 
     try {
-      await api.createRecipe(token, {
+      await api.createRecipe({
         title: form.title,
         description: form.description,
         ingredients: form.ingredients
@@ -56,8 +55,8 @@ export default function RecipeDashboard() {
     <section className="grid">
       <div className="card">
         <header className="header-row">
-          <h2>{user?.name ? `${user.name}'s recipes` : 'My recipes'}</h2>
-          <button onClick={logout}>Logout</button>
+          <h2>Recipes</h2>
+          <button onClick={loadRecipes}>Refresh</button>
         </header>
         {error && <p className="error">{error}</p>}
         <ul className="recipe-list">

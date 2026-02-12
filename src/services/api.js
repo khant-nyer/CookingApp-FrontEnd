@@ -1,9 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
-function getHeaders(token) {
+function getHeaders() {
   return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
+    'Content-Type': 'application/json'
   };
 }
 
@@ -23,29 +22,15 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  register(payload) {
-    return request('/api/auth/register', {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(payload)
-    });
-  },
-  login(payload) {
-    return request('/api/auth/login', {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(payload)
-    });
-  },
-  getRecipes(token) {
+  getRecipes() {
     return request('/api/recipes', {
-      headers: getHeaders(token)
+      headers: getHeaders()
     });
   },
-  createRecipe(token, payload) {
+  createRecipe(payload) {
     return request('/api/recipes', {
       method: 'POST',
-      headers: getHeaders(token),
+      headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   }

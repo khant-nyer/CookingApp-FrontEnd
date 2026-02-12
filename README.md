@@ -14,12 +14,12 @@ npm install
 npm run dev
 ```
 
-The app expects backend endpoints with these routes:
+## API routes currently used (no auth)
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
 - `GET /api/recipes`
 - `POST /api/recipes`
+
+## Environment
 
 Override backend URL with:
 
