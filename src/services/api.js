@@ -71,6 +71,13 @@ export const api = {
   deleteIngredient(id) {
     return request(`/api/ingredients/${id}`, { method: 'DELETE', headers: getHeaders() });
   },
+  updateIngredient(id, payload) {
+    return request(`/api/ingredients/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
+  },
   searchIngredientsByName(name) {
     return request(`/api/ingredients/search?name=${encodeURIComponent(name || '')}`, {
       headers: getHeaders()
@@ -101,6 +108,13 @@ export const api = {
   },
   deleteRecipe(id) {
     return request(`/api/recipes/${id}`, { method: 'DELETE', headers: getHeaders() });
+  },
+  updateRecipe(id, payload) {
+    return request(`/api/recipes/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
   },
   createRecipeForFoodViaRecipeApi(foodId, payload) {
     return request(`/api/recipes/foods/${foodId}`, {
