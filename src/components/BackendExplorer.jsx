@@ -21,7 +21,7 @@ function parseJson(value) {
   }
 }
 
-function ListCard({ title, items, onDelete, idKeys = ['id'] }) {
+function ListCard({ title, items, onDelete, onUpdate, idKeys = ['id'] }) {
   return (
     <div className="card">
       <h3>{title}</h3>
@@ -32,10 +32,19 @@ function ListCard({ title, items, onDelete, idKeys = ['id'] }) {
           return (
             <li key={itemId || index}>
               <pre>{JSON.stringify(item, null, 2)}</pre>
-              {onDelete && itemId ? (
-                <button className="danger" onClick={() => onDelete(itemId)}>
-                  Delete
-                </button>
+              {(onUpdate || onDelete) && itemId ? (
+                <div className="item-actions">
+                  {onUpdate ? (
+                    <button className="secondary" onClick={() => onUpdate(itemId)}>
+                      Update
+                    </button>
+                  ) : null}
+                  {onDelete ? (
+                    <button className="danger" onClick={() => onDelete(itemId)}>
+                      Delete
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
             </li>
           );
@@ -171,6 +180,18 @@ export default function BackendExplorer() {
     }
   }
 
+  async function updateIngredientById(id) {
+    const parsed = parseJson(ingredientPayload);
+    if (parsed.error) return setError(parsed.error);
+    await run(() => api.updateIngredient(id, parsed.data));
+  }
+
+  async function updateRecipeById(id) {
+    const parsed = parseJson(recipePayload);
+    if (parsed.error) return setError(parsed.error);
+    await run(() => api.updateRecipe(id, parsed.data));
+  }
+
   async function discoverSupermarkets() {
     setLoading(true);
     setError('');
@@ -272,6 +293,7 @@ export default function BackendExplorer() {
           <ListCard
             title="Ingredients"
             items={ingredients}
+            onUpdate={updateIngredientById}
             onDelete={(id) => run(() => api.deleteIngredient(id))}
           />
         </div>
@@ -302,7 +324,12 @@ export default function BackendExplorer() {
             </button>
           </div>
 
-          <ListCard title="Recipes" items={recipes} onDelete={(id) => run(() => api.deleteRecipe(id))} />
+          <ListCard
+            title="Recipes"
+            items={recipes}
+            onUpdate={updateRecipeById}
+            onDelete={(id) => run(() => api.deleteRecipe(id))}
+          />
         </div>
       )}
     </section>
