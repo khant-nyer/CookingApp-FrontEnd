@@ -58,12 +58,17 @@ function GalleryTile({ imageUrl, fallbackText, onClick, isSelected, subtitle }) 
   );
 }
 
-function DetailCard({ title, payload, onDelete }) {
+function DetailCard({ title, payload, onDelete, onUpdate }) {
   return (
     <div className="card detail-card">
       <h3>{title}</h3>
       <pre>{JSON.stringify(payload, null, 2)}</pre>
       <div className="detail-actions">
+        {onUpdate ? (
+          <button className="secondary" onClick={onUpdate}>
+            Update
+          </button>
+        ) : null}
         <button className="danger" onClick={onDelete}>
           Delete
         </button>
@@ -105,6 +110,14 @@ export default function BackendExplorer() {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
+  const [updateModal, setUpdateModal] = useState({
+    open: false,
+    type: '',
+    itemId: null,
+    title: '',
+    payload: ''
+  });
 
   async function loadAll() {
     setLoading(true);
@@ -285,6 +298,60 @@ export default function BackendExplorer() {
     setRecipeInstructions([]);
   }
 
+
+  function requestDelete(message, action) {
+    setDeleteModal({ open: true, message, action });
+  }
+
+  async function confirmDelete() {
+    if (!deleteModal.action) {
+      setDeleteModal({ open: false, message: '', action: null });
+      return;
+    }
+    await run(deleteModal.action);
+    setDeleteModal({ open: false, message: '', action: null });
+  }
+
+  function openIngredientUpdateModal(item) {
+    setUpdateModal({
+      open: true,
+      type: 'ingredient',
+      itemId: getItemId(item),
+      title: `Update ${item?.name || 'Ingredient'}`,
+      payload: JSON.stringify(item, null, 2)
+    });
+  }
+
+  function openRecipeUpdateModal(item) {
+    setUpdateModal({
+      open: true,
+      type: 'recipe',
+      itemId: getItemId(item),
+      title: `Update ${item?.foodName || 'Recipe'} ${item?.version ? `(${item.version})` : ''}`,
+      payload: JSON.stringify(item, null, 2)
+    });
+  }
+
+  async function confirmUpdate() {
+    let parsed;
+    try {
+      parsed = JSON.parse(updateModal.payload);
+    } catch {
+      setError('Invalid JSON in update modal.');
+      return;
+    }
+
+    if (updateModal.type === 'ingredient') {
+      await run(() => api.updateIngredient(updateModal.itemId, parsed));
+    }
+
+    if (updateModal.type === 'recipe') {
+      await run(() => api.updateRecipe(updateModal.itemId, parsed));
+    }
+
+    setUpdateModal({ open: false, type: '', itemId: null, title: '', payload: '' });
+  }
+
   const selectedFood = useMemo(() => foods.find((item) => String(getItemId(item)) === String(selectedId)), [foods, selectedId]);
   const selectedIngredient = useMemo(
     () => ingredients.find((item) => String(getItemId(item)) === String(selectedId)),
@@ -360,7 +427,7 @@ export default function BackendExplorer() {
             <DetailCard
               title={selectedFood.name || 'Food details'}
               payload={selectedFood}
-              onDelete={() => run(() => api.deleteFood(getItemId(selectedFood)))}
+              onDelete={() => requestDelete('Delete this food?', () => api.deleteFood(getItemId(selectedFood)))}
             />
           ) : (
             <div className="card muted">Select a food image to view details.</div>
@@ -524,7 +591,8 @@ export default function BackendExplorer() {
             <DetailCard
               title={selectedIngredient.name || 'Ingredient details'}
               payload={selectedIngredient}
-              onDelete={() => run(() => api.deleteIngredient(getItemId(selectedIngredient)))}
+              onDelete={() => requestDelete('Delete this ingredient?', () => api.deleteIngredient(getItemId(selectedIngredient)))}
+              onUpdate={() => openIngredientUpdateModal(selectedIngredient)}
             />
           ) : (
             <div className="card muted">Select an ingredient image to view details.</div>
@@ -765,7 +833,8 @@ export default function BackendExplorer() {
             <DetailCard
               title={`${selectedRecipe.foodName || 'Recipe'} ${selectedRecipe.version ? `(${selectedRecipe.version})` : ''}`}
               payload={selectedRecipe}
-              onDelete={() => run(() => api.deleteRecipe(getItemId(selectedRecipe)))}
+              onDelete={() => requestDelete('Delete this recipe?', () => api.deleteRecipe(getItemId(selectedRecipe)))}
+              onUpdate={() => openRecipeUpdateModal(selectedRecipe)}
             />
           ) : (
             <div className="card muted">Select a recipe card to view details.</div>
@@ -813,6 +882,44 @@ export default function BackendExplorer() {
           </div>
         </div>
       )}
+
+
+      {deleteModal.open ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h3>Confirm Delete</h3>
+            <p>{deleteModal.message}</p>
+            <div className="detail-actions">
+              <button onClick={() => setDeleteModal({ open: false, message: '', action: null })}>Cancel</button>
+              <button className="danger" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {updateModal.open ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-card modal-large">
+            <h3>{updateModal.title}</h3>
+            <textarea
+              rows={14}
+              value={updateModal.payload}
+              onChange={(event) => setUpdateModal((prev) => ({ ...prev, payload: event.target.value }))}
+            />
+            <div className="detail-actions">
+              <button onClick={() => setUpdateModal({ open: false, type: '', itemId: null, title: '', payload: '' })}>
+                Cancel
+              </button>
+              <button className="secondary" onClick={confirmUpdate}>
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
     </section>
   );
 }

@@ -194,10 +194,40 @@ pre {
 .detail-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.secondary {
+  background: #2f6fed;
 }
 
 .danger {
   background: #b42318;
+}
+
+
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(16 33 31 / 45%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  width: min(520px, 100%);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 20%);
+}
+
+.modal-large {
+  width: min(760px, 100%);
 }
 
 .error {
