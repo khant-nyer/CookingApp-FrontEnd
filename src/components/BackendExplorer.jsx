@@ -1,55 +1,40 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 
-function JsonEditor({ value, onChange }) {
+const tabs = ['foods', 'ingredients', 'recipes'];
+
+function getItemId(item) {
+  return item?.id || item?._id;
+}
+
+function getRecipeTileId(recipe, index) {
+  return getItemId(recipe) || `${recipe?.foodId || 'food'}-${recipe?.version || 'version'}-${index}`;
+}
+
+function GalleryTile({ imageUrl, fallbackText, onClick, isSelected, subtitle }) {
   return (
-    <textarea
-      rows={7}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className="json-editor"
-      spellCheck={false}
-    />
+    <button className={isSelected ? 'gallery-tile selected' : 'gallery-tile'} onClick={onClick}>
+      {imageUrl ? (
+        <img src={imageUrl} alt={fallbackText} className="gallery-image" />
+      ) : (
+        <div className="gallery-fallback">{fallbackText}</div>
+      )}
+      <div className="gallery-caption">{fallbackText}</div>
+      {subtitle ? <div className="gallery-subtitle">{subtitle}</div> : null}
+    </button>
   );
 }
 
-function parseJson(value) {
-  try {
-    return { data: JSON.parse(value), error: '' };
-  } catch {
-    return { data: null, error: 'Invalid JSON payload.' };
-  }
-}
-
-function ListCard({ title, items, onDelete, onUpdate, idKeys = ['id'] }) {
+function DetailCard({ title, payload, onDelete }) {
   return (
-    <div className="card">
+    <div className="card detail-card">
       <h3>{title}</h3>
-      {!items.length && <p className="muted">No records.</p>}
-      <ul className="recipe-list">
-        {items.map((item, index) => {
-          const itemId = idKeys.map((key) => item?.[key]).find(Boolean);
-          return (
-            <li key={itemId || index}>
-              <pre>{JSON.stringify(item, null, 2)}</pre>
-              {(onUpdate || onDelete) && itemId ? (
-                <div className="item-actions">
-                  {onUpdate ? (
-                    <button className="secondary" onClick={() => onUpdate(itemId)}>
-                      Update
-                    </button>
-                  ) : null}
-                  {onDelete ? (
-                    <button className="danger" onClick={() => onDelete(itemId)}>
-                      Delete
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
+      <pre>{JSON.stringify(payload, null, 2)}</pre>
+      <div className="detail-actions">
+        <button className="danger" onClick={onDelete}>
+          Delete
+        </button>
+      </div>
     </div>
   );
 }
@@ -59,27 +44,26 @@ export default function BackendExplorer() {
   const [foods, setFoods] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [recipes, setRecipes] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
 
-  const [foodPayload, setFoodPayload] = useState(
-    '{\n  "name": "Tom Yum",\n  "category": "Thai",\n  "recipes": []\n}'
-  );
-  const [ingredientPayload, setIngredientPayload] = useState(
-    '{\n  "name": "Shrimp",\n  "category": "Seafood",\n  "description": "Fresh shrimp",\n  "servingAmount": 100,\n  "servingUnit": "G",\n  "nutritionList": [],\n  "nearbyStoreListings": []\n}'
-  );
-  const [recipePayload, setRecipePayload] = useState(
-    '{\n  "version": "v1",\n  "description": "Boil broth, add herbs, season, then add shrimp.",\n  "foodId": 1,\n  "ingredients": [\n    {\n      "ingredientId": 1,\n      "quantity": 100,\n      "unit": "G"\n    }\n  ],\n  "instructions": [\n    {\n      "stepNumber": 1,\n      "description": "Prepare ingredients"\n    },\n    {\n      "stepNumber": 2,\n      "description": "Cook and season"\n    }\n  ]\n}'
-  );
-
-  const [ingredientQuery, setIngredientQuery] = useState('shrimp');
-  const [nutritionQuery, setNutritionQuery] = useState({ nutrient: 'protein', minValue: '10' });
-  const [discoverQuery, setDiscoverQuery] = useState({ ingredientName: 'shrimp', city: 'Bangkok', userId: '' });
-
-  const [searchResults, setSearchResults] = useState([]);
-  const [nutritionResults, setNutritionResults] = useState([]);
-  const [discoverResults, setDiscoverResults] = useState([]);
-  const [foodRecipeStatus, setFoodRecipeStatus] = useState(null);
-  const [foodStatusId, setFoodStatusId] = useState('1');
-  const [selectedFoodId, setSelectedFoodId] = useState('');
+  const [foodForm, setFoodForm] = useState({ name: '', category: '', imageUrl: '' });
+  const [ingredientForm, setIngredientForm] = useState({
+    name: '',
+    category: '',
+    description: '',
+    servingAmount: '100',
+    servingUnit: 'G',
+    imageUrl: ''
+  });
+  const [recipeForm, setRecipeForm] = useState({
+    foodId: '',
+    version: 'v1',
+    description: '',
+    ingredientId: '',
+    quantity: '100',
+    unit: 'G',
+    instruction: ''
+  });
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -107,6 +91,10 @@ export default function BackendExplorer() {
     loadAll();
   }, []);
 
+  useEffect(() => {
+    setSelectedId('');
+  }, [activeTab]);
+
   async function run(action) {
     setLoading(true);
     setError('');
@@ -120,216 +108,300 @@ export default function BackendExplorer() {
   }
 
   async function createFood() {
-    const parsed = parseJson(foodPayload);
-    if (parsed.error) return setError(parsed.error);
-    await run(() => api.createFood(parsed.data));
+    if (!foodForm.name.trim()) {
+      setError('Food name is required.');
+      return;
+    }
+    await run(() =>
+      api.createFood({
+        name: foodForm.name.trim(),
+        category: foodForm.category.trim(),
+        imageUrl: foodForm.imageUrl.trim() || null,
+        recipes: []
+      })
+    );
+    setFoodForm({ name: '', category: '', imageUrl: '' });
   }
 
   async function createIngredient() {
-    const parsed = parseJson(ingredientPayload);
-    if (parsed.error) return setError(parsed.error);
-    await run(() => api.createIngredient(parsed.data));
+    if (!ingredientForm.name.trim()) {
+      setError('Ingredient name is required.');
+      return;
+    }
+    await run(() =>
+      api.createIngredient({
+        name: ingredientForm.name.trim(),
+        category: ingredientForm.category.trim(),
+        description: ingredientForm.description.trim(),
+        servingAmount: Number(ingredientForm.servingAmount || 0),
+        servingUnit: ingredientForm.servingUnit.trim() || 'G',
+        imageUrl: ingredientForm.imageUrl.trim() || null,
+        nutritionList: [],
+        nearbyStoreListings: []
+      })
+    );
+    setIngredientForm({
+      name: '',
+      category: '',
+      description: '',
+      servingAmount: '100',
+      servingUnit: 'G',
+      imageUrl: ''
+    });
   }
 
   async function createRecipe() {
-    const parsed = parseJson(recipePayload);
-    if (parsed.error) return setError(parsed.error);
-    if (!selectedFoodId) {
-      setError('Please select a food first.');
+    if (!recipeForm.foodId) {
+      setError('Please select food for recipe.');
       return;
     }
-    await run(() => api.createRecipeForFoodViaRecipeApi(selectedFoodId, parsed.data));
-  }
-
-  async function getFoodStatus() {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await api.getFoodRecipeStatus(foodStatusId);
-      setFoodRecipeStatus(data);
-    } catch (statusError) {
-      setError(statusError.message);
-    } finally {
-      setLoading(false);
+    if (!recipeForm.version.trim()) {
+      setError('Recipe version is required.');
+      return;
     }
+
+    const ingredientId = Number(recipeForm.ingredientId);
+    await run(() =>
+      api.createRecipeForFoodViaRecipeApi(recipeForm.foodId, {
+        version: recipeForm.version.trim(),
+        description: recipeForm.description.trim(),
+        foodId: Number(recipeForm.foodId),
+        ingredients: Number.isFinite(ingredientId)
+          ? [
+              {
+                ingredientId,
+                quantity: Number(recipeForm.quantity || 0),
+                unit: recipeForm.unit.trim() || 'G'
+              }
+            ]
+          : [],
+        instructions: recipeForm.instruction.trim()
+          ? [{ stepNumber: 1, description: recipeForm.instruction.trim() }]
+          : []
+      })
+    );
   }
 
-  async function searchByName() {
-    setLoading(true);
-    setError('');
-    try {
-      setSearchResults(await api.searchIngredientsByName(ingredientQuery));
-    } catch (searchError) {
-      setError(searchError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function searchByNutrition() {
-    setLoading(true);
-    setError('');
-    try {
-      setNutritionResults(
-        await api.searchIngredientsByNutrition(nutritionQuery.nutrient, nutritionQuery.minValue)
-      );
-    } catch (searchError) {
-      setError(searchError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function updateIngredientById(id) {
-    const parsed = parseJson(ingredientPayload);
-    if (parsed.error) return setError(parsed.error);
-    await run(() => api.updateIngredient(id, parsed.data));
-  }
-
-  async function updateRecipeById(id) {
-    const parsed = parseJson(recipePayload);
-    if (parsed.error) return setError(parsed.error);
-    await run(() => api.updateRecipe(id, parsed.data));
-  }
-
-  async function discoverSupermarkets() {
-    setLoading(true);
-    setError('');
-    try {
-      setDiscoverResults(
-        await api.discoverSupermarkets(discoverQuery.ingredientName, discoverQuery.city, discoverQuery.userId)
-      );
-    } catch (discoverError) {
-      setError(discoverError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const selectedFood = useMemo(() => foods.find((item) => String(getItemId(item)) === String(selectedId)), [foods, selectedId]);
+  const selectedIngredient = useMemo(
+    () => ingredients.find((item) => String(getItemId(item)) === String(selectedId)),
+    [ingredients, selectedId]
+  );
+  const selectedRecipe = useMemo(
+    () => recipes.find((item, index) => String(getRecipeTileId(item, index)) === String(selectedId)),
+    [recipes, selectedId]
+  );
 
   return (
     <section>
-      <div className="tab-row">
-        {['foods', 'ingredients', 'recipes'].map((tab) => (
-          <button
-            key={tab}
-            className={tab === activeTab ? 'tab active' : 'tab'}
-            onClick={() => setActiveTab(tab)}
-          >
+      <nav className="nav-row">
+        {tabs.map((tab) => (
+          <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => setActiveTab(tab)}>
             {tab}
           </button>
         ))}
         <button onClick={loadAll}>{loading ? 'Loading…' : 'Refresh all'}</button>
-      </div>
+      </nav>
 
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'foods' && (
         <div className="grid">
           <div className="card">
-            <h3>Create food (POST /api/foods)</h3>
-            <p className="muted">Required: <code>name</code>. Optional: <code>category</code>, <code>recipes</code>.</p>
-            <JsonEditor value={foodPayload} onChange={setFoodPayload} />
-            <button onClick={createFood}>Create food</button>
+            <h3>Create Food</h3>
+            <div className="form">
+              <input
+                placeholder="Name"
+                value={foodForm.name}
+                onChange={(event) => setFoodForm((prev) => ({ ...prev, name: event.target.value }))}
+              />
+              <input
+                placeholder="Category"
+                value={foodForm.category}
+                onChange={(event) => setFoodForm((prev) => ({ ...prev, category: event.target.value }))}
+              />
+              <input
+                placeholder="Image URL"
+                value={foodForm.imageUrl}
+                onChange={(event) => setFoodForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+              />
+              <button onClick={createFood}>Create Food</button>
+            </div>
 
-            <h3>Food recipe status (GET /api/foods/{'{id}'}/recipe-status)</h3>
-            <input value={foodStatusId} onChange={(e) => setFoodStatusId(e.target.value)} placeholder="Food ID" />
-            <button onClick={getFoodStatus}>Get status</button>
-            {foodRecipeStatus && <pre>{JSON.stringify(foodRecipeStatus, null, 2)}</pre>}
+            <div className="gallery-grid">
+              {foods.map((food) => {
+                const id = getItemId(food);
+                return (
+                  <GalleryTile
+                    key={id || food.name}
+                    imageUrl={food.imageUrl}
+                    fallbackText={food.name || 'Unnamed food'}
+                    isSelected={String(id) === String(selectedId)}
+                    onClick={() => setSelectedId(id)}
+                  />
+                );
+              })}
+            </div>
           </div>
 
-          <ListCard title="Foods" items={foods} onDelete={(id) => run(() => api.deleteFood(id))} />
+          {selectedFood ? (
+            <DetailCard title={selectedFood.name || 'Food details'} payload={selectedFood} onDelete={() => run(() => api.deleteFood(getItemId(selectedFood)))} />
+          ) : (
+            <div className="card muted">Select a food image to view details.</div>
+          )}
         </div>
       )}
 
       {activeTab === 'ingredients' && (
         <div className="grid">
           <div className="card">
-            <h3>Create ingredient (POST /api/ingredients)</h3>
-            <p className="muted">
-              Required: <code>name</code>, <code>servingAmount</code>, <code>servingUnit</code>.
-            </p>
-            <JsonEditor value={ingredientPayload} onChange={setIngredientPayload} />
-            <button onClick={createIngredient}>Create ingredient</button>
+            <h3>Create Ingredient</h3>
+            <div className="form">
+              <input
+                placeholder="Name"
+                value={ingredientForm.name}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, name: event.target.value }))}
+              />
+              <input
+                placeholder="Category"
+                value={ingredientForm.category}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, category: event.target.value }))}
+              />
+              <input
+                placeholder="Description"
+                value={ingredientForm.description}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, description: event.target.value }))}
+              />
+              <input
+                placeholder="Serving Amount"
+                type="number"
+                value={ingredientForm.servingAmount}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, servingAmount: event.target.value }))}
+              />
+              <input
+                placeholder="Serving Unit"
+                value={ingredientForm.servingUnit}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, servingUnit: event.target.value }))}
+              />
+              <input
+                placeholder="Image URL"
+                value={ingredientForm.imageUrl}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+              />
+              <button onClick={createIngredient}>Create Ingredient</button>
+            </div>
 
-            <h3>Search by name</h3>
-            <input value={ingredientQuery} onChange={(e) => setIngredientQuery(e.target.value)} />
-            <button onClick={searchByName}>Search</button>
-            {searchResults.length > 0 && <pre>{JSON.stringify(searchResults, null, 2)}</pre>}
-
-            <h3>Search by nutrition</h3>
-            <input
-              value={nutritionQuery.nutrient}
-              onChange={(e) => setNutritionQuery((prev) => ({ ...prev, nutrient: e.target.value }))}
-              placeholder="nutrient"
-            />
-            <input
-              value={nutritionQuery.minValue}
-              onChange={(e) => setNutritionQuery((prev) => ({ ...prev, minValue: e.target.value }))}
-              placeholder="minValue"
-            />
-            <button onClick={searchByNutrition}>Search nutrition</button>
-            {nutritionResults.length > 0 && <pre>{JSON.stringify(nutritionResults, null, 2)}</pre>}
-
-            <h3>Discover supermarkets</h3>
-            <input
-              value={discoverQuery.ingredientName}
-              onChange={(e) => setDiscoverQuery((prev) => ({ ...prev, ingredientName: e.target.value }))}
-              placeholder="ingredientName"
-            />
-            <input
-              value={discoverQuery.city}
-              onChange={(e) => setDiscoverQuery((prev) => ({ ...prev, city: e.target.value }))}
-              placeholder="city"
-            />
-            <input
-              value={discoverQuery.userId}
-              onChange={(e) => setDiscoverQuery((prev) => ({ ...prev, userId: e.target.value }))}
-              placeholder="userId (optional)"
-            />
-            <button onClick={discoverSupermarkets}>Discover</button>
-            {discoverResults.length > 0 && <pre>{JSON.stringify(discoverResults, null, 2)}</pre>}
+            <div className="gallery-grid">
+              {ingredients.map((ingredient) => {
+                const id = getItemId(ingredient);
+                return (
+                  <GalleryTile
+                    key={id || ingredient.name}
+                    imageUrl={ingredient.imageUrl}
+                    fallbackText={ingredient.name || 'Unnamed ingredient'}
+                    isSelected={String(id) === String(selectedId)}
+                    onClick={() => setSelectedId(id)}
+                  />
+                );
+              })}
+            </div>
           </div>
 
-          <ListCard
-            title="Ingredients"
-            items={ingredients}
-            onUpdate={updateIngredientById}
-            onDelete={(id) => run(() => api.deleteIngredient(id))}
-          />
+          {selectedIngredient ? (
+            <DetailCard
+              title={selectedIngredient.name || 'Ingredient details'}
+              payload={selectedIngredient}
+              onDelete={() => run(() => api.deleteIngredient(getItemId(selectedIngredient)))}
+            />
+          ) : (
+            <div className="card muted">Select an ingredient image to view details.</div>
+          )}
         </div>
       )}
 
       {activeTab === 'recipes' && (
         <div className="grid">
           <div className="card">
-            <h3>Create recipe for selected food (POST /api/recipes/foods/{'{foodId}'})</h3>
-            <p className="muted">
-              Required: <code>version</code>, at least one <code>ingredients</code> item, and one{' '}
-              <code>instructions</code> item.
-            </p>
-            <label>
-              Select food
-              <select value={selectedFoodId} onChange={(event) => setSelectedFoodId(event.target.value)}>
-                <option value="">-- Select food --</option>
+            <h3>Create Recipe</h3>
+            <div className="form">
+              <select
+                value={recipeForm.foodId}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, foodId: event.target.value }))}
+              >
+                <option value="">Select food</option>
                 {foods.map((food) => (
-                  <option key={food.id} value={food.id}>
-                    {food.name} (ID: {food.id})
+                  <option key={getItemId(food)} value={getItemId(food)}>
+                    {food.name}
                   </option>
                 ))}
               </select>
-            </label>
-            <JsonEditor value={recipePayload} onChange={setRecipePayload} />
-            <button onClick={createRecipe} disabled={!selectedFoodId}>
-              Create recipe for selected food
-            </button>
+              <input
+                placeholder="Version"
+                value={recipeForm.version}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, version: event.target.value }))}
+              />
+              <input
+                placeholder="Description"
+                value={recipeForm.description}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, description: event.target.value }))}
+              />
+              <select
+                value={recipeForm.ingredientId}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, ingredientId: event.target.value }))}
+              >
+                <option value="">Select ingredient (optional)</option>
+                {ingredients.map((ingredient) => (
+                  <option key={getItemId(ingredient)} value={getItemId(ingredient)}>
+                    {ingredient.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                placeholder="Quantity"
+                type="number"
+                value={recipeForm.quantity}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, quantity: event.target.value }))}
+              />
+              <input
+                placeholder="Unit"
+                value={recipeForm.unit}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, unit: event.target.value }))}
+              />
+              <input
+                placeholder="Instruction"
+                value={recipeForm.instruction}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, instruction: event.target.value }))}
+              />
+              <button onClick={createRecipe}>Create Recipe</button>
+            </div>
+
+            <div className="gallery-grid">
+              {recipes.map((recipe, index) => {
+                const id = getRecipeTileId(recipe, index);
+                const foodName = recipe.foodName || foods.find((food) => food.id === recipe.foodId)?.name || 'Food';
+                return (
+                  <GalleryTile
+                    key={id}
+                    imageUrl={null}
+                    fallbackText={foodName}
+                    subtitle={recipe.version || 'No version'}
+                    isSelected={String(id) === String(selectedId)}
+                    onClick={() => setSelectedId(id)}
+                  />
+                );
+              })}
+            </div>
           </div>
 
-          <ListCard
-            title="Recipes"
-            items={recipes}
-            onUpdate={updateRecipeById}
-            onDelete={(id) => run(() => api.deleteRecipe(id))}
-          />
+          {selectedRecipe ? (
+            <DetailCard
+              title={`${selectedRecipe.foodName || 'Recipe'} ${selectedRecipe.version ? `(${selectedRecipe.version})` : ''}`}
+              payload={selectedRecipe}
+              onDelete={() => run(() => api.deleteRecipe(getItemId(selectedRecipe)))}
+            />
+          ) : (
+            <div className="card muted">Select a recipe card to view details.</div>
+          )}
         </div>
       )}
     </section>
