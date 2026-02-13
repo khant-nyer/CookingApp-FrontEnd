@@ -113,6 +113,10 @@ export default function BackendExplorer() {
   useEffect(() => { loadAll(); }, []);
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
+  useEffect(() => {
+    setSelectedId('');
+  }, [activeTab]);
+
   async function run(action) {
     setLoading(true);
     setError('');
