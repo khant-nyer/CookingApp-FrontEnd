@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 
-const tabs = ['foods', 'ingredients', 'recipes'];
+const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
 const nutrientOptions = [
   'PROTEIN',
   'CARBOHYDRATES',
@@ -78,6 +78,7 @@ export default function BackendExplorer() {
   const [ingredients, setIngredients] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [selectedId, setSelectedId] = useState('');
+  const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
 
   const [foodForm, setFoodForm] = useState({ name: '', category: '', imageUrl: '' });
   const [ingredientForm, setIngredientForm] = useState({
@@ -292,6 +293,15 @@ export default function BackendExplorer() {
   const selectedRecipe = useMemo(
     () => recipes.find((item, index) => String(getRecipeTileId(item, index)) === String(selectedId)),
     [recipes, selectedId]
+  );
+
+  const nutrientFilteredIngredients = useMemo(
+    () =>
+      ingredients.filter((ingredient) =>
+        Array.isArray(ingredient?.nutritionList) &&
+        ingredient.nutritionList.some((nutrition) => nutrition?.nutrient === selectedNutrient)
+      ),
+    [ingredients, selectedNutrient]
   );
 
   return (
@@ -760,6 +770,47 @@ export default function BackendExplorer() {
           ) : (
             <div className="card muted">Select a recipe card to view details.</div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'nutrition' && (
+        <div className="grid">
+          <div className="card">
+            <h3>Nutrients</h3>
+            <p className="muted">Select a nutrient to view ingredients containing it.</p>
+            <div className="nutrient-grid">
+              {nutrientOptions.map((nutrient) => (
+                <button
+                  key={nutrient}
+                  className={nutrient === selectedNutrient ? 'tab active' : 'tab'}
+                  onClick={() => setSelectedNutrient(nutrient)}
+                >
+                  {nutrient}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="card">
+            <h3>Ingredients with {selectedNutrient}</h3>
+            {!nutrientFilteredIngredients.length ? (
+              <p className="muted">No ingredients found with this nutrient.</p>
+            ) : null}
+            <div className="gallery-grid">
+              {nutrientFilteredIngredients.map((ingredient) => (
+                <GalleryTile
+                  key={getItemId(ingredient) || ingredient.name}
+                  imageUrl={ingredient.imageUrl}
+                  fallbackText={ingredient.name || 'Unnamed ingredient'}
+                  subtitle={(() => {
+                    const match = ingredient.nutritionList?.find((item) => item.nutrient === selectedNutrient);
+                    return match ? `${match.value} ${match.unit}` : '';
+                  })()}
+                  onClick={() => setActiveTab('ingredients')}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </section>

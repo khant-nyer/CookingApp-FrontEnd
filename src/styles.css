@@ -113,6 +113,15 @@ button:disabled {
   margin-top: 0.5rem;
 }
 
+.nutrient-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  max-height: 360px;
+  overflow: auto;
+}
+
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
