@@ -251,6 +251,11 @@ pre {
   .grid {
     grid-template-columns: 1fr;
   }
+
+  .inline-builder,
+  .summary-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 760px) {
