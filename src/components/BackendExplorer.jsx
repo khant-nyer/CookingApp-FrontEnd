@@ -113,10 +113,6 @@ export default function BackendExplorer() {
   useEffect(() => { loadAll(); }, []);
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
-  useEffect(() => {
-    setSelectedId('');
-  }, [activeTab]);
-
   async function run(action) {
     setLoading(true);
     setError('');
@@ -504,7 +500,24 @@ export default function BackendExplorer() {
                 </div>
                 <input placeholder="Image URL" value={updateModal.form.imageUrl} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, imageUrl: e.target.value } }))} />
                 <div className="summary-box">
-                  <strong>Nutrition</strong>
+                  <div className="summary-head">
+                    <strong>Nutrition</strong>
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() =>
+                        setUpdateModal((prev) => ({
+                          ...prev,
+                          form: {
+                            ...prev.form,
+                            nutritionList: [...(prev.form.nutritionList || []), { nutrient: 'CALORIES', value: '', unit: 'G' }]
+                          }
+                        }))
+                      }
+                    >
+                      Add Nutrition
+                    </button>
+                  </div>
                   {updateModal.form.nutritionList.map((nutrition, index) => (
                     <div key={`upd-nut-${index}`} className="summary-row">
                       <select value={nutrition.nutrient} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((n, idx) => idx === index ? { ...n, nutrient: e.target.value } : n) } }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
@@ -526,23 +539,81 @@ export default function BackendExplorer() {
                 <input placeholder="Version" value={updateModal.form.version} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, version: e.target.value } }))} />
                 <input placeholder="Description" value={updateModal.form.description} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, description: e.target.value } }))} />
                 <div className="summary-box">
-                  <strong>Ingredients</strong>
+                  <div className="summary-head">
+                    <strong>Ingredients</strong>
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() =>
+                        setUpdateModal((prev) => ({
+                          ...prev,
+                          form: {
+                            ...prev.form,
+                            ingredients: [...(prev.form.ingredients || []), { ingredientId: '', quantity: '', unit: 'G', note: '' }]
+                          }
+                        }))
+                      }
+                    >
+                      Add Ingredient
+                    </button>
+                  </div>
                   {updateModal.form.ingredients.map((ri, index) => (
                     <div key={`upd-ri-${index}`} className="summary-row">
                       <select value={ri.ingredientId} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, ingredients: prev.form.ingredients.map((x, idx) => idx === index ? { ...x, ingredientId: e.target.value } : x) } }))}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
                       <input type="number" value={ri.quantity} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, ingredients: prev.form.ingredients.map((x, idx) => idx === index ? { ...x, quantity: e.target.value } : x) } }))} />
                       <select value={ri.unit} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, ingredients: prev.form.ingredients.map((x, idx) => idx === index ? { ...x, unit: e.target.value } : x) } }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
                       <input value={ri.note} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, ingredients: prev.form.ingredients.map((x, idx) => idx === index ? { ...x, note: e.target.value } : x) } }))} />
+                      <button
+                        type="button"
+                        className="danger"
+                        onClick={() =>
+                          setUpdateModal((prev) => ({
+                            ...prev,
+                            form: { ...prev.form, ingredients: prev.form.ingredients.filter((_, idx) => idx !== index) }
+                          }))
+                        }
+                      >
+                        Remove
+                      </button>
                     </div>
                   ))}
                 </div>
                 <div className="summary-box">
-                  <strong>Instructions</strong>
+                  <div className="summary-head">
+                    <strong>Instructions</strong>
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() =>
+                        setUpdateModal((prev) => ({
+                          ...prev,
+                          form: {
+                            ...prev.form,
+                            instructions: [...(prev.form.instructions || []), { description: '', tutorialVideoUrl: '' }]
+                          }
+                        }))
+                      }
+                    >
+                      Add Step
+                    </button>
+                  </div>
                   {updateModal.form.instructions.map((ins, index) => (
                     <div key={`upd-ins-${index}`} className="summary-row">
                       <input type="number" value={index + 1} readOnly />
                       <input value={ins.description} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, instructions: prev.form.instructions.map((x, idx) => idx === index ? { ...x, description: e.target.value } : x) } }))} />
                       <input value={ins.tutorialVideoUrl} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, instructions: prev.form.instructions.map((x, idx) => idx === index ? { ...x, tutorialVideoUrl: e.target.value } : x) } }))} />
+                      <button
+                        type="button"
+                        className="danger"
+                        onClick={() =>
+                          setUpdateModal((prev) => ({
+                            ...prev,
+                            form: { ...prev.form, instructions: prev.form.instructions.filter((_, idx) => idx !== index) }
+                          }))
+                        }
+                      >
+                        Remove
+                      </button>
                     </div>
                   ))}
                 </div>

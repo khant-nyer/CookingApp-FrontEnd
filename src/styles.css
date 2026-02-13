@@ -108,6 +108,19 @@ button:disabled {
   background: #fbfdfc;
 }
 
+.summary-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.summary-head .secondary {
+  padding: 0.35rem 0.55rem;
+  font-size: 0.85rem;
+}
+
 .summary-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
@@ -323,6 +336,26 @@ pre {
 }
 
 @media (max-width: 760px) {
+  .inline-builder,
+  .summary-row {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .summary-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .inline-builder,
   .summary-row {
     grid-template-columns: 1fr;
