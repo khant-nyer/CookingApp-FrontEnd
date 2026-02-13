@@ -164,6 +164,21 @@ pre {
   justify-content: flex-end;
 }
 
+
+.item-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.secondary {
+  background: #2f6fed;
+}
+
+.item-actions .danger {
+  margin-top: 0;
+}
+
 .danger {
   background: #b42318;
 }
