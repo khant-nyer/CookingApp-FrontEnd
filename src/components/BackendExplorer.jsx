@@ -2,7 +2,39 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 
 const tabs = ['foods', 'ingredients', 'recipes'];
-const nutrientOptions = ['CALORIES', 'CARBOHYDRATES', 'FAT', 'IRON', 'PROTEIN', 'SODIUM', 'SUGAR'];
+const nutrientOptions = [
+  'PROTEIN',
+  'CARBOHYDRATES',
+  'FAT',
+  'FIBER',
+  'DIETARY_FIBER',
+  'SUGAR',
+  'CALORIES',
+  'SATURATED_FAT',
+  'TRANS_FAT',
+  'OMEGA_3',
+  'OMEGA_6',
+  'SODIUM',
+  'POTASSIUM',
+  'CALCIUM',
+  'IRON',
+  'MAGNESIUM',
+  'ZINC',
+  'VITAMIN_A',
+  'VITAMIN_B1',
+  'VITAMIN_B2',
+  'VITAMIN_B3',
+  'VITAMIN_B6',
+  'VITAMIN_B9',
+  'SELENIUM',
+  'VITAMIN_C',
+  'VITAMIN_D',
+  'VITAMIN_E',
+  'VITAMIN_K',
+  'VITAMIN_B12'
+];
+
+const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
 
 function getItemId(item) {
   return item?.id || item?._id;
@@ -56,7 +88,7 @@ export default function BackendExplorer() {
     servingUnit: 'G',
     imageUrl: ''
   });
-  const [nutritionDraft, setNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'kcal' });
+  const [nutritionDraft, setNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'G' });
   const [ingredientNutritions, setIngredientNutritions] = useState([]);
 
   const [recipeForm, setRecipeForm] = useState({ foodId: '', version: 'v1', description: '' });
@@ -122,7 +154,7 @@ export default function BackendExplorer() {
       {
         nutrient: nutritionDraft.nutrient,
         value: Number(nutritionDraft.value),
-        unit: nutritionDraft.unit.trim()
+        unit: nutritionDraft.unit
       }
     ]);
     setNutritionDraft((prev) => ({ ...prev, value: '' }));
@@ -156,7 +188,7 @@ export default function BackendExplorer() {
         category: ingredientForm.category.trim(),
         description: ingredientForm.description.trim(),
         servingAmount: Number(ingredientForm.servingAmount || 0),
-        servingUnit: ingredientForm.servingUnit.trim() || 'G',
+        servingUnit: ingredientForm.servingUnit || 'G',
         imageUrl: ingredientForm.imageUrl.trim() || null,
         nutritionList: ingredientNutritions,
         nearbyStoreListings: []
@@ -172,7 +204,7 @@ export default function BackendExplorer() {
       imageUrl: ''
     });
     setIngredientNutritions([]);
-    setNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'kcal' });
+    setNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
   }
 
   function addRecipeIngredient() {
@@ -280,9 +312,21 @@ export default function BackendExplorer() {
           <div className="card">
             <h3>Create Food</h3>
             <div className="form">
-              <input placeholder="Name" value={foodForm.name} onChange={(event) => setFoodForm((prev) => ({ ...prev, name: event.target.value }))} />
-              <input placeholder="Category" value={foodForm.category} onChange={(event) => setFoodForm((prev) => ({ ...prev, category: event.target.value }))} />
-              <input placeholder="Image URL" value={foodForm.imageUrl} onChange={(event) => setFoodForm((prev) => ({ ...prev, imageUrl: event.target.value }))} />
+              <input
+                placeholder="Name"
+                value={foodForm.name}
+                onChange={(event) => setFoodForm((prev) => ({ ...prev, name: event.target.value }))}
+              />
+              <input
+                placeholder="Category"
+                value={foodForm.category}
+                onChange={(event) => setFoodForm((prev) => ({ ...prev, category: event.target.value }))}
+              />
+              <input
+                placeholder="Image URL"
+                value={foodForm.imageUrl}
+                onChange={(event) => setFoodForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+              />
               <button onClick={createFood}>Create Food</button>
             </div>
 
@@ -303,7 +347,11 @@ export default function BackendExplorer() {
           </div>
 
           {selectedFood ? (
-            <DetailCard title={selectedFood.name || 'Food details'} payload={selectedFood} onDelete={() => run(() => api.deleteFood(getItemId(selectedFood)))} />
+            <DetailCard
+              title={selectedFood.name || 'Food details'}
+              payload={selectedFood}
+              onDelete={() => run(() => api.deleteFood(getItemId(selectedFood)))}
+            />
           ) : (
             <div className="card muted">Select a food image to view details.</div>
           )}
@@ -315,23 +363,72 @@ export default function BackendExplorer() {
           <div className="card">
             <h3>Create Ingredient</h3>
             <div className="form">
-              <input placeholder="Name" value={ingredientForm.name} onChange={(event) => setIngredientForm((prev) => ({ ...prev, name: event.target.value }))} />
-              <input placeholder="Category" value={ingredientForm.category} onChange={(event) => setIngredientForm((prev) => ({ ...prev, category: event.target.value }))} />
-              <input placeholder="Description" value={ingredientForm.description} onChange={(event) => setIngredientForm((prev) => ({ ...prev, description: event.target.value }))} />
-              <input placeholder="Serving Amount" type="number" value={ingredientForm.servingAmount} onChange={(event) => setIngredientForm((prev) => ({ ...prev, servingAmount: event.target.value }))} />
-              <input placeholder="Serving Unit" value={ingredientForm.servingUnit} onChange={(event) => setIngredientForm((prev) => ({ ...prev, servingUnit: event.target.value }))} />
-              <input placeholder="Image URL" value={ingredientForm.imageUrl} onChange={(event) => setIngredientForm((prev) => ({ ...prev, imageUrl: event.target.value }))} />
+              <input
+                placeholder="Name"
+                value={ingredientForm.name}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, name: event.target.value }))}
+              />
+              <input
+                placeholder="Category"
+                value={ingredientForm.category}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, category: event.target.value }))}
+              />
+              <input
+                placeholder="Description"
+                value={ingredientForm.description}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, description: event.target.value }))}
+              />
+              <input
+                placeholder="Serving Amount"
+                type="number"
+                value={ingredientForm.servingAmount}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, servingAmount: event.target.value }))}
+              />
+              <select
+                value={ingredientForm.servingUnit}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, servingUnit: event.target.value }))}
+              >
+                {unitOptions.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
+              <input
+                placeholder="Image URL"
+                value={ingredientForm.imageUrl}
+                onChange={(event) => setIngredientForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+              />
             </div>
 
             <h4>Add Nutrition</h4>
             <div className="inline-builder">
-              <select value={nutritionDraft.nutrient} onChange={(event) => setNutritionDraft((prev) => ({ ...prev, nutrient: event.target.value }))}>
+              <select
+                value={nutritionDraft.nutrient}
+                onChange={(event) => setNutritionDraft((prev) => ({ ...prev, nutrient: event.target.value }))}
+              >
                 {nutrientOptions.map((option) => (
-                  <option key={option} value={option}>{option}</option>
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
                 ))}
               </select>
-              <input type="number" placeholder="Value" value={nutritionDraft.value} onChange={(event) => setNutritionDraft((prev) => ({ ...prev, value: event.target.value }))} />
-              <input placeholder="Unit" value={nutritionDraft.unit} onChange={(event) => setNutritionDraft((prev) => ({ ...prev, unit: event.target.value }))} />
+              <input
+                type="number"
+                placeholder="Value"
+                value={nutritionDraft.value}
+                onChange={(event) => setNutritionDraft((prev) => ({ ...prev, value: event.target.value }))}
+              />
+              <select
+                value={nutritionDraft.unit}
+                onChange={(event) => setNutritionDraft((prev) => ({ ...prev, unit: event.target.value }))}
+              >
+                {unitOptions.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
               <button onClick={addNutrition}>Add Nutrition</button>
             </div>
 
@@ -340,14 +437,57 @@ export default function BackendExplorer() {
               {!ingredientNutritions.length ? <p className="muted">No nutrition added yet.</p> : null}
               {ingredientNutritions.map((nutrition, index) => (
                 <div key={`${nutrition.nutrient}-${index}`} className="summary-row">
-                  <select value={nutrition.nutrient} onChange={(event) => setIngredientNutritions((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, nutrient: event.target.value } : item))}>
+                  <select
+                    value={nutrition.nutrient}
+                    onChange={(event) =>
+                      setIngredientNutritions((prev) =>
+                        prev.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, nutrient: event.target.value } : item
+                        )
+                      )
+                    }
+                  >
                     {nutrientOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
                     ))}
                   </select>
-                  <input type="number" value={nutrition.value} onChange={(event) => setIngredientNutritions((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, value: Number(event.target.value) } : item))} />
-                  <input value={nutrition.unit} onChange={(event) => setIngredientNutritions((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, unit: event.target.value } : item))} />
-                  <button className="danger" onClick={() => setIngredientNutritions((prev) => prev.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
+                  <input
+                    type="number"
+                    value={nutrition.value}
+                    onChange={(event) =>
+                      setIngredientNutritions((prev) =>
+                        prev.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, value: Number(event.target.value) } : item
+                        )
+                      )
+                    }
+                  />
+                  <select
+                    value={nutrition.unit}
+                    onChange={(event) =>
+                      setIngredientNutritions((prev) =>
+                        prev.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, unit: event.target.value } : item
+                        )
+                      )
+                    }
+                  >
+                    {unitOptions.map((unit) => (
+                      <option key={unit} value={unit}>
+                        {unit}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="danger"
+                    onClick={() =>
+                      setIngredientNutritions((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+                    }
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
             </div>
@@ -387,27 +527,69 @@ export default function BackendExplorer() {
           <div className="card">
             <h3>Create Recipe</h3>
             <div className="form">
-              <select value={recipeForm.foodId} onChange={(event) => setRecipeForm((prev) => ({ ...prev, foodId: event.target.value }))}>
+              <select
+                value={recipeForm.foodId}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, foodId: event.target.value }))}
+              >
                 <option value="">Select food</option>
                 {foods.map((food) => (
-                  <option key={getItemId(food)} value={getItemId(food)}>{food.name}</option>
+                  <option key={getItemId(food)} value={getItemId(food)}>
+                    {food.name}
+                  </option>
                 ))}
               </select>
-              <input placeholder="Version" value={recipeForm.version} onChange={(event) => setRecipeForm((prev) => ({ ...prev, version: event.target.value }))} />
-              <input placeholder="Description" value={recipeForm.description} onChange={(event) => setRecipeForm((prev) => ({ ...prev, description: event.target.value }))} />
+              <input
+                placeholder="Version"
+                value={recipeForm.version}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, version: event.target.value }))}
+              />
+              <input
+                placeholder="Description"
+                value={recipeForm.description}
+                onChange={(event) => setRecipeForm((prev) => ({ ...prev, description: event.target.value }))}
+              />
             </div>
 
             <h4>Add Recipe Ingredient</h4>
             <div className="inline-builder">
-              <select value={recipeIngredientDraft.ingredientId} onChange={(event) => setRecipeIngredientDraft((prev) => ({ ...prev, ingredientId: event.target.value }))}>
+              <select
+                value={recipeIngredientDraft.ingredientId}
+                onChange={(event) =>
+                  setRecipeIngredientDraft((prev) => ({ ...prev, ingredientId: event.target.value }))
+                }
+              >
                 <option value="">Select ingredient</option>
                 {ingredients.map((ingredient) => (
-                  <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>
+                  <option key={getItemId(ingredient)} value={getItemId(ingredient)}>
+                    {ingredient.name}
+                  </option>
                 ))}
               </select>
-              <input type="number" placeholder="Quantity" value={recipeIngredientDraft.quantity} onChange={(event) => setRecipeIngredientDraft((prev) => ({ ...prev, quantity: event.target.value }))} />
-              <input placeholder="Unit" value={recipeIngredientDraft.unit} onChange={(event) => setRecipeIngredientDraft((prev) => ({ ...prev, unit: event.target.value }))} />
-              <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(event) => setRecipeIngredientDraft((prev) => ({ ...prev, note: event.target.value }))} />
+              <input
+                type="number"
+                placeholder="Quantity"
+                value={recipeIngredientDraft.quantity}
+                onChange={(event) =>
+                  setRecipeIngredientDraft((prev) => ({ ...prev, quantity: event.target.value }))
+                }
+              />
+              <select
+                value={recipeIngredientDraft.unit}
+                onChange={(event) =>
+                  setRecipeIngredientDraft((prev) => ({ ...prev, unit: event.target.value }))
+                }
+              >
+                {unitOptions.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
+              <input
+                placeholder="Note"
+                value={recipeIngredientDraft.note}
+                onChange={(event) => setRecipeIngredientDraft((prev) => ({ ...prev, note: event.target.value }))}
+              />
               <button onClick={addRecipeIngredient}>Add Ingredient</button>
             </div>
 
@@ -416,23 +598,96 @@ export default function BackendExplorer() {
               {!recipeIngredients.length ? <p className="muted">No recipe ingredients added yet.</p> : null}
               {recipeIngredients.map((item, index) => (
                 <div key={`recipe-ingredient-${index}`} className="summary-row">
-                  <select value={item.ingredientId} onChange={(event) => setRecipeIngredients((prev) => prev.map((current, currentIndex) => currentIndex === index ? { ...current, ingredientId: Number(event.target.value), ingredientName: ingredients.find((candidate) => String(getItemId(candidate)) === String(event.target.value))?.name || '' } : current))}>
+                  <select
+                    value={item.ingredientId}
+                    onChange={(event) =>
+                      setRecipeIngredients((prev) =>
+                        prev.map((current, currentIndex) =>
+                          currentIndex === index
+                            ? {
+                                ...current,
+                                ingredientId: Number(event.target.value),
+                                ingredientName:
+                                  ingredients.find(
+                                    (candidate) => String(getItemId(candidate)) === String(event.target.value)
+                                  )?.name || ''
+                              }
+                            : current
+                        )
+                      )
+                    }
+                  >
                     {ingredients.map((ingredient) => (
-                      <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>
+                      <option key={getItemId(ingredient)} value={getItemId(ingredient)}>
+                        {ingredient.name}
+                      </option>
                     ))}
                   </select>
-                  <input type="number" value={item.quantity} onChange={(event) => setRecipeIngredients((prev) => prev.map((current, currentIndex) => currentIndex === index ? { ...current, quantity: Number(event.target.value) } : current))} />
-                  <input value={item.unit} onChange={(event) => setRecipeIngredients((prev) => prev.map((current, currentIndex) => currentIndex === index ? { ...current, unit: event.target.value } : current))} />
-                  <input value={item.note || ''} onChange={(event) => setRecipeIngredients((prev) => prev.map((current, currentIndex) => currentIndex === index ? { ...current, note: event.target.value } : current))} />
-                  <button className="danger" onClick={() => setRecipeIngredients((prev) => prev.filter((_, currentIndex) => currentIndex !== index))}>Remove</button>
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    onChange={(event) =>
+                      setRecipeIngredients((prev) =>
+                        prev.map((current, currentIndex) =>
+                          currentIndex === index ? { ...current, quantity: Number(event.target.value) } : current
+                        )
+                      )
+                    }
+                  />
+                  <select
+                    value={item.unit}
+                    onChange={(event) =>
+                      setRecipeIngredients((prev) =>
+                        prev.map((current, currentIndex) =>
+                          currentIndex === index ? { ...current, unit: event.target.value } : current
+                        )
+                      )
+                    }
+                  >
+                    {unitOptions.map((unit) => (
+                      <option key={unit} value={unit}>
+                        {unit}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    value={item.note || ''}
+                    onChange={(event) =>
+                      setRecipeIngredients((prev) =>
+                        prev.map((current, currentIndex) =>
+                          currentIndex === index ? { ...current, note: event.target.value } : current
+                        )
+                      )
+                    }
+                  />
+                  <button
+                    className="danger"
+                    onClick={() =>
+                      setRecipeIngredients((prev) => prev.filter((_, currentIndex) => currentIndex !== index))
+                    }
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
             </div>
 
             <h4>Add Instruction</h4>
             <div className="inline-builder">
-              <input placeholder="Instruction description" value={recipeInstructionDraft.description} onChange={(event) => setRecipeInstructionDraft((prev) => ({ ...prev, description: event.target.value }))} />
-              <input placeholder="Tutorial video URL (optional)" value={recipeInstructionDraft.tutorialVideoUrl} onChange={(event) => setRecipeInstructionDraft((prev) => ({ ...prev, tutorialVideoUrl: event.target.value }))} />
+              <input
+                placeholder="Instruction description"
+                value={recipeInstructionDraft.description}
+                onChange={(event) =>
+                  setRecipeInstructionDraft((prev) => ({ ...prev, description: event.target.value }))
+                }
+              />
+              <input
+                placeholder="Tutorial video URL (optional)"
+                value={recipeInstructionDraft.tutorialVideoUrl}
+                onChange={(event) =>
+                  setRecipeInstructionDraft((prev) => ({ ...prev, tutorialVideoUrl: event.target.value }))
+                }
+              />
               <button onClick={addRecipeInstruction}>Add Instruction</button>
             </div>
 
@@ -442,9 +697,36 @@ export default function BackendExplorer() {
               {recipeInstructions.map((item, index) => (
                 <div key={`recipe-instruction-${index}`} className="summary-row">
                   <input type="number" value={index + 1} readOnly />
-                  <input value={item.description} onChange={(event) => setRecipeInstructions((prev) => prev.map((current, currentIndex) => currentIndex === index ? { ...current, description: event.target.value } : current))} />
-                  <input value={item.tutorialVideoUrl || ''} onChange={(event) => setRecipeInstructions((prev) => prev.map((current, currentIndex) => currentIndex === index ? { ...current, tutorialVideoUrl: event.target.value } : current))} />
-                  <button className="danger" onClick={() => setRecipeInstructions((prev) => prev.filter((_, currentIndex) => currentIndex !== index))}>Remove</button>
+                  <input
+                    value={item.description}
+                    onChange={(event) =>
+                      setRecipeInstructions((prev) =>
+                        prev.map((current, currentIndex) =>
+                          currentIndex === index ? { ...current, description: event.target.value } : current
+                        )
+                      )
+                    }
+                  />
+                  <input
+                    value={item.tutorialVideoUrl || ''}
+                    onChange={(event) =>
+                      setRecipeInstructions((prev) =>
+                        prev.map((current, currentIndex) =>
+                          currentIndex === index
+                            ? { ...current, tutorialVideoUrl: event.target.value }
+                            : current
+                        )
+                      )
+                    }
+                  />
+                  <button
+                    className="danger"
+                    onClick={() =>
+                      setRecipeInstructions((prev) => prev.filter((_, currentIndex) => currentIndex !== index))
+                    }
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
             </div>
