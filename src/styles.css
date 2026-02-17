@@ -197,6 +197,76 @@ button:disabled {
   margin-top: 0.5rem;
 }
 
+.nutrient-picker {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.picker-chip-row,
+.picker-recent-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.chip {
+  background: #e8f4f2;
+  color: #104944;
+  padding: 0.24rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.chip.selected {
+  background: #0f766e;
+  color: #fff;
+}
+
+.picker-list {
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid #dce3e1;
+  border-radius: 8px;
+  padding: 0.3rem;
+  background: #fbfdfc;
+}
+
+.picker-group {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 0.45rem;
+}
+
+.picker-group strong {
+  font-size: 0.75rem;
+  color: #4f6462;
+}
+
+.picker-item {
+  display: grid;
+  grid-template-columns: 1.2rem 1fr auto;
+  gap: 0.35rem;
+  align-items: center;
+  text-align: left;
+  background: #fff;
+  color: #163a36;
+  border: 1px solid #dce3e1;
+  border-radius: 7px;
+  padding: 0.28rem 0.35rem;
+  font-size: 0.74rem;
+}
+
+.picker-item.highlighted {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 1px rgb(15 118 110 / 30%);
+}
+
+.picker-item small {
+  color: #5f7673;
+  font-size: 0.66rem;
+}
+
 .nutrition-summary-grid {
   grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
 }

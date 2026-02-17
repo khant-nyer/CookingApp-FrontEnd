@@ -2,20 +2,61 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 
 const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
-const nutrientOptions = [
-  'PROTEIN', 'CARBOHYDRATES', 'FAT', 'FIBER', 'DIETARY_FIBER', 'SUGAR', 'CALORIES',
-  'SATURATED_FAT', 'TRANS_FAT', 'OMEGA_3', 'OMEGA_6', 'SODIUM', 'POTASSIUM', 'CALCIUM', 'IRON',
-  'MAGNESIUM', 'ZINC', 'VITAMIN_A', 'VITAMIN_B1', 'VITAMIN_B2', 'VITAMIN_B3', 'VITAMIN_B6',
-  'VITAMIN_B9', 'SELENIUM', 'VITAMIN_C', 'VITAMIN_D', 'VITAMIN_E', 'VITAMIN_K', 'VITAMIN_B12'
+const nutrientCatalog = [
+  { key: 'CALORIES', short: 'CAL', group: 'Energy', icon: '🔥', aliases: ['energy', 'kcal'] },
+  { key: 'WATER', short: 'H2O', group: 'Other', icon: '💧', aliases: ['hydration'] },
+  { key: 'PROTEIN', short: 'PRO', group: 'Macros', icon: '💪', aliases: ['prot'] },
+  { key: 'CARBOHYDRATES', short: 'CARB', group: 'Macros', icon: '🍞', aliases: ['carbs'] },
+  { key: 'FAT', short: 'FAT', group: 'Macros', icon: '🥑', aliases: ['lipid'] },
+  { key: 'SUGAR', short: 'SUG', group: 'Macros', icon: '🍬', aliases: [] },
+  { key: 'FIBER', short: 'FIB', group: 'Macros', icon: '🌾', aliases: ['dietary fiber'] },
+  { key: 'DIETARY_FIBER', short: 'DFIB', group: 'Macros', icon: '🌿', aliases: ['fiber'] },
+  { key: 'SATURATED_FAT', short: 'SAT', group: 'Lipids', icon: '🧈', aliases: [] },
+  { key: 'TRANS_FAT', short: 'TRANS', group: 'Lipids', icon: '⚠️', aliases: [] },
+  { key: 'MONOUNSATURATED_FAT', short: 'MUFA', group: 'Lipids', icon: '🫒', aliases: [] },
+  { key: 'POLYUNSATURATED_FAT', short: 'PUFA', group: 'Lipids', icon: '🌰', aliases: [] },
+  { key: 'OMEGA_3', short: 'O3', group: 'Lipids', icon: '🐟', aliases: ['epa', 'dha'] },
+  { key: 'OMEGA_6', short: 'O6', group: 'Lipids', icon: '🥜', aliases: [] },
+  { key: 'CHOLESTEROL', short: 'CHOL', group: 'Lipids', icon: '🧪', aliases: [] },
+  { key: 'SODIUM', short: 'NA', group: 'Minerals', icon: '🧂', aliases: ['salt'] },
+  { key: 'POTASSIUM', short: 'K', group: 'Minerals', icon: '🍌', aliases: [] },
+  { key: 'CALCIUM', short: 'CA', group: 'Minerals', icon: '🦴', aliases: [] },
+  { key: 'IRON', short: 'FE', group: 'Minerals', icon: '🩸', aliases: [] },
+  { key: 'MAGNESIUM', short: 'MG', group: 'Minerals', icon: '⚙️', aliases: [] },
+  { key: 'ZINC', short: 'ZN', group: 'Minerals', icon: '🔩', aliases: [] },
+  { key: 'PHOSPHORUS', short: 'P', group: 'Minerals', icon: '⚗️', aliases: [] },
+  { key: 'COPPER', short: 'CU', group: 'Minerals', icon: '🟠', aliases: [] },
+  { key: 'MANGANESE', short: 'MN', group: 'Minerals', icon: '🟤', aliases: [] },
+  { key: 'SELENIUM', short: 'SE', group: 'Minerals', icon: '🧪', aliases: [] },
+  { key: 'IODINE', short: 'I', group: 'Minerals', icon: '🧂', aliases: [] },
+  { key: 'CHLORIDE', short: 'CL', group: 'Minerals', icon: '🫧', aliases: [] },
+  { key: 'VITAMIN_A', short: 'VA', group: 'Vitamins', icon: '🥕', aliases: [] },
+  { key: 'VITAMIN_B1', short: 'B1', group: 'Vitamins', icon: '🧠', aliases: ['thiamine'] },
+  { key: 'VITAMIN_B2', short: 'B2', group: 'Vitamins', icon: '⚡', aliases: ['riboflavin'] },
+  { key: 'VITAMIN_B3', short: 'B3', group: 'Vitamins', icon: '🌟', aliases: ['niacin'] },
+  { key: 'VITAMIN_B5', short: 'B5', group: 'Vitamins', icon: '✨', aliases: ['pantothenic acid'] },
+  { key: 'VITAMIN_B6', short: 'B6', group: 'Vitamins', icon: '🍗', aliases: [] },
+  { key: 'VITAMIN_B7', short: 'B7', group: 'Vitamins', icon: '💅', aliases: ['biotin'] },
+  { key: 'VITAMIN_B9', short: 'B9', group: 'Vitamins', icon: '🥬', aliases: ['folate', 'folic acid'] },
+  { key: 'VITAMIN_B12', short: 'B12', group: 'Vitamins', icon: '🥩', aliases: ['cobalamin'] },
+  { key: 'VITAMIN_C', short: 'VC', group: 'Vitamins', icon: '🍊', aliases: ['ascorbic'] },
+  { key: 'VITAMIN_D', short: 'VD', group: 'Vitamins', icon: '☀️', aliases: [] },
+  { key: 'VITAMIN_E', short: 'VE', group: 'Vitamins', icon: '🌻', aliases: [] },
+  { key: 'VITAMIN_K', short: 'VK', group: 'Vitamins', icon: '🥦', aliases: [] },
+  { key: 'CHOLINE', short: 'CHO', group: 'Vitamins', icon: '🧠', aliases: [] },
+  { key: 'ALCOHOL', short: 'ALC', group: 'Other', icon: '🍷', aliases: ['ethanol'] },
+  { key: 'CAFFEINE', short: 'CAF', group: 'Other', icon: '☕', aliases: [] }
 ];
+const nutrientOptions = nutrientCatalog.map((item) => item.key);
+const nutrientIcons = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.icon || '🧪']));
+const nutrientShortNames = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.short || item.key]));
+const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
+  acc[item.group] = acc[item.group] || [];
+  acc[item.group].push(item.key);
+  return acc;
+}, {});
+const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'FIBER', 'SUGAR', 'SODIUM', 'VITAMIN_C'];
 const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
-const nutrientIcons = {
-  CALORIES: '🔥', PROTEIN: '💪', CARBOHYDRATES: '🍞', FAT: '🥑', FIBER: '🌾', DIETARY_FIBER: '🌿',
-  SUGAR: '🍬', SATURATED_FAT: '🧈', TRANS_FAT: '⚠️', OMEGA_3: '🐟', OMEGA_6: '🌰', SODIUM: '🧂',
-  POTASSIUM: '🍌', CALCIUM: '🦴', IRON: '🩸', MAGNESIUM: '⚙️', ZINC: '🔩', VITAMIN_A: '🥕',
-  VITAMIN_B1: '🧠', VITAMIN_B2: '⚡', VITAMIN_B3: '🌟', VITAMIN_B6: '🍗', VITAMIN_B9: '🥬',
-  VITAMIN_B12: '🥩', VITAMIN_C: '🍊', VITAMIN_D: '☀️', VITAMIN_E: '🌻', VITAMIN_K: '🥦', SELENIUM: '🧪'
-};
 
 const nutrientShortNames = {
   CALORIES: 'CAL', PROTEIN: 'PRO', CARBOHYDRATES: 'CARB', FAT: 'FAT', FIBER: 'FIB', DIETARY_FIBER: 'DFIB',
@@ -76,6 +117,127 @@ function NutritionIcon({ nutrient, selected, onClick }) {
       <span className="nutrient-icon">{nutrientIcons[nutrient] || '🧪'}</span>
       <small>{nutrient}</small>
     </button>
+  );
+}
+
+function NutrientPicker({ value, onChange, storageKey = 'default' }) {
+  const [query, setQuery] = useState('');
+  const [highlightIndex, setHighlightIndex] = useState(0);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filtered = useMemo(() => {
+    if (!normalizedQuery) return nutrientCatalog;
+    return nutrientCatalog.filter((item) => {
+      const name = item.key.toLowerCase();
+      const noUnderscore = item.key.replace(/_/g, ' ').toLowerCase();
+      const short = (item.short || '').toLowerCase();
+      const aliases = (item.aliases || []).join(' ').toLowerCase();
+      return name.includes(normalizedQuery)
+        || noUnderscore.includes(normalizedQuery)
+        || short.includes(normalizedQuery)
+        || aliases.includes(normalizedQuery);
+    });
+  }, [normalizedQuery]);
+
+  const recent = useMemo(() => {
+    try {
+      const raw = localStorage.getItem(`nutrient-recent-${storageKey}`);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((item) => nutrientOptions.includes(item)) : [];
+    } catch {
+      return [];
+    }
+  }, [storageKey, value]);
+
+  useEffect(() => {
+    setHighlightIndex(0);
+  }, [normalizedQuery]);
+
+  function selectNutrient(nutrient) {
+    onChange(nutrient);
+    setQuery('');
+    try {
+      const next = [nutrient, ...recent.filter((item) => item !== nutrient)].slice(0, 6);
+      localStorage.setItem(`nutrient-recent-${storageKey}`, JSON.stringify(next));
+    } catch {
+      // ignore localStorage issues
+    }
+  }
+
+  function onKeyDown(event) {
+    if (!filtered.length) return;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setHighlightIndex((prev) => Math.min(prev + 1, filtered.length - 1));
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlightIndex((prev) => Math.max(prev - 1, 0));
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      selectNutrient(filtered[highlightIndex].key);
+    }
+  }
+
+  return (
+    <div className="nutrient-picker">
+      <input
+        placeholder="Search nutrient"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        onKeyDown={onKeyDown}
+      />
+
+      {!query ? (
+        <div className="picker-chip-row">
+          {commonNutrients.map((nutrient) => (
+            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
+              {nutrientShortNames[nutrient]}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {!query && recent.length ? (
+        <div className="picker-recent-row">
+          <small>Recent:</small>
+          {recent.map((nutrient) => (
+            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
+              {nutrient}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="picker-list">
+        {Object.entries(nutrientGroups).map(([group, keys]) => {
+          const groupItems = keys.filter((key) => filtered.some((item) => item.key === key));
+          if (!groupItems.length) return null;
+          return (
+            <div key={group} className="picker-group">
+              <strong>{group}</strong>
+              {groupItems.map((nutrient) => {
+                const idx = filtered.findIndex((item) => item.key === nutrient);
+                return (
+                  <button
+                    type="button"
+                    key={nutrient}
+                    className={idx === highlightIndex ? 'picker-item highlighted' : 'picker-item'}
+                    onClick={() => selectNutrient(nutrient)}
+                  >
+                    <span>{nutrientIcons[nutrient] || '🧪'}</span>
+                    <span>{nutrient}</span>
+                    <small>{nutrientShortNames[nutrient]}</small>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
+        {!filtered.length ? <p className="muted">No nutrients found.</p> : null}
+      </div>
+    </div>
   );
 }
 
@@ -553,7 +715,7 @@ export default function BackendExplorer() {
                   />
                 </div>
                 <div className="inline-builder">
-                  <select value={nutritionDraft.nutrient} onChange={(e) => setNutritionDraft((p) => ({ ...p, nutrient: e.target.value }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
+                  <NutrientPicker value={nutritionDraft.nutrient} onChange={(nutrient) => setNutritionDraft((p) => ({ ...p, nutrient }))} storageKey="create" />
                   <input type="number" placeholder="Value" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
                   <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
                   <button onClick={addNutrition}>Add Nutrition</button>
@@ -655,7 +817,7 @@ export default function BackendExplorer() {
                 <div className="summary-box">
                   <strong>Nutrition</strong>
                   <div className="inline-builder">
-                    <select value={updateNutritionDraft.nutrient} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, nutrient: e.target.value }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
+                    <NutrientPicker value={updateNutritionDraft.nutrient} onChange={(nutrient) => setUpdateNutritionDraft((prev) => ({ ...prev, nutrient }))} storageKey="update" />
                     <input type="number" placeholder="Value" value={updateNutritionDraft.value} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, value: e.target.value }))} />
                     <select value={updateNutritionDraft.unit} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
                     <button type="button" onClick={addUpdateNutrition}>Add Nutrition</button>
