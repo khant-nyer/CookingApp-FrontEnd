@@ -58,14 +58,6 @@ const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
 const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'FIBER', 'SUGAR', 'SODIUM', 'VITAMIN_C'];
 const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
 
-const nutrientShortNames = {
-  CALORIES: 'CAL', PROTEIN: 'PRO', CARBOHYDRATES: 'CARB', FAT: 'FAT', FIBER: 'FIB', DIETARY_FIBER: 'DFIB',
-  SUGAR: 'SUG', SATURATED_FAT: 'SAT', TRANS_FAT: 'TRANS', OMEGA_3: 'O3', OMEGA_6: 'O6', SODIUM: 'NA',
-  POTASSIUM: 'K', CALCIUM: 'CA', IRON: 'FE', MAGNESIUM: 'MG', ZINC: 'ZN', VITAMIN_A: 'VA',
-  VITAMIN_B1: 'B1', VITAMIN_B2: 'B2', VITAMIN_B3: 'B3', VITAMIN_B6: 'B6', VITAMIN_B9: 'B9',
-  VITAMIN_B12: 'B12', VITAMIN_C: 'VC', VITAMIN_D: 'VD', VITAMIN_E: 'VE', VITAMIN_K: 'VK', SELENIUM: 'SE'
-};
-
 function getItemId(item) {
   return item?.id || item?._id;
 }
@@ -190,23 +182,41 @@ function NutrientPicker({ value, onChange, storageKey = 'default' }) {
       />
 
       {!query ? (
-        <div className="picker-chip-row">
-          {commonNutrients.map((nutrient) => (
-            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
-              {nutrientShortNames[nutrient]}
-            </button>
-          ))}
+        <div className="picker-chip-section">
+          <small className="picker-section-title">Common nutrients</small>
+          <div className="picker-chip-row">
+            {commonNutrients.map((nutrient) => (
+              <button
+                type="button"
+                key={nutrient}
+                className={nutrient === value ? 'chip selected' : 'chip'}
+                onClick={() => selectNutrient(nutrient)}
+              >
+                <span className="chip-icon">{nutrientIcons[nutrient] || '🧪'}</span>
+                <span className="chip-main">{nutrientShortNames[nutrient]}</span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 
       {!query && recent.length ? (
-        <div className="picker-recent-row">
-          <small>Recent:</small>
-          {recent.map((nutrient) => (
-            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
-              {nutrient}
-            </button>
-          ))}
+        <div className="picker-chip-section">
+          <small className="picker-section-title">Recent picks</small>
+          <div className="picker-recent-row">
+            {recent.map((nutrient) => (
+              <button
+                type="button"
+                key={nutrient}
+                className={nutrient === value ? 'chip selected' : 'chip'}
+                onClick={() => selectNutrient(nutrient)}
+              >
+                <span className="chip-icon">{nutrientIcons[nutrient] || '🧪'}</span>
+                <span className="chip-main">{nutrientShortNames[nutrient] || nutrient}</span>
+                <span className="chip-sub">{nutrient.replace(/_/g, ' ')}</span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 

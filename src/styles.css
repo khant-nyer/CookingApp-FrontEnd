@@ -199,28 +199,70 @@ button:disabled {
 
 .nutrient-picker {
   display: grid;
+  gap: 0.55rem;
+}
+
+.picker-chip-section {
+  display: grid;
   gap: 0.35rem;
+}
+
+.picker-section-title {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #5f7673;
 }
 
 .picker-chip-row,
 .picker-recent-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: 0.35rem;
   align-items: center;
 }
 
 .chip {
-  background: #e8f4f2;
-  color: #104944;
-  padding: 0.24rem 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  background: #f1f8f7;
+  color: #0f5450;
+  border: 1px solid #d2e7e4;
+  padding: 0.28rem 0.5rem;
   border-radius: 999px;
   font-size: 0.72rem;
+  line-height: 1;
+}
+
+.chip:hover {
+  background: #e8f4f2;
+}
+
+.chip-icon {
+  font-size: 0.78rem;
+}
+
+.chip-main {
+  font-weight: 700;
+}
+
+.chip-sub {
+  color: #6a8480;
+  font-size: 0.64rem;
+  text-transform: capitalize;
 }
 
 .chip.selected {
   background: #0f766e;
+  border-color: #0f766e;
   color: #fff;
+}
+
+.chip.selected .chip-sub {
+  color: rgb(255 255 255 / 80%);
 }
 
 .picker-list {
