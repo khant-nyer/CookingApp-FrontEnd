@@ -58,14 +58,6 @@ const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
 const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'FIBER', 'SUGAR', 'SODIUM', 'VITAMIN_C'];
 const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
 
-const nutrientShortNames = {
-  CALORIES: 'CAL', PROTEIN: 'PRO', CARBOHYDRATES: 'CARB', FAT: 'FAT', FIBER: 'FIB', DIETARY_FIBER: 'DFIB',
-  SUGAR: 'SUG', SATURATED_FAT: 'SAT', TRANS_FAT: 'TRANS', OMEGA_3: 'O3', OMEGA_6: 'O6', SODIUM: 'NA',
-  POTASSIUM: 'K', CALCIUM: 'CA', IRON: 'FE', MAGNESIUM: 'MG', ZINC: 'ZN', VITAMIN_A: 'VA',
-  VITAMIN_B1: 'B1', VITAMIN_B2: 'B2', VITAMIN_B3: 'B3', VITAMIN_B6: 'B6', VITAMIN_B9: 'B9',
-  VITAMIN_B12: 'B12', VITAMIN_C: 'VC', VITAMIN_D: 'VD', VITAMIN_E: 'VE', VITAMIN_K: 'VK', SELENIUM: 'SE'
-};
-
 function getItemId(item) {
   return item?.id || item?._id;
 }
