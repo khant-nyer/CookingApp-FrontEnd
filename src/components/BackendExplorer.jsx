@@ -174,16 +174,36 @@ function NutrientPicker({ value, onChange, storageKey = 'default' }) {
 
   return (
     <div className="nutrient-picker">
-      <input
-        placeholder="Search nutrient"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        onKeyDown={onKeyDown}
-      />
+      <div className="picker-top-row">
+        <div className="picker-chip-section search-block">
+          <small className="picker-section-title">Search nutrition</small>
+          <input
+            placeholder="Search nutrient"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={onKeyDown}
+          />
+        </div>
 
-      {!query ? (
         <div className="picker-chip-section">
-          <small className="picker-section-title">Common nutrients</small>
+          <small className="picker-section-title">Recent picks</small>
+          <div className="picker-recent-row">
+            {recent.length ? recent.map((nutrient) => (
+              <button
+                type="button"
+                key={nutrient}
+                className={nutrient === value ? 'chip selected' : 'chip'}
+                onClick={() => selectNutrient(nutrient)}
+              >
+                <span className="chip-icon">{nutrientIcons[nutrient] || '🧪'}</span>
+                <span className="chip-main">{nutrientShortNames[nutrient] || nutrient}</span>
+              </button>
+            )) : <small className="muted">No recent picks</small>}
+          </div>
+        </div>
+
+        <div className="picker-chip-section">
+          <small className="picker-section-title">Nutrition catalog</small>
           <div className="picker-chip-row">
             {commonNutrients.map((nutrient) => (
               <button
@@ -198,27 +218,7 @@ function NutrientPicker({ value, onChange, storageKey = 'default' }) {
             ))}
           </div>
         </div>
-      ) : null}
-
-      {!query && recent.length ? (
-        <div className="picker-chip-section">
-          <small className="picker-section-title">Recent picks</small>
-          <div className="picker-recent-row">
-            {recent.map((nutrient) => (
-              <button
-                type="button"
-                key={nutrient}
-                className={nutrient === value ? 'chip selected' : 'chip'}
-                onClick={() => selectNutrient(nutrient)}
-              >
-                <span className="chip-icon">{nutrientIcons[nutrient] || '🧪'}</span>
-                <span className="chip-main">{nutrientShortNames[nutrient] || nutrient}</span>
-                <span className="chip-sub">{nutrient.replace(/_/g, ' ')}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      </div>
 
       <div className="picker-list">
         {Object.entries(nutrientGroups).map(([group, keys]) => {
@@ -724,11 +724,13 @@ export default function BackendExplorer() {
                     onUnitChange={(index, unit) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, unit } : item))}
                   />
                 </div>
-                <div className="inline-builder">
+                <div className="nutrition-builder">
                   <NutrientPicker value={nutritionDraft.nutrient} onChange={(nutrient) => setNutritionDraft((p) => ({ ...p, nutrient }))} storageKey="create" />
-                  <input type="number" placeholder="Value" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
-                  <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                  <button onClick={addNutrition}>Add Nutrition</button>
+                  <div className="nutrition-builder-actions">
+                    <input type="number" placeholder="Amount" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
+                    <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                    <button onClick={addNutrition}>Add Nutrition</button>
+                  </div>
                 </div>
               </>
             ) : null}
@@ -826,11 +828,13 @@ export default function BackendExplorer() {
                 <input placeholder="Image URL" value={updateModal.form.imageUrl} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, imageUrl: e.target.value } }))} />
                 <div className="summary-box">
                   <strong>Nutrition</strong>
-                  <div className="inline-builder">
+                  <div className="nutrition-builder">
                     <NutrientPicker value={updateNutritionDraft.nutrient} onChange={(nutrient) => setUpdateNutritionDraft((prev) => ({ ...prev, nutrient }))} storageKey="update" />
-                    <input type="number" placeholder="Value" value={updateNutritionDraft.value} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, value: e.target.value }))} />
-                    <select value={updateNutritionDraft.unit} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                    <button type="button" onClick={addUpdateNutrition}>Add Nutrition</button>
+                    <div className="nutrition-builder-actions">
+                      <input type="number" placeholder="Amount" value={updateNutritionDraft.value} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, value: e.target.value }))} />
+                      <select value={updateNutritionDraft.unit} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                      <button type="button" onClick={addUpdateNutrition}>Add Nutrition</button>
+                    </div>
                   </div>
                   {!updateModal.form.nutritionList.length ? <p className="muted">No nutrition added yet.</p> : null}
                   <NutritionSummaryCards

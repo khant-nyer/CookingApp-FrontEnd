@@ -100,6 +100,18 @@ button:disabled {
   margin-bottom: 0.75rem;
 }
 
+.nutrition-builder {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.nutrition-builder-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px 160px;
+  gap: 0.5rem;
+}
+
 .summary-box {
   border: 1px solid #dce3e1;
   border-radius: 10px;
@@ -202,9 +214,30 @@ button:disabled {
   gap: 0.55rem;
 }
 
+.picker-top-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(200px, 1.2fr);
+  gap: 0.5rem;
+  align-items: start;
+}
+
 .picker-chip-section {
   display: grid;
   gap: 0.35rem;
+  min-width: 0;
+}
+
+.search-block input {
+  min-height: 36px;
+}
+
+.picker-section-title {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #5f7673;
 }
 
 .picker-section-title {
@@ -554,14 +587,18 @@ pre {
   }
 
   .inline-builder,
-  .summary-row {
+  .summary-row,
+  .nutrition-builder-actions,
+  .picker-top-row {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 760px) {
   .inline-builder,
-  .summary-row {
+  .summary-row,
+  .nutrition-builder-actions,
+  .picker-top-row {
     grid-template-columns: 1fr;
   }
 
@@ -576,7 +613,9 @@ pre {
 
 @media (max-width: 760px) {
   .inline-builder,
-  .summary-row {
+  .summary-row,
+  .nutrition-builder-actions,
+  .picker-top-row {
     grid-template-columns: 1fr;
   }
 
@@ -596,7 +635,9 @@ pre {
   }
 
   .inline-builder,
-  .summary-row {
+  .summary-row,
+  .nutrition-builder-actions,
+  .picker-top-row {
     grid-template-columns: 1fr;
   }
 
