@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { api } from '../services/api';
 import {
   nutrientCatalog,
@@ -13,6 +13,9 @@ import { normalizeNutrientKey } from '../features/backend-explorer/utils/nutrien
 import CreateEntityModal from '../features/backend-explorer/modals/CreateEntityModal';
 import DeleteConfirmModal from '../features/backend-explorer/modals/DeleteConfirmModal';
 import UpdateEntityModal from '../features/backend-explorer/modals/UpdateEntityModal';
+import useBackendData from '../features/backend-explorer/hooks/useBackendData';
+import { createFlowReducer, initialCreateFlowState } from '../features/backend-explorer/reducers/createFlowReducer';
+import { initialUpdateFlowState, updateFlowReducer } from '../features/backend-explorer/reducers/updateFlowReducer';
 
 const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
@@ -240,11 +243,20 @@ function RecipeIngredientSummaryCards({ items = [], ingredients = [], onChange, 
 
 export default function BackendExplorer() {
   const [activeTab, setActiveTab] = useState('foods');
-  const [foods, setFoods] = useState([]);
-  const [ingredients, setIngredients] = useState([]);
-  const [recipes, setRecipes] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
+
+  const {
+    foods,
+    ingredients,
+    recipes,
+    error,
+    loading,
+    setLoading,
+    setError,
+    loadAll,
+    runWithRefresh
+  } = useBackendData();
 
   const [foodForm, setFoodForm] = useState({ name: '', category: '', imageUrl: '' });
   const [ingredientForm, setIngredientForm] = useState({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
@@ -257,30 +269,11 @@ export default function BackendExplorer() {
   const [recipeIngredients, setRecipeIngredients] = useState([]);
   const [recipeInstructions, setRecipeInstructions] = useState([]);
 
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [createModal, setCreateModal] = useState({ open: false, type: '' });
-  const [createError, setCreateError] = useState('');
-  const [createSuccess, setCreateSuccess] = useState({ food: '', ingredient: '', recipe: '' });
-  const [updateNutritionDraft, setUpdateNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'G' });
-  const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
-  const [updateModal, setUpdateModal] = useState({ open: false, type: '', title: '', itemId: null, form: null });
+  const [createFlow, dispatchCreateFlow] = useReducer(createFlowReducer, initialCreateFlowState);
+  const [updateFlow, dispatchUpdateFlow] = useReducer(updateFlowReducer, initialUpdateFlowState);
+  const { createModal, createError, createSuccess } = createFlow;
+  const { updateNutritionDraft, deleteModal, updateModal } = updateFlow;
   const hasLoadedInitiallyRef = useRef(false);
-
-  async function loadAll() {
-    setLoading(true);
-    setError('');
-    try {
-      const [foodData, ingredientData, recipeData] = await Promise.all([api.getFoods(), api.getIngredients(), api.getRecipes()]);
-      setFoods(Array.isArray(foodData) ? foodData : []);
-      setIngredients(Array.isArray(ingredientData) ? ingredientData : []);
-      setRecipes(Array.isArray(recipeData) ? recipeData : []);
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useEffect(() => {
     if (hasLoadedInitiallyRef.current) return;
@@ -290,30 +283,35 @@ export default function BackendExplorer() {
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
   function openCreateModal(type) {
-    setCreateError('');
-    setCreateSuccess((prev) => ({ ...prev, [type]: '' }));
-    setCreateModal({ open: true, type });
+    dispatchCreateFlow({ type: 'open_create_modal', entityType: type });
   }
 
   function closeCreateModal() {
-    setCreateError('');
-    setCreateModal({ open: false, type: '' });
+    dispatchCreateFlow({ type: 'close_create_modal' });
   }
 
   function setCreateSuccessByType(type, message) {
-    setCreateSuccess((prev) => ({ ...prev, [type]: message }));
+    dispatchCreateFlow({ type: 'set_create_success', entityType: type, message });
   }
 
   async function run(action) {
-    setLoading(true);
-    setError('');
-    try {
-      await action();
-      await loadAll();
-    } catch (actionError) {
-      setError(actionError.message);
-      setLoading(false);
-    }
+    await runWithRefresh(action);
+  }
+
+  function setCreateError(message) {
+    dispatchCreateFlow({ type: 'set_create_error', message });
+  }
+
+  function setUpdateModal(value) {
+    dispatchUpdateFlow({ type: 'set_update_modal', value });
+  }
+
+  function setDeleteModal(value) {
+    dispatchUpdateFlow({ type: 'set_delete_modal', value });
+  }
+
+  function setUpdateNutritionDraft(value) {
+    dispatchUpdateFlow({ type: 'set_update_nutrition_draft', value });
   }
 
   function addNutrition() {
