@@ -93,6 +93,8 @@ export default function BackendExplorer() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [createModal, setCreateModal] = useState({ open: false, type: '' });
+  const [createError, setCreateError] = useState('');
+  const [createSuccess, setCreateSuccess] = useState({ food: '', ingredient: '', recipe: '' });
   const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
   const [updateModal, setUpdateModal] = useState({ open: false, type: '', title: '', itemId: null, form: null });
 
@@ -114,6 +116,21 @@ export default function BackendExplorer() {
   useEffect(() => { loadAll(); }, []);
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
+  function openCreateModal(type) {
+    setCreateError('');
+    setCreateSuccess((prev) => ({ ...prev, [type]: '' }));
+    setCreateModal({ open: true, type });
+  }
+
+  function closeCreateModal() {
+    setCreateError('');
+    setCreateModal({ open: false, type: '' });
+  }
+
+  function setCreateSuccessByType(type, message) {
+    setCreateSuccess((prev) => ({ ...prev, [type]: message }));
+  }
+
   async function run(action) {
     setLoading(true);
     setError('');
@@ -127,38 +144,58 @@ export default function BackendExplorer() {
   }
 
   function addNutrition() {
-    if (!nutritionDraft.value) return setError('Nutrition value is required.');
+    if (!nutritionDraft.value) return setCreateError('Nutrition value is required.');
     setIngredientNutritions((prev) => [...prev, { nutrient: nutritionDraft.nutrient, value: Number(nutritionDraft.value), unit: nutritionDraft.unit }]);
     setNutritionDraft((prev) => ({ ...prev, value: '' }));
   }
 
   async function createFood() {
-    if (!foodForm.name.trim()) return setError('Food name is required.');
-    await run(() => api.createFood({ name: foodForm.name.trim(), category: foodForm.category.trim(), imageUrl: foodForm.imageUrl.trim() || null, recipes: [] }));
-    setFoodForm({ name: '', category: '', imageUrl: '' });
-    setCreateModal({ open: false, type: '' });
+    if (!foodForm.name.trim()) return setCreateError('Food name is required.');
+    setLoading(true);
+    setCreateError('');
+    try {
+      await api.createFood({ name: foodForm.name.trim(), category: foodForm.category.trim(), imageUrl: foodForm.imageUrl.trim() || null, recipes: [] });
+      await loadAll();
+      setFoodForm({ name: '', category: '', imageUrl: '' });
+      setCreateSuccessByType('food', 'Food created successfully.');
+      closeCreateModal();
+    } catch (createFoodError) {
+      setCreateError(createFoodError.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function createIngredient() {
-    if (!ingredientForm.name.trim()) return setError('Ingredient name is required.');
-    await run(() => api.createIngredient({
-      name: ingredientForm.name.trim(),
-      category: ingredientForm.category.trim(),
-      description: ingredientForm.description.trim(),
-      servingAmount: Number(ingredientForm.servingAmount || 0),
-      servingUnit: ingredientForm.servingUnit || 'G',
-      imageUrl: ingredientForm.imageUrl.trim() || null,
-      nutritionList: ingredientNutritions,
-      nearbyStoreListings: []
-    }));
-    setIngredientForm({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
-    setIngredientNutritions([]);
-    setNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
-    setCreateModal({ open: false, type: '' });
+    if (!ingredientForm.name.trim()) return setCreateError('Ingredient name is required.');
+    setLoading(true);
+    setCreateError('');
+    try {
+      await api.createIngredient({
+        name: ingredientForm.name.trim(),
+        category: ingredientForm.category.trim(),
+        description: ingredientForm.description.trim(),
+        servingAmount: Number(ingredientForm.servingAmount || 0),
+        servingUnit: ingredientForm.servingUnit || 'G',
+        imageUrl: ingredientForm.imageUrl.trim() || null,
+        nutritionList: ingredientNutritions,
+        nearbyStoreListings: []
+      });
+      await loadAll();
+      setIngredientForm({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
+      setIngredientNutritions([]);
+      setNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
+      setCreateSuccessByType('ingredient', 'Ingredient created successfully.');
+      closeCreateModal();
+    } catch (createIngredientError) {
+      setCreateError(createIngredientError.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function addRecipeIngredient() {
-    if (!recipeIngredientDraft.ingredientId || !recipeIngredientDraft.quantity) return setError('Recipe ingredient needs ingredient and quantity.');
+    if (!recipeIngredientDraft.ingredientId || !recipeIngredientDraft.quantity) return setCreateError('Recipe ingredient needs ingredient and quantity.');
     const ingredientId = Number(recipeIngredientDraft.ingredientId);
     setRecipeIngredients((prev) => [...prev, {
       ingredientId,
@@ -171,27 +208,37 @@ export default function BackendExplorer() {
   }
 
   function addRecipeInstruction() {
-    if (!recipeInstructionDraft.description.trim()) return setError('Instruction description is required.');
+    if (!recipeInstructionDraft.description.trim()) return setCreateError('Instruction description is required.');
     setRecipeInstructions((prev) => [...prev, { step: prev.length + 1, description: recipeInstructionDraft.description.trim(), tutorialVideoUrl: recipeInstructionDraft.tutorialVideoUrl.trim() || null }]);
     setRecipeInstructionDraft({ description: '', tutorialVideoUrl: '' });
   }
 
   async function createRecipe() {
-    if (!recipeForm.foodId) return setError('Please select food for recipe.');
-    if (!recipeForm.version.trim()) return setError('Recipe version is required.');
-    if (!recipeIngredients.length) return setError('Please add at least one recipe ingredient.');
-    if (!recipeInstructions.length) return setError('Please add at least one recipe instruction.');
-    await run(() => api.createRecipeForFoodViaRecipeApi(recipeForm.foodId, {
-      version: recipeForm.version.trim(),
-      description: recipeForm.description.trim(),
-      foodId: Number(recipeForm.foodId),
-      ingredients: recipeIngredients.map(({ ingredientId, quantity, unit, note }) => ({ ingredientId, quantity: Number(quantity), unit, note })),
-      instructions: recipeInstructions.map((item, index) => ({ stepNumber: index + 1, description: item.description, tutorialVideoUrl: item.tutorialVideoUrl }))
-    }));
-    setRecipeForm({ foodId: '', version: 'v1', description: '' });
-    setRecipeIngredients([]);
-    setRecipeInstructions([]);
-    setCreateModal({ open: false, type: '' });
+    if (!recipeForm.foodId) return setCreateError('Please select food for recipe.');
+    if (!recipeForm.version.trim()) return setCreateError('Recipe version is required.');
+    if (!recipeIngredients.length) return setCreateError('Please add at least one recipe ingredient.');
+    if (!recipeInstructions.length) return setCreateError('Please add at least one recipe instruction.');
+    setLoading(true);
+    setCreateError('');
+    try {
+      await api.createRecipeForFoodViaRecipeApi(recipeForm.foodId, {
+        version: recipeForm.version.trim(),
+        description: recipeForm.description.trim(),
+        foodId: Number(recipeForm.foodId),
+        ingredients: recipeIngredients.map(({ ingredientId, quantity, unit, note }) => ({ ingredientId, quantity: Number(quantity), unit, note })),
+        instructions: recipeInstructions.map((item, index) => ({ stepNumber: index + 1, description: item.description, tutorialVideoUrl: item.tutorialVideoUrl }))
+      });
+      await loadAll();
+      setRecipeForm({ foodId: '', version: 'v1', description: '' });
+      setRecipeIngredients([]);
+      setRecipeInstructions([]);
+      setCreateSuccessByType('recipe', 'Recipe created successfully.');
+      closeCreateModal();
+    } catch (createRecipeError) {
+      setCreateError(createRecipeError.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function requestDelete(message, action) { setDeleteModal({ open: true, message, action }); }
@@ -281,7 +328,8 @@ export default function BackendExplorer() {
       {activeTab === 'foods' && (
         <div className="grid">
           <div className="card">
-            <button onClick={() => setCreateModal({ open: true, type: 'food' })}>Create Food</button>
+            <button onClick={() => openCreateModal('food')}>Create Food</button>
+            {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
             <h3>Gallery</h3>
             <div className="gallery-grid">
               {foods.map((food) => {
@@ -306,7 +354,8 @@ export default function BackendExplorer() {
       {activeTab === 'ingredients' && (
         <div className="grid">
           <div className="card">
-            <button onClick={() => setCreateModal({ open: true, type: 'ingredient' })}>Create Ingredient</button>
+            <button onClick={() => openCreateModal('ingredient')}>Create Ingredient</button>
+            {createSuccess.ingredient ? <p className="success">{createSuccess.ingredient}</p> : null}
             <h3>Gallery</h3>
             <div className="gallery-grid">
               {ingredients.map((ingredient) => {
@@ -336,7 +385,8 @@ export default function BackendExplorer() {
       {activeTab === 'recipes' && (
         <div className="grid">
           <div className="card">
-            <button onClick={() => setCreateModal({ open: true, type: 'recipe' })}>Create Recipe</button>
+            <button onClick={() => openCreateModal('recipe')}>Create Recipe</button>
+            {createSuccess.recipe ? <p className="success">{createSuccess.recipe}</p> : null}
             <h3>Gallery</h3>
             <div className="gallery-grid">
               {recipes.map((recipe, index) => {
@@ -398,6 +448,7 @@ export default function BackendExplorer() {
                   ? 'Create Ingredient'
                   : 'Create Recipe'}
             </h3>
+            {createError ? <p className="error">{createError}</p> : null}
 
             {createModal.type === 'food' ? (
               <div className="form">
@@ -452,6 +503,7 @@ export default function BackendExplorer() {
                 </div>
 
                 <h4>Add Ingredient</h4>
+                <p className="muted">If you don't find ingredient in the list, you can create one in ingredient tab.</p>
                 <div className="inline-builder">
                   <select value={recipeIngredientDraft.ingredientId} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, ingredientId: e.target.value }))}>
                     <option value="">Ingredient</option>
@@ -500,7 +552,7 @@ export default function BackendExplorer() {
             ) : null}
 
             <div className="detail-actions">
-              <button onClick={() => setCreateModal({ open: false, type: '' })}>Cancel</button>
+              <button onClick={closeCreateModal}>Cancel</button>
               <button onClick={createModal.type === 'food' ? createFood : createModal.type === 'ingredient' ? createIngredient : createRecipe}>Create</button>
             </div>
           </div>
