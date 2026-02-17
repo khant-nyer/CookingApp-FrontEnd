@@ -87,7 +87,8 @@ function NutritionSummaryCards({ items = [], onRemove, onValueChange, onUnitChan
           <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
           <div className="mini-summary-head nutrition-summary-head">
             <span className="nutrient-icon">{nutrientIcons[nutrition.nutrient] || '🧪'}</span>
-            <small>{nutrientShortNames[nutrition.nutrient] || nutrition.nutrient}</small>
+            <small className="nutrient-full-name">{nutrition.nutrient}</small>
+            <small className="nutrient-short-name">{nutrientShortNames[nutrition.nutrient] || nutrition.nutrient}</small>
           </div>
           <div className="mini-summary-fields">
             <input type="number" value={nutrition.value} onChange={(e) => onValueChange(index, e.target.value)} placeholder="Amount" />

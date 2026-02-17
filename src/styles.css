@@ -251,6 +251,14 @@ button:disabled {
   letter-spacing: 0.02em;
 }
 
+.nutrient-full-name {
+  display: inline;
+}
+
+.nutrient-short-name {
+  display: none;
+}
+
 .mini-summary-fields {
   display: grid;
   gap: 0.22rem;
@@ -486,5 +494,13 @@ pre {
 
   .gallery-grid {
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  }
+
+  .nutrient-full-name {
+    display: none;
+  }
+
+  .nutrient-short-name {
+    display: inline;
   }
 }
