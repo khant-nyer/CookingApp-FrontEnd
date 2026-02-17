@@ -71,6 +71,48 @@ function NutritionIcon({ nutrient, selected, onClick }) {
   );
 }
 
+function NutritionSummaryCards({ items = [], onRemove, onValueChange, onUnitChange }) {
+  return (
+    <div className="summary-card-grid">
+      {items.map((nutrition, index) => (
+        <div key={`${nutrition.nutrient}-${index}`} className="mini-summary-card">
+          <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
+          <div className="mini-summary-head">
+            <span className="nutrient-icon">{nutrientIcons[nutrition.nutrient] || '🧪'}</span>
+            <strong>{nutrition.nutrient}</strong>
+          </div>
+          <div className="mini-summary-fields">
+            <input type="number" value={nutrition.value} onChange={(e) => onValueChange(index, e.target.value)} placeholder="Amount" />
+            <select value={nutrition.unit} onChange={(e) => onUnitChange(index, e.target.value)}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecipeIngredientSummaryCards({ items = [], ingredients = [], onChange, onRemove }) {
+  return (
+    <div className="summary-card-grid">
+      {items.map((item, index) => (
+        <div key={`recipe-ingredient-${index}`} className="mini-summary-card">
+          <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
+          <div className="mini-summary-head">
+            <span>🥣</span>
+            <strong>{item.ingredientName || ingredients.find((ing) => String(getItemId(ing)) === String(item.ingredientId))?.name || 'Ingredient'}</strong>
+          </div>
+          <div className="mini-summary-fields">
+            <select value={item.ingredientId} onChange={(e) => onChange(index, { ingredientId: Number(e.target.value), ingredientName: ingredients.find((ing) => String(getItemId(ing)) === String(e.target.value))?.name || '' })}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
+            <input type="number" value={item.quantity} onChange={(e) => onChange(index, { quantity: Number(e.target.value) })} placeholder="Quantity" />
+            <select value={item.unit} onChange={(e) => onChange(index, { unit: e.target.value })}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+            <input value={item.note || ''} onChange={(e) => onChange(index, { note: e.target.value })} placeholder="Note" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function BackendExplorer() {
   const [activeTab, setActiveTab] = useState('foods');
   const [foods, setFoods] = useState([]);
@@ -95,6 +137,7 @@ export default function BackendExplorer() {
   const [createModal, setCreateModal] = useState({ open: false, type: '' });
   const [createError, setCreateError] = useState('');
   const [createSuccess, setCreateSuccess] = useState({ food: '', ingredient: '', recipe: '' });
+  const [updateNutritionPicker, setUpdateNutritionPicker] = useState({ open: false, nutrient: 'CALORIES' });
   const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
   const [updateModal, setUpdateModal] = useState({ open: false, type: '', title: '', itemId: null, form: null });
 
@@ -241,6 +284,19 @@ export default function BackendExplorer() {
     }
   }
 
+
+  function addUpdateNutrition() {
+    if (!updateNutritionPicker.nutrient) return;
+    setUpdateModal((prev) => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        nutritionList: [...(prev.form.nutritionList || []), { nutrient: updateNutritionPicker.nutrient, value: '', unit: 'G' }]
+      }
+    }));
+    setUpdateNutritionPicker({ open: false, nutrient: 'CALORIES' });
+  }
+
   function requestDelete(message, action) { setDeleteModal({ open: true, message, action }); }
   async function confirmDelete() {
     if (!deleteModal.action) return setDeleteModal({ open: false, message: '', action: null });
@@ -249,6 +305,7 @@ export default function BackendExplorer() {
   }
 
   function openIngredientUpdateModal(item) {
+    setUpdateNutritionPicker({ open: false, nutrient: 'CALORIES' });
     setUpdateModal({
       open: true,
       type: 'ingredient',
@@ -470,23 +527,21 @@ export default function BackendExplorer() {
                 </div>
 
                 <h4>Add Nutrition</h4>
+                <div className="summary-box">
+                  <strong>Nutrition Summary (Editable)</strong>
+                  {!ingredientNutritions.length ? <p className="muted">No nutrition added yet.</p> : null}
+                  <NutritionSummaryCards
+                    items={ingredientNutritions}
+                    onRemove={(index) => setIngredientNutritions((prev) => prev.filter((_, idx) => idx !== index))}
+                    onValueChange={(index, value) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, value: Number(value) } : item))}
+                    onUnitChange={(index, unit) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, unit } : item))}
+                  />
+                </div>
                 <div className="inline-builder">
                   <select value={nutritionDraft.nutrient} onChange={(e) => setNutritionDraft((p) => ({ ...p, nutrient: e.target.value }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
                   <input type="number" placeholder="Value" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
                   <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
                   <button onClick={addNutrition}>Add Nutrition</button>
-                </div>
-                <div className="summary-box">
-                  <strong>Nutrition Summary (Editable)</strong>
-                  {!ingredientNutritions.length ? <p className="muted">No nutrition added yet.</p> : null}
-                  {ingredientNutritions.map((nutrition, index) => (
-                    <div key={`${nutrition.nutrient}-${index}`} className="summary-row">
-                      <select value={nutrition.nutrient} onChange={(e) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, nutrient: e.target.value } : item))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
-                      <input type="number" value={nutrition.value} onChange={(e) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, value: Number(e.target.value) } : item))} />
-                      <select value={nutrition.unit} onChange={(e) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, unit: e.target.value } : item))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                      <button className="danger" onClick={() => setIngredientNutritions((prev) => prev.filter((_, idx) => idx !== index))}>Remove</button>
-                    </div>
-                  ))}
                 </div>
               </>
             ) : null}
@@ -504,6 +559,16 @@ export default function BackendExplorer() {
 
                 <h4>Add Ingredient</h4>
                 <p className="muted">If you don't find ingredient in the list, you can create one in ingredient tab.</p>
+                <div className="summary-box">
+                  <strong>Recipe Ingredients Summary (Editable)</strong>
+                  {!recipeIngredients.length ? <p className="muted">No recipe ingredients added yet.</p> : null}
+                  <RecipeIngredientSummaryCards
+                    items={recipeIngredients}
+                    ingredients={ingredients}
+                    onChange={(index, patch) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, ...patch } : current))}
+                    onRemove={(index) => setRecipeIngredients((prev) => prev.filter((_, idx) => idx !== index))}
+                  />
+                </div>
                 <div className="inline-builder">
                   <select value={recipeIngredientDraft.ingredientId} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, ingredientId: e.target.value }))}>
                     <option value="">Ingredient</option>
@@ -513,20 +578,6 @@ export default function BackendExplorer() {
                   <select value={recipeIngredientDraft.unit} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
                   <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, note: e.target.value }))} />
                   <button onClick={addRecipeIngredient}>Add Ingredient</button>
-                </div>
-
-                <div className="summary-box">
-                  <strong>Recipe Ingredients Summary (Editable)</strong>
-                  {!recipeIngredients.length ? <p className="muted">No recipe ingredients added yet.</p> : null}
-                  {recipeIngredients.map((item, index) => (
-                    <div key={`recipe-ingredient-${index}`} className="summary-row">
-                      <select value={item.ingredientId} onChange={(e) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, ingredientId: Number(e.target.value) } : current))}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
-                      <input type="number" value={item.quantity} onChange={(e) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, quantity: Number(e.target.value) } : current))} />
-                      <select value={item.unit} onChange={(e) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, unit: e.target.value } : current))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                      <input value={item.note || ''} onChange={(e) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, note: e.target.value } : current))} />
-                      <button className="danger" onClick={() => setRecipeIngredients((prev) => prev.filter((_, idx) => idx !== index))}>Remove</button>
-                    </div>
-                  ))}
                 </div>
 
                 <h4>Add Instruction</h4>
@@ -592,27 +643,24 @@ export default function BackendExplorer() {
                     <button
                       type="button"
                       className="secondary"
-                      onClick={() =>
-                        setUpdateModal((prev) => ({
-                          ...prev,
-                          form: {
-                            ...prev.form,
-                            nutritionList: [...(prev.form.nutritionList || []), { nutrient: 'CALORIES', value: '', unit: 'G' }]
-                          }
-                        }))
-                      }
+                      onClick={() => setUpdateNutritionPicker((prev) => ({ ...prev, open: !prev.open }))}
                     >
                       Add Nutrition
                     </button>
                   </div>
-                  {updateModal.form.nutritionList.map((nutrition, index) => (
-                    <div key={`upd-nut-${index}`} className="summary-row">
-                      <select value={nutrition.nutrient} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((n, idx) => idx === index ? { ...n, nutrient: e.target.value } : n) } }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
-                      <input type="number" value={nutrition.value} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((n, idx) => idx === index ? { ...n, value: e.target.value } : n) } }))} />
-                      <select value={nutrition.unit} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((n, idx) => idx === index ? { ...n, unit: e.target.value } : n) } }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                      <button className="danger" onClick={() => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.filter((_, idx) => idx !== index) } }))}>Remove</button>
+                  {updateNutritionPicker.open ? (
+                    <div className="inline-builder">
+                      <select value={updateNutritionPicker.nutrient} onChange={(e) => setUpdateNutritionPicker((prev) => ({ ...prev, nutrient: e.target.value }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
+                      <button type="button" onClick={addUpdateNutrition}>Select Nutrient</button>
                     </div>
-                  ))}
+                  ) : null}
+                  {!updateModal.form.nutritionList.length ? <p className="muted">No nutrition added yet.</p> : null}
+                  <NutritionSummaryCards
+                    items={updateModal.form.nutritionList}
+                    onRemove={(index) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.filter((_, idx) => idx !== index) } }))}
+                    onValueChange={(index, value) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((item, idx) => idx === index ? { ...item, value } : item) } }))}
+                    onUnitChange={(index, unit) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((item, idx) => idx === index ? { ...item, unit } : item) } }))}
+                  />
                 </div>
               </div>
             ) : null}
