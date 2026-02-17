@@ -216,7 +216,7 @@ button:disabled {
 
 .picker-top-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(200px, 1.2fr);
+  grid-template-columns: minmax(220px, 1.3fr) minmax(220px, 1fr);
   gap: 0.5rem;
   align-items: start;
 }
@@ -229,15 +229,6 @@ button:disabled {
 
 .search-block input {
   min-height: 36px;
-}
-
-.picker-section-title {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: #5f7673;
 }
 
 .picker-section-title {
@@ -298,7 +289,16 @@ button:disabled {
   color: rgb(255 255 255 / 80%);
 }
 
+
+.picker-list-title {
+  font-size: 0.78rem;
+  color: #355a56;
+  letter-spacing: 0.02em;
+}
+
 .picker-list {
+  display: grid;
+  gap: 0.35rem;
   max-height: 180px;
   overflow: auto;
   border: 1px solid #dce3e1;

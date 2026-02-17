@@ -202,26 +202,17 @@ function NutrientPicker({ value, onChange, storageKey = 'default' }) {
           </div>
         </div>
 
-        <div className="picker-chip-section">
-          <small className="picker-section-title">Nutrition catalog</small>
-          <div className="picker-chip-row">
-            {commonNutrients.map((nutrient) => (
-              <button
-                type="button"
-                key={nutrient}
-                className={nutrient === value ? 'chip selected' : 'chip'}
-                onClick={() => selectNutrient(nutrient)}
-              >
-                <span className="chip-icon">{nutrientIcons[nutrient] || '🧪'}</span>
-                <span className="chip-main">{nutrientShortNames[nutrient]}</span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       <div className="picker-list">
-        {Object.entries(nutrientGroups).map(([group, keys]) => {
+        <strong className="picker-list-title">Nutrient List</strong>
+        {Object.entries(nutrientGroups)
+          .sort(([a], [b]) => {
+            if (a === 'Other') return 1;
+            if (b === 'Other') return -1;
+            return 0;
+          })
+          .map(([group, keys]) => {
           const groupItems = keys.filter((key) => filtered.some((item) => item.key === key));
           if (!groupItems.length) return null;
           return (
