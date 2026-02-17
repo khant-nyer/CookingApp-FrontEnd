@@ -17,6 +17,14 @@ const nutrientIcons = {
   VITAMIN_B12: '🥩', VITAMIN_C: '🍊', VITAMIN_D: '☀️', VITAMIN_E: '🌻', VITAMIN_K: '🥦', SELENIUM: '🧪'
 };
 
+const nutrientShortNames = {
+  CALORIES: 'CAL', PROTEIN: 'PRO', CARBOHYDRATES: 'CARB', FAT: 'FAT', FIBER: 'FIB', DIETARY_FIBER: 'DFIB',
+  SUGAR: 'SUG', SATURATED_FAT: 'SAT', TRANS_FAT: 'TRANS', OMEGA_3: 'O3', OMEGA_6: 'O6', SODIUM: 'NA',
+  POTASSIUM: 'K', CALCIUM: 'CA', IRON: 'FE', MAGNESIUM: 'MG', ZINC: 'ZN', VITAMIN_A: 'VA',
+  VITAMIN_B1: 'B1', VITAMIN_B2: 'B2', VITAMIN_B3: 'B3', VITAMIN_B6: 'B6', VITAMIN_B9: 'B9',
+  VITAMIN_B12: 'B12', VITAMIN_C: 'VC', VITAMIN_D: 'VD', VITAMIN_E: 'VE', VITAMIN_K: 'VK', SELENIUM: 'SE'
+};
+
 function getItemId(item) {
   return item?.id || item?._id;
 }
@@ -73,13 +81,13 @@ function NutritionIcon({ nutrient, selected, onClick }) {
 
 function NutritionSummaryCards({ items = [], onRemove, onValueChange, onUnitChange }) {
   return (
-    <div className="summary-card-grid">
+    <div className="summary-card-grid nutrition-summary-grid">
       {items.map((nutrition, index) => (
         <div key={`${nutrition.nutrient}-${index}`} className="mini-summary-card">
           <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
-          <div className="mini-summary-head">
+          <div className="mini-summary-head nutrition-summary-head">
             <span className="nutrient-icon">{nutrientIcons[nutrition.nutrient] || '🧪'}</span>
-            <strong>{nutrition.nutrient}</strong>
+            <small>{nutrientShortNames[nutrition.nutrient] || nutrition.nutrient}</small>
           </div>
           <div className="mini-summary-fields">
             <input type="number" value={nutrition.value} onChange={(e) => onValueChange(index, e.target.value)} placeholder="Amount" />
@@ -93,22 +101,25 @@ function NutritionSummaryCards({ items = [], onRemove, onValueChange, onUnitChan
 
 function RecipeIngredientSummaryCards({ items = [], ingredients = [], onChange, onRemove }) {
   return (
-    <div className="summary-card-grid">
-      {items.map((item, index) => (
-        <div key={`recipe-ingredient-${index}`} className="mini-summary-card">
-          <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
-          <div className="mini-summary-head">
-            <span>🥣</span>
-            <strong>{item.ingredientName || ingredients.find((ing) => String(getItemId(ing)) === String(item.ingredientId))?.name || 'Ingredient'}</strong>
+    <div className="summary-card-grid ingredient-summary-grid">
+      {items.map((item, index) => {
+        const ingredient = ingredients.find((ing) => String(getItemId(ing)) === String(item.ingredientId));
+        return (
+          <div key={`recipe-ingredient-${index}`} className="mini-summary-card ingredient-summary-card">
+            <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
+            {ingredient?.imageUrl ? <img src={ingredient.imageUrl} alt={ingredient.name || 'Ingredient'} className="mini-ingredient-image" /> : <div className="mini-ingredient-image fallback">🥣</div>}
+            <strong className="mini-ingredient-name">{item.ingredientName || ingredient?.name || 'Ingredient'}</strong>
+            <div className="mini-summary-fields ingredient-summary-fields">
+              <div className="ingredient-amount-row">
+                <input type="number" value={item.quantity} onChange={(e) => onChange(index, { quantity: Number(e.target.value) })} placeholder="Amt" />
+                <select value={item.unit} onChange={(e) => onChange(index, { unit: e.target.value })}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+              </div>
+              <input value={item.note || ''} onChange={(e) => onChange(index, { note: e.target.value })} placeholder="Note" />
+              <select value={item.ingredientId} onChange={(e) => onChange(index, { ingredientId: Number(e.target.value), ingredientName: ingredients.find((ing) => String(getItemId(ing)) === String(e.target.value))?.name || '' })}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
+            </div>
           </div>
-          <div className="mini-summary-fields">
-            <select value={item.ingredientId} onChange={(e) => onChange(index, { ingredientId: Number(e.target.value), ingredientName: ingredients.find((ing) => String(getItemId(ing)) === String(e.target.value))?.name || '' })}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
-            <input type="number" value={item.quantity} onChange={(e) => onChange(index, { quantity: Number(e.target.value) })} placeholder="Quantity" />
-            <select value={item.unit} onChange={(e) => onChange(index, { unit: e.target.value })}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-            <input value={item.note || ''} onChange={(e) => onChange(index, { note: e.target.value })} placeholder="Note" />
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
