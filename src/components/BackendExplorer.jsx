@@ -1,95 +1,23 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { api } from '../services/api';
+import {
+  nutrientCatalog,
+  nutrientGroups,
+  nutrientIcons,
+  nutrientOptions,
+  nutrientShortNames
+} from '../features/backend-explorer/constants/nutrients';
+import { unitOptions } from '../features/backend-explorer/constants/units';
+import { getItemId, getRecipeTileId } from '../features/backend-explorer/utils/ids';
+import { normalizeNutrientKey } from '../features/backend-explorer/utils/nutrients';
+import CreateEntityModal from '../features/backend-explorer/modals/CreateEntityModal';
+import DeleteConfirmModal from '../features/backend-explorer/modals/DeleteConfirmModal';
+import UpdateEntityModal from '../features/backend-explorer/modals/UpdateEntityModal';
+import useBackendData from '../features/backend-explorer/hooks/useBackendData';
+import { createFlowReducer, initialCreateFlowState } from '../features/backend-explorer/reducers/createFlowReducer';
+import { initialUpdateFlowState, updateFlowReducer } from '../features/backend-explorer/reducers/updateFlowReducer';
 
 const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
-const nutrientCatalog = [
-  { key: 'CALORIES', short: 'CAL', group: 'Energy', icon: '🔥', aliases: ['energy', 'kcal'] },
-
-  { key: 'PROTEIN', short: 'PRO', group: 'Macronutrients', icon: '💪', aliases: ['prot'] },
-  { key: 'CARBOHYDRATES', short: 'CARB', group: 'Macronutrients', icon: '🍞', aliases: ['carbs'] },
-  { key: 'FAT', short: 'FAT', group: 'Macronutrients', icon: '🥑', aliases: ['total fat'] },
-  { key: 'DIETARY_FIBER', short: 'DFIB', group: 'Macronutrients', icon: '🌿', aliases: ['fiber'] },
-  { key: 'SUGARS', short: 'SUG', group: 'Macronutrients', icon: '🍬', aliases: ['sugar', 'total sugars'] },
-  { key: 'ADDED_SUGARS', short: 'ASUG', group: 'Macronutrients', icon: '🧁', aliases: ['added sugar'] },
-  { key: 'CHOLESTEROL', short: 'CHOL', group: 'Macronutrients', icon: '🧪', aliases: [] },
-
-  { key: 'SATURATED_FAT', short: 'SAT', group: 'Fat Types', icon: '🧈', aliases: [] },
-  { key: 'MONOUNSATURATED_FAT', short: 'MUFA', group: 'Fat Types', icon: '🫒', aliases: [] },
-  { key: 'POLYUNSATURATED_FAT', short: 'PUFA', group: 'Fat Types', icon: '🌰', aliases: [] },
-  { key: 'TRANS_FAT', short: 'TRANS', group: 'Fat Types', icon: '⚠️', aliases: [] },
-  { key: 'OMEGA_3', short: 'O3', group: 'Fat Types', icon: '🐟', aliases: ['epa', 'dha', 'ala'] },
-  { key: 'OMEGA_6', short: 'O6', group: 'Fat Types', icon: '🥜', aliases: ['linoleic acid'] },
-
-  { key: 'VITAMIN_A', short: 'VA', group: 'Vitamins', icon: '🥕', aliases: [] },
-  { key: 'VITAMIN_B1', short: 'B1', group: 'Vitamins', icon: '🧠', aliases: ['thiamin'] },
-  { key: 'VITAMIN_B2', short: 'B2', group: 'Vitamins', icon: '⚡', aliases: ['riboflavin'] },
-  { key: 'VITAMIN_B3', short: 'B3', group: 'Vitamins', icon: '🌟', aliases: ['niacin'] },
-  { key: 'VITAMIN_B5', short: 'B5', group: 'Vitamins', icon: '✨', aliases: ['pantothenic acid'] },
-  { key: 'VITAMIN_B6', short: 'B6', group: 'Vitamins', icon: '🍗', aliases: [] },
-  { key: 'VITAMIN_B7', short: 'B7', group: 'Vitamins', icon: '💅', aliases: ['biotin'] },
-  { key: 'VITAMIN_B9', short: 'B9', group: 'Vitamins', icon: '🥬', aliases: ['folate', 'folic acid'] },
-  { key: 'VITAMIN_B12', short: 'B12', group: 'Vitamins', icon: '🥩', aliases: ['cobalamin'] },
-  { key: 'VITAMIN_C', short: 'VC', group: 'Vitamins', icon: '🍊', aliases: ['ascorbic'] },
-  { key: 'VITAMIN_D', short: 'VD', group: 'Vitamins', icon: '☀️', aliases: [] },
-  { key: 'VITAMIN_E', short: 'VE', group: 'Vitamins', icon: '🌻', aliases: [] },
-  { key: 'VITAMIN_K', short: 'VK', group: 'Vitamins', icon: '🥦', aliases: [] },
-  { key: 'CHOLINE', short: 'CHO', group: 'Vitamins', icon: '🧠', aliases: [] },
-
-  { key: 'CALCIUM', short: 'CA', group: 'Minerals', icon: '🦴', aliases: [] },
-  { key: 'CHROMIUM', short: 'CR', group: 'Minerals', icon: '⚙️', aliases: [] },
-  { key: 'COPPER', short: 'CU', group: 'Minerals', icon: '🟠', aliases: [] },
-  { key: 'IODINE', short: 'I', group: 'Minerals', icon: '🧂', aliases: [] },
-  { key: 'IRON', short: 'FE', group: 'Minerals', icon: '🩸', aliases: [] },
-  { key: 'MAGNESIUM', short: 'MG', group: 'Minerals', icon: '⚙️', aliases: [] },
-  { key: 'MANGANESE', short: 'MN', group: 'Minerals', icon: '🟤', aliases: [] },
-  { key: 'MOLYBDENUM', short: 'MO', group: 'Minerals', icon: '🔧', aliases: [] },
-  { key: 'PHOSPHORUS', short: 'P', group: 'Minerals', icon: '⚗️', aliases: [] },
-  { key: 'POTASSIUM', short: 'K', group: 'Minerals', icon: '🍌', aliases: [] },
-  { key: 'SELENIUM', short: 'SE', group: 'Minerals', icon: '🧪', aliases: [] },
-  { key: 'SODIUM', short: 'NA', group: 'Minerals', icon: '🧂', aliases: ['salt'] },
-  { key: 'ZINC', short: 'ZN', group: 'Minerals', icon: '🔩', aliases: [] }
-];
-const nutrientOptions = nutrientCatalog.map((item) => item.key);
-const nutrientAliasToKey = nutrientCatalog.reduce((acc, item) => {
-  acc[item.key] = item.key;
-  acc[item.key.toLowerCase()] = item.key;
-  (item.aliases || []).forEach((alias) => {
-    acc[alias] = item.key;
-    acc[alias.toLowerCase()] = item.key;
-  });
-  return acc;
-}, {
-  SUGAR: 'SUGARS',
-  sugar: 'SUGARS'
-});
-const nutrientIcons = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.icon || '🧪']));
-const nutrientShortNames = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.short || item.key]));
-const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
-  acc[item.group] = acc[item.group] || [];
-  acc[item.group].push(item.key);
-  return acc;
-}, {});
-const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'DIETARY_FIBER', 'SUGARS', 'SODIUM', 'VITAMIN_C'];
-const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
-
-function normalizeNutrientKey(nutrient) {
-  if (!nutrient) return 'CALORIES';
-  const direct = nutrientAliasToKey[nutrient];
-  if (direct) return direct;
-  const upper = nutrientAliasToKey[String(nutrient).toUpperCase()];
-  if (upper) return upper;
-  const lower = nutrientAliasToKey[String(nutrient).toLowerCase()];
-  if (lower) return lower;
-  return 'CALORIES';
-}
-
-function getItemId(item) {
-  return item?.id || item?._id;
-}
-
-function getRecipeTileId(recipe, index) {
-  return getItemId(recipe) || `${recipe?.foodId || 'food'}-${recipe?.version || 'version'}-${index}`;
-}
 
 function GalleryTile({ imageUrl, fallbackText, onClick, isSelected, subtitle }) {
   return (
@@ -315,11 +243,20 @@ function RecipeIngredientSummaryCards({ items = [], ingredients = [], onChange, 
 
 export default function BackendExplorer() {
   const [activeTab, setActiveTab] = useState('foods');
-  const [foods, setFoods] = useState([]);
-  const [ingredients, setIngredients] = useState([]);
-  const [recipes, setRecipes] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
+
+  const {
+    foods,
+    ingredients,
+    recipes,
+    error,
+    loading,
+    setLoading,
+    setError,
+    loadAll,
+    runWithRefresh
+  } = useBackendData();
 
   const [foodForm, setFoodForm] = useState({ name: '', category: '', imageUrl: '' });
   const [ingredientForm, setIngredientForm] = useState({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
@@ -332,30 +269,11 @@ export default function BackendExplorer() {
   const [recipeIngredients, setRecipeIngredients] = useState([]);
   const [recipeInstructions, setRecipeInstructions] = useState([]);
 
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [createModal, setCreateModal] = useState({ open: false, type: '' });
-  const [createError, setCreateError] = useState('');
-  const [createSuccess, setCreateSuccess] = useState({ food: '', ingredient: '', recipe: '' });
-  const [updateNutritionDraft, setUpdateNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'G' });
-  const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
-  const [updateModal, setUpdateModal] = useState({ open: false, type: '', title: '', itemId: null, form: null });
+  const [createFlow, dispatchCreateFlow] = useReducer(createFlowReducer, initialCreateFlowState);
+  const [updateFlow, dispatchUpdateFlow] = useReducer(updateFlowReducer, initialUpdateFlowState);
+  const { createModal, createError, createSuccess } = createFlow;
+  const { updateNutritionDraft, deleteModal, updateModal } = updateFlow;
   const hasLoadedInitiallyRef = useRef(false);
-
-  async function loadAll() {
-    setLoading(true);
-    setError('');
-    try {
-      const [foodData, ingredientData, recipeData] = await Promise.all([api.getFoods(), api.getIngredients(), api.getRecipes()]);
-      setFoods(Array.isArray(foodData) ? foodData : []);
-      setIngredients(Array.isArray(ingredientData) ? ingredientData : []);
-      setRecipes(Array.isArray(recipeData) ? recipeData : []);
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useEffect(() => {
     if (hasLoadedInitiallyRef.current) return;
@@ -365,30 +283,35 @@ export default function BackendExplorer() {
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
   function openCreateModal(type) {
-    setCreateError('');
-    setCreateSuccess((prev) => ({ ...prev, [type]: '' }));
-    setCreateModal({ open: true, type });
+    dispatchCreateFlow({ type: 'open_create_modal', entityType: type });
   }
 
   function closeCreateModal() {
-    setCreateError('');
-    setCreateModal({ open: false, type: '' });
+    dispatchCreateFlow({ type: 'close_create_modal' });
   }
 
   function setCreateSuccessByType(type, message) {
-    setCreateSuccess((prev) => ({ ...prev, [type]: message }));
+    dispatchCreateFlow({ type: 'set_create_success', entityType: type, message });
   }
 
   async function run(action) {
-    setLoading(true);
-    setError('');
-    try {
-      await action();
-      await loadAll();
-    } catch (actionError) {
-      setError(actionError.message);
-      setLoading(false);
-    }
+    await runWithRefresh(action);
+  }
+
+  function setCreateError(message) {
+    dispatchCreateFlow({ type: 'set_create_error', message });
+  }
+
+  function setUpdateModal(value) {
+    dispatchUpdateFlow({ type: 'set_update_modal', value });
+  }
+
+  function setDeleteModal(value) {
+    dispatchUpdateFlow({ type: 'set_delete_modal', value });
+  }
+
+  function setUpdateNutritionDraft(value) {
+    dispatchUpdateFlow({ type: 'set_update_nutrition_draft', value });
   }
 
   function addNutrition() {
@@ -703,268 +626,64 @@ export default function BackendExplorer() {
       )}
 
 
-      {createModal.open ? (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card modal-large">
-            <h3>
-              {createModal.type === 'food'
-                ? 'Create Food'
-                : createModal.type === 'ingredient'
-                  ? 'Create Ingredient'
-                  : 'Create Recipe'}
-            </h3>
-            {createError ? <p className="error">{createError}</p> : null}
+      <CreateEntityModal
+        createModal={createModal}
+        createError={createError}
+        closeCreateModal={closeCreateModal}
+        createFood={createFood}
+        createIngredient={createIngredient}
+        createRecipe={createRecipe}
+        foodForm={foodForm}
+        setFoodForm={setFoodForm}
+        ingredientForm={ingredientForm}
+        setIngredientForm={setIngredientForm}
+        ingredientNutritions={ingredientNutritions}
+        setIngredientNutritions={setIngredientNutritions}
+        NutritionSummaryCards={NutritionSummaryCards}
+        NutrientPicker={NutrientPicker}
+        nutritionDraft={nutritionDraft}
+        setNutritionDraft={setNutritionDraft}
+        unitOptions={unitOptions}
+        addNutrition={addNutrition}
+        recipeForm={recipeForm}
+        setRecipeForm={setRecipeForm}
+        foods={foods}
+        getItemId={getItemId}
+        recipeIngredients={recipeIngredients}
+        setRecipeIngredients={setRecipeIngredients}
+        RecipeIngredientSummaryCards={RecipeIngredientSummaryCards}
+        ingredients={ingredients}
+        recipeIngredientDraft={recipeIngredientDraft}
+        setRecipeIngredientDraft={setRecipeIngredientDraft}
+        addRecipeIngredient={addRecipeIngredient}
+        recipeInstructionDraft={recipeInstructionDraft}
+        setRecipeInstructionDraft={setRecipeInstructionDraft}
+        addRecipeInstruction={addRecipeInstruction}
+        recipeInstructions={recipeInstructions}
+        setRecipeInstructions={setRecipeInstructions}
+      />
 
-            {createModal.type === 'food' ? (
-              <div className="form">
-                <input placeholder="Name" value={foodForm.name} onChange={(e) => setFoodForm((p) => ({ ...p, name: e.target.value }))} />
-                <input placeholder="Category" value={foodForm.category} onChange={(e) => setFoodForm((p) => ({ ...p, category: e.target.value }))} />
-                <input placeholder="Image URL" value={foodForm.imageUrl} onChange={(e) => setFoodForm((p) => ({ ...p, imageUrl: e.target.value }))} />
-              </div>
-            ) : null}
+      <DeleteConfirmModal
+        deleteModal={deleteModal}
+        onCancel={() => setDeleteModal({ open: false, message: '', action: null })}
+        onConfirm={confirmDelete}
+      />
 
-            {createModal.type === 'ingredient' ? (
-              <>
-                <div className="form">
-                  <input placeholder="Name" value={ingredientForm.name} onChange={(e) => setIngredientForm((p) => ({ ...p, name: e.target.value }))} />
-                  <input placeholder="Category" value={ingredientForm.category} onChange={(e) => setIngredientForm((p) => ({ ...p, category: e.target.value }))} />
-                  <input placeholder="Description" value={ingredientForm.description} onChange={(e) => setIngredientForm((p) => ({ ...p, description: e.target.value }))} />
-                  <input placeholder="Serving Amount" type="number" value={ingredientForm.servingAmount} onChange={(e) => setIngredientForm((p) => ({ ...p, servingAmount: e.target.value }))} />
-                  <select value={ingredientForm.servingUnit} onChange={(e) => setIngredientForm((p) => ({ ...p, servingUnit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                  <input placeholder="Image URL" value={ingredientForm.imageUrl} onChange={(e) => setIngredientForm((p) => ({ ...p, imageUrl: e.target.value }))} />
-                </div>
+      <UpdateEntityModal
+        updateModal={updateModal}
+        setUpdateModal={setUpdateModal}
+        unitOptions={unitOptions}
+        foods={foods}
+        ingredients={ingredients}
+        getItemId={getItemId}
+        updateNutritionDraft={updateNutritionDraft}
+        setUpdateNutritionDraft={setUpdateNutritionDraft}
+        addUpdateNutrition={addUpdateNutrition}
+        NutrientPicker={NutrientPicker}
+        NutritionSummaryCards={NutritionSummaryCards}
+        confirmUpdate={confirmUpdate}
+      />
 
-                <h4>Add Nutrition</h4>
-                <div className="summary-box">
-                  <strong>Nutrition Summary (Editable)</strong>
-                  {!ingredientNutritions.length ? <p className="muted">No nutrition added yet.</p> : null}
-                  <NutritionSummaryCards
-                    items={ingredientNutritions}
-                    onRemove={(index) => setIngredientNutritions((prev) => prev.filter((_, idx) => idx !== index))}
-                    onValueChange={(index, value) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, value: Number(value) } : item))}
-                    onUnitChange={(index, unit) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, unit } : item))}
-                  />
-                </div>
-                <div className="nutrition-builder">
-                  <NutrientPicker value={nutritionDraft.nutrient} onChange={(nutrient) => setNutritionDraft((p) => ({ ...p, nutrient }))} storageKey="create" />
-                  <div className="nutrition-builder-actions">
-                    <input type="number" placeholder="Amount" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
-                    <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                    <button onClick={addNutrition}>Add Nutrition</button>
-                  </div>
-                </div>
-              </>
-            ) : null}
-
-            {createModal.type === 'recipe' ? (
-              <>
-                <div className="form">
-                  <select value={recipeForm.foodId} onChange={(e) => setRecipeForm((p) => ({ ...p, foodId: e.target.value }))}>
-                    <option value="">Select food</option>
-                    {foods.map((food) => <option key={getItemId(food)} value={getItemId(food)}>{food.name}</option>)}
-                  </select>
-                  <input placeholder="Version" value={recipeForm.version} onChange={(e) => setRecipeForm((p) => ({ ...p, version: e.target.value }))} />
-                  <input placeholder="Description" value={recipeForm.description} onChange={(e) => setRecipeForm((p) => ({ ...p, description: e.target.value }))} />
-                </div>
-
-                <h4>Add Ingredient</h4>
-                <p className="muted">If you don't find ingredient in the list, you can create one in ingredient tab.</p>
-                <div className="summary-box">
-                  <strong>Recipe Ingredients Summary (Editable)</strong>
-                  {!recipeIngredients.length ? <p className="muted">No recipe ingredients added yet.</p> : null}
-                  <RecipeIngredientSummaryCards
-                    items={recipeIngredients}
-                    ingredients={ingredients}
-                    onChange={(index, patch) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, ...patch } : current))}
-                    onRemove={(index) => setRecipeIngredients((prev) => prev.filter((_, idx) => idx !== index))}
-                  />
-                </div>
-                <div className="inline-builder">
-                  <select value={recipeIngredientDraft.ingredientId} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, ingredientId: e.target.value }))}>
-                    <option value="">Ingredient</option>
-                    {ingredients.map((ingredient) => <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>)}
-                  </select>
-                  <input type="number" placeholder="Quantity" value={recipeIngredientDraft.quantity} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, quantity: e.target.value }))} />
-                  <select value={recipeIngredientDraft.unit} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                  <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, note: e.target.value }))} />
-                  <button onClick={addRecipeIngredient}>Add Ingredient</button>
-                </div>
-
-                <h4>Add Instruction</h4>
-                <div className="inline-builder">
-                  <input placeholder="Instruction description" value={recipeInstructionDraft.description} onChange={(e) => setRecipeInstructionDraft((p) => ({ ...p, description: e.target.value }))} />
-                  <input placeholder="Tutorial video URL (optional)" value={recipeInstructionDraft.tutorialVideoUrl} onChange={(e) => setRecipeInstructionDraft((p) => ({ ...p, tutorialVideoUrl: e.target.value }))} />
-                  <button onClick={addRecipeInstruction}>Add Instruction</button>
-                </div>
-
-                <div className="summary-box">
-                  <strong>Recipe Instructions Summary (Editable)</strong>
-                  {!recipeInstructions.length ? <p className="muted">No instructions added yet.</p> : null}
-                  {recipeInstructions.map((item, index) => (
-                    <div key={`recipe-instruction-${index}`} className="summary-row">
-                      <input type="number" value={index + 1} readOnly />
-                      <input value={item.description} onChange={(e) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, description: e.target.value } : current))} />
-                      <input value={item.tutorialVideoUrl || ''} onChange={(e) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, tutorialVideoUrl: e.target.value } : current))} />
-                      <button className="danger" onClick={() => setRecipeInstructions((prev) => prev.filter((_, idx) => idx !== index))}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : null}
-
-            <div className="detail-actions">
-              <button onClick={closeCreateModal}>Cancel</button>
-              <button onClick={createModal.type === 'food' ? createFood : createModal.type === 'ingredient' ? createIngredient : createRecipe}>Create</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {deleteModal.open ? (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h3>Confirm Delete</h3>
-            <p>{deleteModal.message}</p>
-            <div className="detail-actions">
-              <button onClick={() => setDeleteModal({ open: false, message: '', action: null })}>Cancel</button>
-              <button className="danger" onClick={confirmDelete}>Delete</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {updateModal.open ? (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card modal-large">
-            <h3>{updateModal.title}</h3>
-            {updateModal.type === 'ingredient' ? (
-              <div className="form">
-                <input placeholder="Name" value={updateModal.form.name} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, name: e.target.value } }))} />
-                <input placeholder="Category" value={updateModal.form.category} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, category: e.target.value } }))} />
-                <input placeholder="Description" value={updateModal.form.description} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, description: e.target.value } }))} />
-                <div className="summary-row">
-                  <input type="number" placeholder="Serving Amount" value={updateModal.form.servingAmount} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, servingAmount: e.target.value } }))} />
-                  <select value={updateModal.form.servingUnit} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, servingUnit: e.target.value } }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                </div>
-                <input placeholder="Image URL" value={updateModal.form.imageUrl} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, imageUrl: e.target.value } }))} />
-                <div className="summary-box">
-                  <strong>Nutrition</strong>
-                  <div className="nutrition-builder">
-                    <NutrientPicker value={updateNutritionDraft.nutrient} onChange={(nutrient) => setUpdateNutritionDraft((prev) => ({ ...prev, nutrient }))} storageKey="update" />
-                    <div className="nutrition-builder-actions">
-                      <input type="number" placeholder="Amount" value={updateNutritionDraft.value} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, value: e.target.value }))} />
-                      <select value={updateNutritionDraft.unit} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                      <button type="button" onClick={addUpdateNutrition}>Add Nutrition</button>
-                    </div>
-                  </div>
-                  {!updateModal.form.nutritionList.length ? <p className="muted">No nutrition added yet.</p> : null}
-                  <NutritionSummaryCards
-                    items={updateModal.form.nutritionList}
-                    onRemove={(index) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.filter((_, idx) => idx !== index) } }))}
-                    onValueChange={(index, value) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((item, idx) => idx === index ? { ...item, value } : item) } }))}
-                    onUnitChange={(index, unit) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((item, idx) => idx === index ? { ...item, unit } : item) } }))}
-                  />
-                </div>
-              </div>
-            ) : null}
-
-            {updateModal.type === 'recipe' ? (
-              <div className="form">
-                <select value={updateModal.form.foodId} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, foodId: e.target.value } }))}>
-                  <option value="">Select food</option>
-                  {foods.map((food) => <option key={getItemId(food)} value={getItemId(food)}>{food.name}</option>)}
-                </select>
-                <input placeholder="Version" value={updateModal.form.version} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, version: e.target.value } }))} />
-                <input placeholder="Description" value={updateModal.form.description} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, description: e.target.value } }))} />
-                <div className="summary-box">
-                  <div className="summary-head">
-                    <strong>Ingredients</strong>
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() =>
-                        setUpdateModal((prev) => ({
-                          ...prev,
-                          form: {
-                            ...prev.form,
-                            ingredients: [...(prev.form.ingredients || []), { ingredientId: '', quantity: '', unit: 'G', note: '' }]
-                          }
-                        }))
-                      }
-                    >
-                      Add Ingredient
-                    </button>
-                  </div>
-                  {updateModal.form.ingredients.map((ri, index) => (
-                    <div key={`upd-ri-${index}`} className="summary-row">
-                      <select value={ri.ingredientId} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, ingredients: prev.form.ingredients.map((x, idx) => idx === index ? { ...x, ingredientId: e.target.value } : x) } }))}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
-                      <input type="number" value={ri.quantity} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, ingredients: prev.form.ingredients.map((x, idx) => idx === index ? { ...x, quantity: e.target.value } : x) } }))} />
-                      <select value={ri.unit} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, ingredients: prev.form.ingredients.map((x, idx) => idx === index ? { ...x, unit: e.target.value } : x) } }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                      <input value={ri.note} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, ingredients: prev.form.ingredients.map((x, idx) => idx === index ? { ...x, note: e.target.value } : x) } }))} />
-                      <button
-                        type="button"
-                        className="danger"
-                        onClick={() =>
-                          setUpdateModal((prev) => ({
-                            ...prev,
-                            form: { ...prev.form, ingredients: prev.form.ingredients.filter((_, idx) => idx !== index) }
-                          }))
-                        }
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="summary-box">
-                  <div className="summary-head">
-                    <strong>Instructions</strong>
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() =>
-                        setUpdateModal((prev) => ({
-                          ...prev,
-                          form: {
-                            ...prev.form,
-                            instructions: [...(prev.form.instructions || []), { description: '', tutorialVideoUrl: '' }]
-                          }
-                        }))
-                      }
-                    >
-                      Add Step
-                    </button>
-                  </div>
-                  {updateModal.form.instructions.map((ins, index) => (
-                    <div key={`upd-ins-${index}`} className="summary-row">
-                      <input type="number" value={index + 1} readOnly />
-                      <input value={ins.description} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, instructions: prev.form.instructions.map((x, idx) => idx === index ? { ...x, description: e.target.value } : x) } }))} />
-                      <input value={ins.tutorialVideoUrl} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, instructions: prev.form.instructions.map((x, idx) => idx === index ? { ...x, tutorialVideoUrl: e.target.value } : x) } }))} />
-                      <button
-                        type="button"
-                        className="danger"
-                        onClick={() =>
-                          setUpdateModal((prev) => ({
-                            ...prev,
-                            form: { ...prev.form, instructions: prev.form.instructions.filter((_, idx) => idx !== index) }
-                          }))
-                        }
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="detail-actions">
-              <button onClick={() => setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null })}>Cancel</button>
-              <button className="secondary" onClick={confirmUpdate}>Update</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
