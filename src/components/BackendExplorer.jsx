@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../services/api';
 
 const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
@@ -340,6 +340,7 @@ export default function BackendExplorer() {
   const [updateNutritionDraft, setUpdateNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'G' });
   const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
   const [updateModal, setUpdateModal] = useState({ open: false, type: '', title: '', itemId: null, form: null });
+  const hasLoadedInitiallyRef = useRef(false);
 
   async function loadAll() {
     setLoading(true);
@@ -356,7 +357,11 @@ export default function BackendExplorer() {
     }
   }
 
-  useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+    if (hasLoadedInitiallyRef.current) return;
+    hasLoadedInitiallyRef.current = true;
+    loadAll();
+  }, []);
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
   function openCreateModal(type) {
