@@ -1,3 +1,5 @@
+import { NutrientPicker, NutritionSummaryCards } from '../shared/ExplorerShared';
+
 export default function UpdateEntityModal({
   updateModal,
   setUpdateModal,
@@ -8,8 +10,6 @@ export default function UpdateEntityModal({
   updateNutritionDraft,
   setUpdateNutritionDraft,
   addUpdateNutrition,
-  NutrientPicker,
-  NutritionSummaryCards,
   confirmUpdate
 }) {
   if (!updateModal.open) return null;

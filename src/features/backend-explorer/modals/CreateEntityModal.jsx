@@ -1,3 +1,5 @@
+import { NutrientPicker, NutritionSummaryCards, RecipeIngredientSummaryCards } from '../shared/ExplorerShared';
+
 export default function CreateEntityModal({
   createModal,
   createError,
@@ -11,8 +13,6 @@ export default function CreateEntityModal({
   setIngredientForm,
   ingredientNutritions,
   setIngredientNutritions,
-  NutritionSummaryCards,
-  NutrientPicker,
   nutritionDraft,
   setNutritionDraft,
   unitOptions,
@@ -23,7 +23,6 @@ export default function CreateEntityModal({
   getItemId,
   recipeIngredients,
   setRecipeIngredients,
-  RecipeIngredientSummaryCards,
   ingredients,
   recipeIngredientDraft,
   setRecipeIngredientDraft,
