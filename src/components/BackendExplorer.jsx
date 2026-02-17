@@ -137,7 +137,7 @@ export default function BackendExplorer() {
   const [createModal, setCreateModal] = useState({ open: false, type: '' });
   const [createError, setCreateError] = useState('');
   const [createSuccess, setCreateSuccess] = useState({ food: '', ingredient: '', recipe: '' });
-  const [updateNutritionPicker, setUpdateNutritionPicker] = useState({ open: false, nutrient: 'CALORIES' });
+  const [updateNutritionDraft, setUpdateNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'G' });
   const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
   const [updateModal, setUpdateModal] = useState({ open: false, type: '', title: '', itemId: null, form: null });
 
@@ -286,15 +286,18 @@ export default function BackendExplorer() {
 
 
   function addUpdateNutrition() {
-    if (!updateNutritionPicker.nutrient) return;
+    if (!updateNutritionDraft.value) return setError('Nutrition value is required.');
     setUpdateModal((prev) => ({
       ...prev,
       form: {
         ...prev.form,
-        nutritionList: [...(prev.form.nutritionList || []), { nutrient: updateNutritionPicker.nutrient, value: '', unit: 'G' }]
+        nutritionList: [
+          ...(prev.form.nutritionList || []),
+          { nutrient: updateNutritionDraft.nutrient, value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
+        ]
       }
     }));
-    setUpdateNutritionPicker({ open: false, nutrient: 'CALORIES' });
+    setUpdateNutritionDraft((prev) => ({ ...prev, value: '' }));
   }
 
   function requestDelete(message, action) { setDeleteModal({ open: true, message, action }); }
@@ -305,7 +308,7 @@ export default function BackendExplorer() {
   }
 
   function openIngredientUpdateModal(item) {
-    setUpdateNutritionPicker({ open: false, nutrient: 'CALORIES' });
+    setUpdateNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
     setUpdateModal({
       open: true,
       type: 'ingredient',
@@ -638,22 +641,13 @@ export default function BackendExplorer() {
                 </div>
                 <input placeholder="Image URL" value={updateModal.form.imageUrl} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, imageUrl: e.target.value } }))} />
                 <div className="summary-box">
-                  <div className="summary-head">
-                    <strong>Nutrition</strong>
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => setUpdateNutritionPicker((prev) => ({ ...prev, open: !prev.open }))}
-                    >
-                      Add Nutrition
-                    </button>
+                  <strong>Nutrition</strong>
+                  <div className="inline-builder">
+                    <select value={updateNutritionDraft.nutrient} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, nutrient: e.target.value }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
+                    <input type="number" placeholder="Value" value={updateNutritionDraft.value} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, value: e.target.value }))} />
+                    <select value={updateNutritionDraft.unit} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                    <button type="button" onClick={addUpdateNutrition}>Add Nutrition</button>
                   </div>
-                  {updateNutritionPicker.open ? (
-                    <div className="inline-builder">
-                      <select value={updateNutritionPicker.nutrient} onChange={(e) => setUpdateNutritionPicker((prev) => ({ ...prev, nutrient: e.target.value }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
-                      <button type="button" onClick={addUpdateNutrition}>Select Nutrient</button>
-                    </div>
-                  ) : null}
                   {!updateModal.form.nutritionList.length ? <p className="muted">No nutrition added yet.</p> : null}
                   <NutritionSummaryCards
                     items={updateModal.form.nutritionList}
