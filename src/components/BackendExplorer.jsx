@@ -4,34 +4,24 @@ import { api } from '../services/api';
 const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
 const nutrientCatalog = [
   { key: 'CALORIES', short: 'CAL', group: 'Energy', icon: '🔥', aliases: ['energy', 'kcal'] },
-  { key: 'WATER', short: 'H2O', group: 'Other', icon: '💧', aliases: ['hydration'] },
+
   { key: 'PROTEIN', short: 'PRO', group: 'Macros', icon: '💪', aliases: ['prot'] },
   { key: 'CARBOHYDRATES', short: 'CARB', group: 'Macros', icon: '🍞', aliases: ['carbs'] },
-  { key: 'FAT', short: 'FAT', group: 'Macros', icon: '🥑', aliases: ['lipid'] },
-  { key: 'SUGAR', short: 'SUG', group: 'Macros', icon: '🍬', aliases: [] },
-  { key: 'FIBER', short: 'FIB', group: 'Macros', icon: '🌾', aliases: ['dietary fiber'] },
+  { key: 'FAT', short: 'FAT', group: 'Macros', icon: '🥑', aliases: ['total fat'] },
   { key: 'DIETARY_FIBER', short: 'DFIB', group: 'Macros', icon: '🌿', aliases: ['fiber'] },
+  { key: 'SUGARS', short: 'SUG', group: 'Macros', icon: '🍬', aliases: ['sugar', 'total sugars'] },
+  { key: 'ADDED_SUGARS', short: 'ASUG', group: 'Macros', icon: '🧁', aliases: ['added sugar'] },
+  { key: 'CHOLESTEROL', short: 'CHOL', group: 'Macros', icon: '🧪', aliases: [] },
+
   { key: 'SATURATED_FAT', short: 'SAT', group: 'Lipids', icon: '🧈', aliases: [] },
-  { key: 'TRANS_FAT', short: 'TRANS', group: 'Lipids', icon: '⚠️', aliases: [] },
   { key: 'MONOUNSATURATED_FAT', short: 'MUFA', group: 'Lipids', icon: '🫒', aliases: [] },
   { key: 'POLYUNSATURATED_FAT', short: 'PUFA', group: 'Lipids', icon: '🌰', aliases: [] },
-  { key: 'OMEGA_3', short: 'O3', group: 'Lipids', icon: '🐟', aliases: ['epa', 'dha'] },
-  { key: 'OMEGA_6', short: 'O6', group: 'Lipids', icon: '🥜', aliases: [] },
-  { key: 'CHOLESTEROL', short: 'CHOL', group: 'Lipids', icon: '🧪', aliases: [] },
-  { key: 'SODIUM', short: 'NA', group: 'Minerals', icon: '🧂', aliases: ['salt'] },
-  { key: 'POTASSIUM', short: 'K', group: 'Minerals', icon: '🍌', aliases: [] },
-  { key: 'CALCIUM', short: 'CA', group: 'Minerals', icon: '🦴', aliases: [] },
-  { key: 'IRON', short: 'FE', group: 'Minerals', icon: '🩸', aliases: [] },
-  { key: 'MAGNESIUM', short: 'MG', group: 'Minerals', icon: '⚙️', aliases: [] },
-  { key: 'ZINC', short: 'ZN', group: 'Minerals', icon: '🔩', aliases: [] },
-  { key: 'PHOSPHORUS', short: 'P', group: 'Minerals', icon: '⚗️', aliases: [] },
-  { key: 'COPPER', short: 'CU', group: 'Minerals', icon: '🟠', aliases: [] },
-  { key: 'MANGANESE', short: 'MN', group: 'Minerals', icon: '🟤', aliases: [] },
-  { key: 'SELENIUM', short: 'SE', group: 'Minerals', icon: '🧪', aliases: [] },
-  { key: 'IODINE', short: 'I', group: 'Minerals', icon: '🧂', aliases: [] },
-  { key: 'CHLORIDE', short: 'CL', group: 'Minerals', icon: '🫧', aliases: [] },
+  { key: 'TRANS_FAT', short: 'TRANS', group: 'Lipids', icon: '⚠️', aliases: [] },
+  { key: 'OMEGA_3', short: 'O3', group: 'Lipids', icon: '🐟', aliases: ['epa', 'dha', 'ala'] },
+  { key: 'OMEGA_6', short: 'O6', group: 'Lipids', icon: '🥜', aliases: ['linoleic acid'] },
+
   { key: 'VITAMIN_A', short: 'VA', group: 'Vitamins', icon: '🥕', aliases: [] },
-  { key: 'VITAMIN_B1', short: 'B1', group: 'Vitamins', icon: '🧠', aliases: ['thiamine'] },
+  { key: 'VITAMIN_B1', short: 'B1', group: 'Vitamins', icon: '🧠', aliases: ['thiamin'] },
   { key: 'VITAMIN_B2', short: 'B2', group: 'Vitamins', icon: '⚡', aliases: ['riboflavin'] },
   { key: 'VITAMIN_B3', short: 'B3', group: 'Vitamins', icon: '🌟', aliases: ['niacin'] },
   { key: 'VITAMIN_B5', short: 'B5', group: 'Vitamins', icon: '✨', aliases: ['pantothenic acid'] },
@@ -44,8 +34,20 @@ const nutrientCatalog = [
   { key: 'VITAMIN_E', short: 'VE', group: 'Vitamins', icon: '🌻', aliases: [] },
   { key: 'VITAMIN_K', short: 'VK', group: 'Vitamins', icon: '🥦', aliases: [] },
   { key: 'CHOLINE', short: 'CHO', group: 'Vitamins', icon: '🧠', aliases: [] },
-  { key: 'ALCOHOL', short: 'ALC', group: 'Other', icon: '🍷', aliases: ['ethanol'] },
-  { key: 'CAFFEINE', short: 'CAF', group: 'Other', icon: '☕', aliases: [] }
+
+  { key: 'CALCIUM', short: 'CA', group: 'Minerals', icon: '🦴', aliases: [] },
+  { key: 'CHROMIUM', short: 'CR', group: 'Minerals', icon: '⚙️', aliases: [] },
+  { key: 'COPPER', short: 'CU', group: 'Minerals', icon: '🟠', aliases: [] },
+  { key: 'IODINE', short: 'I', group: 'Minerals', icon: '🧂', aliases: [] },
+  { key: 'IRON', short: 'FE', group: 'Minerals', icon: '🩸', aliases: [] },
+  { key: 'MAGNESIUM', short: 'MG', group: 'Minerals', icon: '⚙️', aliases: [] },
+  { key: 'MANGANESE', short: 'MN', group: 'Minerals', icon: '🟤', aliases: [] },
+  { key: 'MOLYBDENUM', short: 'MO', group: 'Minerals', icon: '🔧', aliases: [] },
+  { key: 'PHOSPHORUS', short: 'P', group: 'Minerals', icon: '⚗️', aliases: [] },
+  { key: 'POTASSIUM', short: 'K', group: 'Minerals', icon: '🍌', aliases: [] },
+  { key: 'SELENIUM', short: 'SE', group: 'Minerals', icon: '🧪', aliases: [] },
+  { key: 'SODIUM', short: 'NA', group: 'Minerals', icon: '🧂', aliases: ['salt'] },
+  { key: 'ZINC', short: 'ZN', group: 'Minerals', icon: '🔩', aliases: [] }
 ];
 const nutrientOptions = nutrientCatalog.map((item) => item.key);
 const nutrientIcons = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.icon || '🧪']));
@@ -55,16 +57,8 @@ const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
   acc[item.group].push(item.key);
   return acc;
 }, {});
-const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'FIBER', 'SUGAR', 'SODIUM', 'VITAMIN_C'];
+const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'DIETARY_FIBER', 'SUGARS', 'SODIUM', 'VITAMIN_C'];
 const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
-
-const nutrientShortNames = {
-  CALORIES: 'CAL', PROTEIN: 'PRO', CARBOHYDRATES: 'CARB', FAT: 'FAT', FIBER: 'FIB', DIETARY_FIBER: 'DFIB',
-  SUGAR: 'SUG', SATURATED_FAT: 'SAT', TRANS_FAT: 'TRANS', OMEGA_3: 'O3', OMEGA_6: 'O6', SODIUM: 'NA',
-  POTASSIUM: 'K', CALCIUM: 'CA', IRON: 'FE', MAGNESIUM: 'MG', ZINC: 'ZN', VITAMIN_A: 'VA',
-  VITAMIN_B1: 'B1', VITAMIN_B2: 'B2', VITAMIN_B3: 'B3', VITAMIN_B6: 'B6', VITAMIN_B9: 'B9',
-  VITAMIN_B12: 'B12', VITAMIN_C: 'VC', VITAMIN_D: 'VD', VITAMIN_E: 'VE', VITAMIN_K: 'VK', SELENIUM: 'SE'
-};
 
 function getItemId(item) {
   return item?.id || item?._id;
@@ -182,36 +176,45 @@ function NutrientPicker({ value, onChange, storageKey = 'default' }) {
 
   return (
     <div className="nutrient-picker">
-      <input
-        placeholder="Search nutrient"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        onKeyDown={onKeyDown}
-      />
-
-      {!query ? (
-        <div className="picker-chip-row">
-          {commonNutrients.map((nutrient) => (
-            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
-              {nutrientShortNames[nutrient]}
-            </button>
-          ))}
+      <div className="picker-top-row">
+        <div className="picker-chip-section search-block">
+          <small className="picker-section-title">Search nutrition</small>
+          <input
+            placeholder="Search nutrient"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={onKeyDown}
+          />
         </div>
-      ) : null}
 
-      {!query && recent.length ? (
-        <div className="picker-recent-row">
-          <small>Recent:</small>
-          {recent.map((nutrient) => (
-            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
-              {nutrient}
-            </button>
-          ))}
+        <div className="picker-chip-section">
+          <small className="picker-section-title">Recent picks</small>
+          <div className="picker-recent-row">
+            {recent.length ? recent.map((nutrient) => (
+              <button
+                type="button"
+                key={nutrient}
+                className={nutrient === value ? 'chip selected' : 'chip'}
+                onClick={() => selectNutrient(nutrient)}
+              >
+                <span className="chip-icon">{nutrientIcons[nutrient] || '🧪'}</span>
+                <span className="chip-main">{nutrientShortNames[nutrient] || nutrient}</span>
+              </button>
+            )) : <small className="muted">No recent picks</small>}
+          </div>
         </div>
-      ) : null}
+
+      </div>
 
       <div className="picker-list">
-        {Object.entries(nutrientGroups).map(([group, keys]) => {
+        <strong className="picker-list-title">Nutrient List</strong>
+        {Object.entries(nutrientGroups)
+          .sort(([a], [b]) => {
+            if (a === 'Other') return 1;
+            if (b === 'Other') return -1;
+            return 0;
+          })
+          .map(([group, keys]) => {
           const groupItems = keys.filter((key) => filtered.some((item) => item.key === key));
           if (!groupItems.length) return null;
           return (
@@ -714,11 +717,13 @@ export default function BackendExplorer() {
                     onUnitChange={(index, unit) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, unit } : item))}
                   />
                 </div>
-                <div className="inline-builder">
+                <div className="nutrition-builder">
                   <NutrientPicker value={nutritionDraft.nutrient} onChange={(nutrient) => setNutritionDraft((p) => ({ ...p, nutrient }))} storageKey="create" />
-                  <input type="number" placeholder="Value" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
-                  <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                  <button onClick={addNutrition}>Add Nutrition</button>
+                  <div className="nutrition-builder-actions">
+                    <input type="number" placeholder="Amount" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
+                    <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                    <button onClick={addNutrition}>Add Nutrition</button>
+                  </div>
                 </div>
               </>
             ) : null}
@@ -816,11 +821,13 @@ export default function BackendExplorer() {
                 <input placeholder="Image URL" value={updateModal.form.imageUrl} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, imageUrl: e.target.value } }))} />
                 <div className="summary-box">
                   <strong>Nutrition</strong>
-                  <div className="inline-builder">
+                  <div className="nutrition-builder">
                     <NutrientPicker value={updateNutritionDraft.nutrient} onChange={(nutrient) => setUpdateNutritionDraft((prev) => ({ ...prev, nutrient }))} storageKey="update" />
-                    <input type="number" placeholder="Value" value={updateNutritionDraft.value} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, value: e.target.value }))} />
-                    <select value={updateNutritionDraft.unit} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                    <button type="button" onClick={addUpdateNutrition}>Add Nutrition</button>
+                    <div className="nutrition-builder-actions">
+                      <input type="number" placeholder="Amount" value={updateNutritionDraft.value} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, value: e.target.value }))} />
+                      <select value={updateNutritionDraft.unit} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                      <button type="button" onClick={addUpdateNutrition}>Add Nutrition</button>
+                    </div>
                   </div>
                   {!updateModal.form.nutritionList.length ? <p className="muted">No nutrition added yet.</p> : null}
                   <NutritionSummaryCards
