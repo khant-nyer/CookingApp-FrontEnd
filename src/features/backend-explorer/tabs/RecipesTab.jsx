@@ -9,10 +9,8 @@ export default function RecipesTab({
   selectedRecipe,
   createSuccess,
   openCreateModal,
-  requestDelete,
   openRecipeUpdateModal,
-  getItemId,
-  api
+  onDeleteRecipe
 }) {
   return (
     <div className="grid">
@@ -37,7 +35,7 @@ export default function RecipesTab({
             { title: 'Ingredients', items: (selectedRecipe.ingredients || []).map((i) => `${i.ingredientName || i.ingredientId}: ${i.quantity} ${i.unit}${i.note ? ` (${i.note})` : ''}`) },
             { title: 'Instructions', items: (selectedRecipe.instructions || []).map((ins, idx) => `Step ${ins.step || ins.stepNumber || idx + 1}: ${ins.description}`) }
           ]}
-          onDelete={() => requestDelete('Delete this recipe?', () => api.deleteRecipe(getItemId(selectedRecipe)))}
+          onDelete={() => onDeleteRecipe(selectedRecipe)}
           onUpdate={() => openRecipeUpdateModal(selectedRecipe)}
         />
       ) : <div className="card muted">Select a recipe card to view details.</div>}

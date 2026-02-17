@@ -3,6 +3,10 @@ import { api } from '../services/api';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import { getItemId, getRecipeTileId } from '../features/backend-explorer/utils/ids';
 import { normalizeNutrientKey } from '../features/backend-explorer/utils/nutrients';
+import {
+  buildUpdateIngredientPayload,
+  buildUpdateRecipePayload
+} from '../features/backend-explorer/utils/payloadMappers';
 import CreateEntityModal from '../features/backend-explorer/modals/CreateEntityModal';
 import DeleteConfirmModal from '../features/backend-explorer/modals/DeleteConfirmModal';
 import UpdateEntityModal from '../features/backend-explorer/modals/UpdateEntityModal';
@@ -11,6 +15,9 @@ import IngredientsTab from '../features/backend-explorer/tabs/IngredientsTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import useBackendData from '../features/backend-explorer/hooks/useBackendData';
+import useFoodActions from '../features/backend-explorer/hooks/useFoodActions';
+import useIngredientActions from '../features/backend-explorer/hooks/useIngredientActions';
+import useRecipeActions from '../features/backend-explorer/hooks/useRecipeActions';
 import { createFlowReducer, initialCreateFlowState } from '../features/backend-explorer/reducers/createFlowReducer';
 import { initialUpdateFlowState, updateFlowReducer } from '../features/backend-explorer/reducers/updateFlowReducer';
 
@@ -89,103 +96,48 @@ export default function BackendExplorer() {
     dispatchUpdateFlow({ type: 'set_update_nutrition_draft', value });
   }
 
-  function addNutrition() {
-    if (!nutritionDraft.value) return setCreateError('Nutrition value is required.');
-    setIngredientNutritions((prev) => [...prev, { nutrient: normalizeNutrientKey(nutritionDraft.nutrient), value: Number(nutritionDraft.value), unit: nutritionDraft.unit }]);
-    setNutritionDraft((prev) => ({ ...prev, value: '' }));
-  }
+  const { createFood } = useFoodActions({
+    foodForm,
+    setFoodForm,
+    setCreateError,
+    setCreateSuccessByType,
+    closeCreateModal,
+    setLoading,
+    loadAll
+  });
 
-  async function createFood() {
-    if (!foodForm.name.trim()) return setCreateError('Food name is required.');
-    setLoading(true);
-    setCreateError('');
-    try {
-      await api.createFood({ name: foodForm.name.trim(), category: foodForm.category.trim(), imageUrl: foodForm.imageUrl.trim() || null, recipes: [] });
-      await loadAll();
-      setFoodForm({ name: '', category: '', imageUrl: '' });
-      setCreateSuccessByType('food', 'Food created successfully.');
-      closeCreateModal();
-    } catch (createFoodError) {
-      setCreateError(createFoodError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { addNutrition, createIngredient } = useIngredientActions({
+    ingredientForm,
+    setIngredientForm,
+    nutritionDraft,
+    setNutritionDraft,
+    ingredientNutritions,
+    setIngredientNutritions,
+    setCreateError,
+    setCreateSuccessByType,
+    closeCreateModal,
+    setLoading,
+    loadAll
+  });
 
-  async function createIngredient() {
-    if (!ingredientForm.name.trim()) return setCreateError('Ingredient name is required.');
-    setLoading(true);
-    setCreateError('');
-    try {
-      await api.createIngredient({
-        name: ingredientForm.name.trim(),
-        category: ingredientForm.category.trim(),
-        description: ingredientForm.description.trim(),
-        servingAmount: Number(ingredientForm.servingAmount || 0),
-        servingUnit: ingredientForm.servingUnit || 'G',
-        imageUrl: ingredientForm.imageUrl.trim() || null,
-        nutritionList: ingredientNutritions.map((n) => ({ ...n, nutrient: normalizeNutrientKey(n.nutrient) })),
-        nearbyStoreListings: []
-      });
-      await loadAll();
-      setIngredientForm({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
-      setIngredientNutritions([]);
-      setNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
-      setCreateSuccessByType('ingredient', 'Ingredient created successfully.');
-      closeCreateModal();
-    } catch (createIngredientError) {
-      setCreateError(createIngredientError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function addRecipeIngredient() {
-    if (!recipeIngredientDraft.ingredientId || !recipeIngredientDraft.quantity) return setCreateError('Recipe ingredient needs ingredient and quantity.');
-    const ingredientId = Number(recipeIngredientDraft.ingredientId);
-    setRecipeIngredients((prev) => [...prev, {
-      ingredientId,
-      ingredientName: ingredients.find((item) => String(getItemId(item)) === String(ingredientId))?.name || '',
-      quantity: Number(recipeIngredientDraft.quantity),
-      unit: recipeIngredientDraft.unit || 'G',
-      note: recipeIngredientDraft.note || ''
-    }]);
-    setRecipeIngredientDraft({ ingredientId: '', quantity: '', unit: 'G', note: '' });
-  }
-
-  function addRecipeInstruction() {
-    if (!recipeInstructionDraft.description.trim()) return setCreateError('Instruction description is required.');
-    setRecipeInstructions((prev) => [...prev, { step: prev.length + 1, description: recipeInstructionDraft.description.trim(), tutorialVideoUrl: recipeInstructionDraft.tutorialVideoUrl.trim() || null }]);
-    setRecipeInstructionDraft({ description: '', tutorialVideoUrl: '' });
-  }
-
-  async function createRecipe() {
-    if (!recipeForm.foodId) return setCreateError('Please select food for recipe.');
-    if (!recipeForm.version.trim()) return setCreateError('Recipe version is required.');
-    if (!recipeIngredients.length) return setCreateError('Please add at least one recipe ingredient.');
-    if (!recipeInstructions.length) return setCreateError('Please add at least one recipe instruction.');
-    setLoading(true);
-    setCreateError('');
-    try {
-      await api.createRecipeForFoodViaRecipeApi(recipeForm.foodId, {
-        version: recipeForm.version.trim(),
-        description: recipeForm.description.trim(),
-        foodId: Number(recipeForm.foodId),
-        ingredients: recipeIngredients.map(({ ingredientId, quantity, unit, note }) => ({ ingredientId, quantity: Number(quantity), unit, note })),
-        instructions: recipeInstructions.map((item, index) => ({ stepNumber: index + 1, description: item.description, tutorialVideoUrl: item.tutorialVideoUrl }))
-      });
-      await loadAll();
-      setRecipeForm({ foodId: '', version: 'v1', description: '' });
-      setRecipeIngredients([]);
-      setRecipeInstructions([]);
-      setCreateSuccessByType('recipe', 'Recipe created successfully.');
-      closeCreateModal();
-    } catch (createRecipeError) {
-      setCreateError(createRecipeError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { addRecipeIngredient, addRecipeInstruction, createRecipe } = useRecipeActions({
+    ingredients,
+    recipeForm,
+    setRecipeForm,
+    recipeIngredientDraft,
+    setRecipeIngredientDraft,
+    recipeInstructionDraft,
+    setRecipeInstructionDraft,
+    recipeIngredients,
+    setRecipeIngredients,
+    recipeInstructions,
+    setRecipeInstructions,
+    setCreateError,
+    setCreateSuccessByType,
+    closeCreateModal,
+    setLoading,
+    loadAll
+  });
 
 
   function addUpdateNutrition() {
@@ -204,6 +156,18 @@ export default function BackendExplorer() {
   }
 
   function requestDelete(message, action) { setDeleteModal({ open: true, message, action }); }
+  function handleDeleteFood(food) {
+    requestDelete('Delete this food?', () => api.deleteFood(getItemId(food)));
+  }
+
+  function handleDeleteIngredient(ingredient) {
+    requestDelete('Delete this ingredient?', () => api.deleteIngredient(getItemId(ingredient)));
+  }
+
+  function handleDeleteRecipe(recipe) {
+    requestDelete('Delete this recipe?', () => api.deleteRecipe(getItemId(recipe)));
+  }
+
   async function confirmDelete() {
     if (!deleteModal.action) return setDeleteModal({ open: false, message: '', action: null });
     await run(deleteModal.action);
@@ -248,27 +212,12 @@ export default function BackendExplorer() {
   async function confirmUpdate() {
     if (updateModal.type === 'ingredient') {
       const form = updateModal.form;
-      await run(() => api.updateIngredient(updateModal.itemId, {
-        name: form.name.trim(),
-        category: form.category.trim(),
-        description: form.description.trim(),
-        servingAmount: Number(form.servingAmount || 0),
-        servingUnit: form.servingUnit || 'G',
-        imageUrl: form.imageUrl.trim() || null,
-        nutritionList: form.nutritionList.map((n) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: Number(n.value), unit: n.unit })),
-        nearbyStoreListings: []
-      }));
+      await run(() => api.updateIngredient(updateModal.itemId, buildUpdateIngredientPayload(form)));
     }
 
     if (updateModal.type === 'recipe') {
       const form = updateModal.form;
-      await run(() => api.updateRecipe(updateModal.itemId, {
-        version: form.version.trim(),
-        description: form.description.trim(),
-        foodId: Number(form.foodId),
-        ingredients: form.ingredients.map((ri) => ({ ingredientId: Number(ri.ingredientId), quantity: Number(ri.quantity), unit: ri.unit, note: ri.note || '' })),
-        instructions: form.instructions.map((inst, index) => ({ stepNumber: index + 1, description: inst.description, tutorialVideoUrl: inst.tutorialVideoUrl || null }))
-      }));
+      await run(() => api.updateRecipe(updateModal.itemId, buildUpdateRecipePayload(form)));
     }
 
     setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
@@ -296,9 +245,8 @@ export default function BackendExplorer() {
           selectedFood={selectedFood}
           createSuccess={createSuccess}
           openCreateModal={openCreateModal}
-          requestDelete={requestDelete}
           getItemId={getItemId}
-          api={api}
+          onDeleteFood={handleDeleteFood}
         />
       )}
 
@@ -310,10 +258,9 @@ export default function BackendExplorer() {
           selectedIngredient={selectedIngredient}
           createSuccess={createSuccess}
           openCreateModal={openCreateModal}
-          requestDelete={requestDelete}
           openIngredientUpdateModal={openIngredientUpdateModal}
           getItemId={getItemId}
-          api={api}
+          onDeleteIngredient={handleDeleteIngredient}
         />
       )}
 
@@ -326,10 +273,8 @@ export default function BackendExplorer() {
           selectedRecipe={selectedRecipe}
           createSuccess={createSuccess}
           openCreateModal={openCreateModal}
-          requestDelete={requestDelete}
           openRecipeUpdateModal={openRecipeUpdateModal}
-          getItemId={getItemId}
-          api={api}
+          onDeleteRecipe={handleDeleteRecipe}
         />
       )}
 

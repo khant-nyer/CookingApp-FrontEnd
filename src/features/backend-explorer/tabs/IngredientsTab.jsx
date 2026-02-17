@@ -7,10 +7,9 @@ export default function IngredientsTab({
   selectedIngredient,
   createSuccess,
   openCreateModal,
-  requestDelete,
   openIngredientUpdateModal,
   getItemId,
-  api
+  onDeleteIngredient
 }) {
   return (
     <div className="grid">
@@ -36,7 +35,7 @@ export default function IngredientsTab({
             { label: 'Serving', value: `${selectedIngredient.servingAmount || '-'} ${selectedIngredient.servingUnit || ''}` }
           ]}
           sections={[{ title: 'Nutritions', items: (selectedIngredient.nutritionList || []).map((n) => `${n.nutrient}: ${n.value} ${n.unit}`) }]}
-          onDelete={() => requestDelete('Delete this ingredient?', () => api.deleteIngredient(getItemId(selectedIngredient)))}
+          onDelete={() => onDeleteIngredient(selectedIngredient)}
           onUpdate={() => openIngredientUpdateModal(selectedIngredient)}
         />
       ) : <div className="card muted">Select an ingredient image to view details.</div>}

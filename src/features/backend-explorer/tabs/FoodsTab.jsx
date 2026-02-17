@@ -7,9 +7,8 @@ export default function FoodsTab({
   selectedFood,
   createSuccess,
   openCreateModal,
-  requestDelete,
   getItemId,
-  api
+  onDeleteFood
 }) {
   return (
     <div className="grid">
@@ -31,7 +30,7 @@ export default function FoodsTab({
           imageUrl={selectedFood.imageUrl}
           fields={[{ label: 'Category', value: selectedFood.category }, { label: 'ID', value: selectedFood.id }]}
           sections={[{ title: 'Recipes', items: (selectedFood.recipes || []).map((r) => r.name || `Recipe #${r.id}`) }]}
-          onDelete={() => requestDelete('Delete this food?', () => api.deleteFood(getItemId(selectedFood)))}
+          onDelete={() => onDeleteFood(selectedFood)}
         />
       ) : <div className="card muted">Select a food image to view details.</div>}
     </div>
