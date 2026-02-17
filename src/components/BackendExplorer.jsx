@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../services/api';
 
 const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
 const nutrientCatalog = [
   { key: 'CALORIES', short: 'CAL', group: 'Energy', icon: '🔥', aliases: ['energy', 'kcal'] },
 
-  { key: 'PROTEIN', short: 'PRO', group: 'Macros', icon: '💪', aliases: ['prot'] },
-  { key: 'CARBOHYDRATES', short: 'CARB', group: 'Macros', icon: '🍞', aliases: ['carbs'] },
-  { key: 'FAT', short: 'FAT', group: 'Macros', icon: '🥑', aliases: ['total fat'] },
-  { key: 'DIETARY_FIBER', short: 'DFIB', group: 'Macros', icon: '🌿', aliases: ['fiber'] },
-  { key: 'SUGARS', short: 'SUG', group: 'Macros', icon: '🍬', aliases: ['sugar', 'total sugars'] },
-  { key: 'ADDED_SUGARS', short: 'ASUG', group: 'Macros', icon: '🧁', aliases: ['added sugar'] },
-  { key: 'CHOLESTEROL', short: 'CHOL', group: 'Macros', icon: '🧪', aliases: [] },
+  { key: 'PROTEIN', short: 'PRO', group: 'Macronutrients', icon: '💪', aliases: ['prot'] },
+  { key: 'CARBOHYDRATES', short: 'CARB', group: 'Macronutrients', icon: '🍞', aliases: ['carbs'] },
+  { key: 'FAT', short: 'FAT', group: 'Macronutrients', icon: '🥑', aliases: ['total fat'] },
+  { key: 'DIETARY_FIBER', short: 'DFIB', group: 'Macronutrients', icon: '🌿', aliases: ['fiber'] },
+  { key: 'SUGARS', short: 'SUG', group: 'Macronutrients', icon: '🍬', aliases: ['sugar', 'total sugars'] },
+  { key: 'ADDED_SUGARS', short: 'ASUG', group: 'Macronutrients', icon: '🧁', aliases: ['added sugar'] },
+  { key: 'CHOLESTEROL', short: 'CHOL', group: 'Macronutrients', icon: '🧪', aliases: [] },
 
-  { key: 'SATURATED_FAT', short: 'SAT', group: 'Lipids', icon: '🧈', aliases: [] },
-  { key: 'MONOUNSATURATED_FAT', short: 'MUFA', group: 'Lipids', icon: '🫒', aliases: [] },
-  { key: 'POLYUNSATURATED_FAT', short: 'PUFA', group: 'Lipids', icon: '🌰', aliases: [] },
-  { key: 'TRANS_FAT', short: 'TRANS', group: 'Lipids', icon: '⚠️', aliases: [] },
-  { key: 'OMEGA_3', short: 'O3', group: 'Lipids', icon: '🐟', aliases: ['epa', 'dha', 'ala'] },
-  { key: 'OMEGA_6', short: 'O6', group: 'Lipids', icon: '🥜', aliases: ['linoleic acid'] },
+  { key: 'SATURATED_FAT', short: 'SAT', group: 'Fat Types', icon: '🧈', aliases: [] },
+  { key: 'MONOUNSATURATED_FAT', short: 'MUFA', group: 'Fat Types', icon: '🫒', aliases: [] },
+  { key: 'POLYUNSATURATED_FAT', short: 'PUFA', group: 'Fat Types', icon: '🌰', aliases: [] },
+  { key: 'TRANS_FAT', short: 'TRANS', group: 'Fat Types', icon: '⚠️', aliases: [] },
+  { key: 'OMEGA_3', short: 'O3', group: 'Fat Types', icon: '🐟', aliases: ['epa', 'dha', 'ala'] },
+  { key: 'OMEGA_6', short: 'O6', group: 'Fat Types', icon: '🥜', aliases: ['linoleic acid'] },
 
   { key: 'VITAMIN_A', short: 'VA', group: 'Vitamins', icon: '🥕', aliases: [] },
   { key: 'VITAMIN_B1', short: 'B1', group: 'Vitamins', icon: '🧠', aliases: ['thiamin'] },
@@ -50,6 +50,18 @@ const nutrientCatalog = [
   { key: 'ZINC', short: 'ZN', group: 'Minerals', icon: '🔩', aliases: [] }
 ];
 const nutrientOptions = nutrientCatalog.map((item) => item.key);
+const nutrientAliasToKey = nutrientCatalog.reduce((acc, item) => {
+  acc[item.key] = item.key;
+  acc[item.key.toLowerCase()] = item.key;
+  (item.aliases || []).forEach((alias) => {
+    acc[alias] = item.key;
+    acc[alias.toLowerCase()] = item.key;
+  });
+  return acc;
+}, {
+  SUGAR: 'SUGARS',
+  sugar: 'SUGARS'
+});
 const nutrientIcons = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.icon || '🧪']));
 const nutrientShortNames = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.short || item.key]));
 const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
@@ -59,6 +71,17 @@ const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
 }, {});
 const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'DIETARY_FIBER', 'SUGARS', 'SODIUM', 'VITAMIN_C'];
 const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
+
+function normalizeNutrientKey(nutrient) {
+  if (!nutrient) return 'CALORIES';
+  const direct = nutrientAliasToKey[nutrient];
+  if (direct) return direct;
+  const upper = nutrientAliasToKey[String(nutrient).toUpperCase()];
+  if (upper) return upper;
+  const lower = nutrientAliasToKey[String(nutrient).toLowerCase()];
+  if (lower) return lower;
+  return 'CALORIES';
+}
 
 function getItemId(item) {
   return item?.id || item?._id;
@@ -317,6 +340,7 @@ export default function BackendExplorer() {
   const [updateNutritionDraft, setUpdateNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'G' });
   const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
   const [updateModal, setUpdateModal] = useState({ open: false, type: '', title: '', itemId: null, form: null });
+  const hasLoadedInitiallyRef = useRef(false);
 
   async function loadAll() {
     setLoading(true);
@@ -333,7 +357,11 @@ export default function BackendExplorer() {
     }
   }
 
-  useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+    if (hasLoadedInitiallyRef.current) return;
+    hasLoadedInitiallyRef.current = true;
+    loadAll();
+  }, []);
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
   function openCreateModal(type) {
@@ -365,7 +393,7 @@ export default function BackendExplorer() {
 
   function addNutrition() {
     if (!nutritionDraft.value) return setCreateError('Nutrition value is required.');
-    setIngredientNutritions((prev) => [...prev, { nutrient: nutritionDraft.nutrient, value: Number(nutritionDraft.value), unit: nutritionDraft.unit }]);
+    setIngredientNutritions((prev) => [...prev, { nutrient: normalizeNutrientKey(nutritionDraft.nutrient), value: Number(nutritionDraft.value), unit: nutritionDraft.unit }]);
     setNutritionDraft((prev) => ({ ...prev, value: '' }));
   }
 
@@ -398,7 +426,7 @@ export default function BackendExplorer() {
         servingAmount: Number(ingredientForm.servingAmount || 0),
         servingUnit: ingredientForm.servingUnit || 'G',
         imageUrl: ingredientForm.imageUrl.trim() || null,
-        nutritionList: ingredientNutritions,
+        nutritionList: ingredientNutritions.map((n) => ({ ...n, nutrient: normalizeNutrientKey(n.nutrient) })),
         nearbyStoreListings: []
       });
       await loadAll();
@@ -470,7 +498,7 @@ export default function BackendExplorer() {
         ...prev.form,
         nutritionList: [
           ...(prev.form.nutritionList || []),
-          { nutrient: updateNutritionDraft.nutrient, value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
+          { nutrient: normalizeNutrientKey(updateNutritionDraft.nutrient), value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
         ]
       }
     }));
@@ -498,7 +526,7 @@ export default function BackendExplorer() {
         servingAmount: String(item?.servingAmount ?? ''),
         servingUnit: item?.servingUnit || 'G',
         imageUrl: item?.imageUrl || '',
-        nutritionList: Array.isArray(item?.nutritionList) ? item.nutritionList.map((n) => ({ nutrient: n.nutrient || 'CALORIES', value: n.value ?? '', unit: n.unit || 'G' })) : []
+        nutritionList: Array.isArray(item?.nutritionList) ? item.nutritionList.map((n) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: n.value ?? '', unit: n.unit || 'G' })) : []
       }
     });
   }
@@ -529,7 +557,7 @@ export default function BackendExplorer() {
         servingAmount: Number(form.servingAmount || 0),
         servingUnit: form.servingUnit || 'G',
         imageUrl: form.imageUrl.trim() || null,
-        nutritionList: form.nutritionList.map((n) => ({ nutrient: n.nutrient, value: Number(n.value), unit: n.unit })),
+        nutritionList: form.nutritionList.map((n) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: Number(n.value), unit: n.unit })),
         nearbyStoreListings: []
       }));
     }

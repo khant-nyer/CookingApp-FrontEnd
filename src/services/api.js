@@ -1,5 +1,36 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
+const NUTRIENT_ALIASES = {
+  SUGAR: 'SUGARS',
+  SUGARS: 'SUGARS',
+  'TOTAL SUGARS': 'SUGARS',
+  'ADDED SUGAR': 'ADDED_SUGARS',
+  'ADDED SUGARS': 'ADDED_SUGARS'
+};
+
+function normalizeNutrient(nutrient) {
+  if (nutrient == null) return nutrient;
+  const raw = String(nutrient).trim();
+  if (!raw) return raw;
+  const byRaw = NUTRIENT_ALIASES[raw];
+  if (byRaw) return byRaw;
+  const normalizedToken = raw.replace(/[_\s]+/g, ' ').toUpperCase();
+  const byToken = NUTRIENT_ALIASES[normalizedToken];
+  if (byToken) return byToken;
+  return raw.toUpperCase().replace(/\s+/g, '_');
+}
+
+function normalizeIngredientPayload(payload = {}) {
+  if (!Array.isArray(payload?.nutritionList)) return payload;
+  return {
+    ...payload,
+    nutritionList: payload.nutritionList.map((item) => ({
+      ...item,
+      nutrient: normalizeNutrient(item?.nutrient)
+    }))
+  };
+}
+
 function buildUrl(path) {
   return `${API_BASE_URL}${path}`;
 }
@@ -65,7 +96,7 @@ export const api = {
     return request('/api/ingredients', {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify(payload)
+      body: JSON.stringify(normalizeIngredientPayload(payload))
     });
   },
   deleteIngredient(id) {
@@ -75,7 +106,7 @@ export const api = {
     return request(`/api/ingredients/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
-      body: JSON.stringify(payload)
+      body: JSON.stringify(normalizeIngredientPayload(payload))
     });
   },
   searchIngredientsByName(name) {
@@ -84,7 +115,7 @@ export const api = {
     });
   },
   searchIngredientsByNutrition(nutrient, minValue) {
-    const params = new URLSearchParams({ nutrient });
+    const params = new URLSearchParams({ nutrient: normalizeNutrient(nutrient) });
     if (minValue !== '' && minValue != null) params.set('minValue', String(minValue));
     return request(`/api/ingredients/search/by-nutrition?${params.toString()}`, { headers: getHeaders() });
   },
