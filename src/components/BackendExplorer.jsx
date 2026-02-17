@@ -50,6 +50,18 @@ const nutrientCatalog = [
   { key: 'ZINC', short: 'ZN', group: 'Minerals', icon: '🔩', aliases: [] }
 ];
 const nutrientOptions = nutrientCatalog.map((item) => item.key);
+const nutrientAliasToKey = nutrientCatalog.reduce((acc, item) => {
+  acc[item.key] = item.key;
+  acc[item.key.toLowerCase()] = item.key;
+  (item.aliases || []).forEach((alias) => {
+    acc[alias] = item.key;
+    acc[alias.toLowerCase()] = item.key;
+  });
+  return acc;
+}, {
+  SUGAR: 'SUGARS',
+  sugar: 'SUGARS'
+});
 const nutrientIcons = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.icon || '🧪']));
 const nutrientShortNames = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.short || item.key]));
 const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
@@ -59,6 +71,17 @@ const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
 }, {});
 const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'DIETARY_FIBER', 'SUGARS', 'SODIUM', 'VITAMIN_C'];
 const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
+
+function normalizeNutrientKey(nutrient) {
+  if (!nutrient) return 'CALORIES';
+  const direct = nutrientAliasToKey[nutrient];
+  if (direct) return direct;
+  const upper = nutrientAliasToKey[String(nutrient).toUpperCase()];
+  if (upper) return upper;
+  const lower = nutrientAliasToKey[String(nutrient).toLowerCase()];
+  if (lower) return lower;
+  return 'CALORIES';
+}
 
 function getItemId(item) {
   return item?.id || item?._id;
@@ -365,7 +388,7 @@ export default function BackendExplorer() {
 
   function addNutrition() {
     if (!nutritionDraft.value) return setCreateError('Nutrition value is required.');
-    setIngredientNutritions((prev) => [...prev, { nutrient: nutritionDraft.nutrient, value: Number(nutritionDraft.value), unit: nutritionDraft.unit }]);
+    setIngredientNutritions((prev) => [...prev, { nutrient: normalizeNutrientKey(nutritionDraft.nutrient), value: Number(nutritionDraft.value), unit: nutritionDraft.unit }]);
     setNutritionDraft((prev) => ({ ...prev, value: '' }));
   }
 
@@ -398,7 +421,7 @@ export default function BackendExplorer() {
         servingAmount: Number(ingredientForm.servingAmount || 0),
         servingUnit: ingredientForm.servingUnit || 'G',
         imageUrl: ingredientForm.imageUrl.trim() || null,
-        nutritionList: ingredientNutritions,
+        nutritionList: ingredientNutritions.map((n) => ({ ...n, nutrient: normalizeNutrientKey(n.nutrient) })),
         nearbyStoreListings: []
       });
       await loadAll();
@@ -470,7 +493,7 @@ export default function BackendExplorer() {
         ...prev.form,
         nutritionList: [
           ...(prev.form.nutritionList || []),
-          { nutrient: updateNutritionDraft.nutrient, value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
+          { nutrient: normalizeNutrientKey(updateNutritionDraft.nutrient), value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
         ]
       }
     }));
@@ -498,7 +521,7 @@ export default function BackendExplorer() {
         servingAmount: String(item?.servingAmount ?? ''),
         servingUnit: item?.servingUnit || 'G',
         imageUrl: item?.imageUrl || '',
-        nutritionList: Array.isArray(item?.nutritionList) ? item.nutritionList.map((n) => ({ nutrient: n.nutrient || 'CALORIES', value: n.value ?? '', unit: n.unit || 'G' })) : []
+        nutritionList: Array.isArray(item?.nutritionList) ? item.nutritionList.map((n) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: n.value ?? '', unit: n.unit || 'G' })) : []
       }
     });
   }
@@ -529,7 +552,7 @@ export default function BackendExplorer() {
         servingAmount: Number(form.servingAmount || 0),
         servingUnit: form.servingUnit || 'G',
         imageUrl: form.imageUrl.trim() || null,
-        nutritionList: form.nutritionList.map((n) => ({ nutrient: n.nutrient, value: Number(n.value), unit: n.unit })),
+        nutritionList: form.nutritionList.map((n) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: Number(n.value), unit: n.unit })),
         nearbyStoreListings: []
       }));
     }
