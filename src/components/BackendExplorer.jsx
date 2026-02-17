@@ -2,20 +2,61 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 
 const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
-const nutrientOptions = [
-  'PROTEIN', 'CARBOHYDRATES', 'FAT', 'FIBER', 'DIETARY_FIBER', 'SUGAR', 'CALORIES',
-  'SATURATED_FAT', 'TRANS_FAT', 'OMEGA_3', 'OMEGA_6', 'SODIUM', 'POTASSIUM', 'CALCIUM', 'IRON',
-  'MAGNESIUM', 'ZINC', 'VITAMIN_A', 'VITAMIN_B1', 'VITAMIN_B2', 'VITAMIN_B3', 'VITAMIN_B6',
-  'VITAMIN_B9', 'SELENIUM', 'VITAMIN_C', 'VITAMIN_D', 'VITAMIN_E', 'VITAMIN_K', 'VITAMIN_B12'
+const nutrientCatalog = [
+  { key: 'CALORIES', short: 'CAL', group: 'Energy', icon: '🔥', aliases: ['energy', 'kcal'] },
+  { key: 'WATER', short: 'H2O', group: 'Other', icon: '💧', aliases: ['hydration'] },
+  { key: 'PROTEIN', short: 'PRO', group: 'Macros', icon: '💪', aliases: ['prot'] },
+  { key: 'CARBOHYDRATES', short: 'CARB', group: 'Macros', icon: '🍞', aliases: ['carbs'] },
+  { key: 'FAT', short: 'FAT', group: 'Macros', icon: '🥑', aliases: ['lipid'] },
+  { key: 'SUGAR', short: 'SUG', group: 'Macros', icon: '🍬', aliases: [] },
+  { key: 'FIBER', short: 'FIB', group: 'Macros', icon: '🌾', aliases: ['dietary fiber'] },
+  { key: 'DIETARY_FIBER', short: 'DFIB', group: 'Macros', icon: '🌿', aliases: ['fiber'] },
+  { key: 'SATURATED_FAT', short: 'SAT', group: 'Lipids', icon: '🧈', aliases: [] },
+  { key: 'TRANS_FAT', short: 'TRANS', group: 'Lipids', icon: '⚠️', aliases: [] },
+  { key: 'MONOUNSATURATED_FAT', short: 'MUFA', group: 'Lipids', icon: '🫒', aliases: [] },
+  { key: 'POLYUNSATURATED_FAT', short: 'PUFA', group: 'Lipids', icon: '🌰', aliases: [] },
+  { key: 'OMEGA_3', short: 'O3', group: 'Lipids', icon: '🐟', aliases: ['epa', 'dha'] },
+  { key: 'OMEGA_6', short: 'O6', group: 'Lipids', icon: '🥜', aliases: [] },
+  { key: 'CHOLESTEROL', short: 'CHOL', group: 'Lipids', icon: '🧪', aliases: [] },
+  { key: 'SODIUM', short: 'NA', group: 'Minerals', icon: '🧂', aliases: ['salt'] },
+  { key: 'POTASSIUM', short: 'K', group: 'Minerals', icon: '🍌', aliases: [] },
+  { key: 'CALCIUM', short: 'CA', group: 'Minerals', icon: '🦴', aliases: [] },
+  { key: 'IRON', short: 'FE', group: 'Minerals', icon: '🩸', aliases: [] },
+  { key: 'MAGNESIUM', short: 'MG', group: 'Minerals', icon: '⚙️', aliases: [] },
+  { key: 'ZINC', short: 'ZN', group: 'Minerals', icon: '🔩', aliases: [] },
+  { key: 'PHOSPHORUS', short: 'P', group: 'Minerals', icon: '⚗️', aliases: [] },
+  { key: 'COPPER', short: 'CU', group: 'Minerals', icon: '🟠', aliases: [] },
+  { key: 'MANGANESE', short: 'MN', group: 'Minerals', icon: '🟤', aliases: [] },
+  { key: 'SELENIUM', short: 'SE', group: 'Minerals', icon: '🧪', aliases: [] },
+  { key: 'IODINE', short: 'I', group: 'Minerals', icon: '🧂', aliases: [] },
+  { key: 'CHLORIDE', short: 'CL', group: 'Minerals', icon: '🫧', aliases: [] },
+  { key: 'VITAMIN_A', short: 'VA', group: 'Vitamins', icon: '🥕', aliases: [] },
+  { key: 'VITAMIN_B1', short: 'B1', group: 'Vitamins', icon: '🧠', aliases: ['thiamine'] },
+  { key: 'VITAMIN_B2', short: 'B2', group: 'Vitamins', icon: '⚡', aliases: ['riboflavin'] },
+  { key: 'VITAMIN_B3', short: 'B3', group: 'Vitamins', icon: '🌟', aliases: ['niacin'] },
+  { key: 'VITAMIN_B5', short: 'B5', group: 'Vitamins', icon: '✨', aliases: ['pantothenic acid'] },
+  { key: 'VITAMIN_B6', short: 'B6', group: 'Vitamins', icon: '🍗', aliases: [] },
+  { key: 'VITAMIN_B7', short: 'B7', group: 'Vitamins', icon: '💅', aliases: ['biotin'] },
+  { key: 'VITAMIN_B9', short: 'B9', group: 'Vitamins', icon: '🥬', aliases: ['folate', 'folic acid'] },
+  { key: 'VITAMIN_B12', short: 'B12', group: 'Vitamins', icon: '🥩', aliases: ['cobalamin'] },
+  { key: 'VITAMIN_C', short: 'VC', group: 'Vitamins', icon: '🍊', aliases: ['ascorbic'] },
+  { key: 'VITAMIN_D', short: 'VD', group: 'Vitamins', icon: '☀️', aliases: [] },
+  { key: 'VITAMIN_E', short: 'VE', group: 'Vitamins', icon: '🌻', aliases: [] },
+  { key: 'VITAMIN_K', short: 'VK', group: 'Vitamins', icon: '🥦', aliases: [] },
+  { key: 'CHOLINE', short: 'CHO', group: 'Vitamins', icon: '🧠', aliases: [] },
+  { key: 'ALCOHOL', short: 'ALC', group: 'Other', icon: '🍷', aliases: ['ethanol'] },
+  { key: 'CAFFEINE', short: 'CAF', group: 'Other', icon: '☕', aliases: [] }
 ];
+const nutrientOptions = nutrientCatalog.map((item) => item.key);
+const nutrientIcons = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.icon || '🧪']));
+const nutrientShortNames = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.short || item.key]));
+const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
+  acc[item.group] = acc[item.group] || [];
+  acc[item.group].push(item.key);
+  return acc;
+}, {});
+const commonNutrients = ['CALORIES', 'PROTEIN', 'CARBOHYDRATES', 'FAT', 'FIBER', 'SUGAR', 'SODIUM', 'VITAMIN_C'];
 const unitOptions = ['G', 'KG', 'MG', 'MCG', 'ML', 'L', 'TSP', 'TBSP', 'CUP', 'OZ', 'LB', 'PIECE', 'PINCH', 'CLOVE', 'SLICE'];
-const nutrientIcons = {
-  CALORIES: '🔥', PROTEIN: '💪', CARBOHYDRATES: '🍞', FAT: '🥑', FIBER: '🌾', DIETARY_FIBER: '🌿',
-  SUGAR: '🍬', SATURATED_FAT: '🧈', TRANS_FAT: '⚠️', OMEGA_3: '🐟', OMEGA_6: '🌰', SODIUM: '🧂',
-  POTASSIUM: '🍌', CALCIUM: '🦴', IRON: '🩸', MAGNESIUM: '⚙️', ZINC: '🔩', VITAMIN_A: '🥕',
-  VITAMIN_B1: '🧠', VITAMIN_B2: '⚡', VITAMIN_B3: '🌟', VITAMIN_B6: '🍗', VITAMIN_B9: '🥬',
-  VITAMIN_B12: '🥩', VITAMIN_C: '🍊', VITAMIN_D: '☀️', VITAMIN_E: '🌻', VITAMIN_K: '🥦', SELENIUM: '🧪'
-};
 
 function getItemId(item) {
   return item?.id || item?._id;
@@ -71,6 +112,173 @@ function NutritionIcon({ nutrient, selected, onClick }) {
   );
 }
 
+function NutrientPicker({ value, onChange, storageKey = 'default' }) {
+  const [query, setQuery] = useState('');
+  const [highlightIndex, setHighlightIndex] = useState(0);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filtered = useMemo(() => {
+    if (!normalizedQuery) return nutrientCatalog;
+    return nutrientCatalog.filter((item) => {
+      const name = item.key.toLowerCase();
+      const noUnderscore = item.key.replace(/_/g, ' ').toLowerCase();
+      const short = (item.short || '').toLowerCase();
+      const aliases = (item.aliases || []).join(' ').toLowerCase();
+      return name.includes(normalizedQuery)
+        || noUnderscore.includes(normalizedQuery)
+        || short.includes(normalizedQuery)
+        || aliases.includes(normalizedQuery);
+    });
+  }, [normalizedQuery]);
+
+  const recent = useMemo(() => {
+    try {
+      const raw = localStorage.getItem(`nutrient-recent-${storageKey}`);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((item) => nutrientOptions.includes(item)) : [];
+    } catch {
+      return [];
+    }
+  }, [storageKey, value]);
+
+  useEffect(() => {
+    setHighlightIndex(0);
+  }, [normalizedQuery]);
+
+  function selectNutrient(nutrient) {
+    onChange(nutrient);
+    setQuery('');
+    try {
+      const next = [nutrient, ...recent.filter((item) => item !== nutrient)].slice(0, 6);
+      localStorage.setItem(`nutrient-recent-${storageKey}`, JSON.stringify(next));
+    } catch {
+      // ignore localStorage issues
+    }
+  }
+
+  function onKeyDown(event) {
+    if (!filtered.length) return;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setHighlightIndex((prev) => Math.min(prev + 1, filtered.length - 1));
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlightIndex((prev) => Math.max(prev - 1, 0));
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      selectNutrient(filtered[highlightIndex].key);
+    }
+  }
+
+  return (
+    <div className="nutrient-picker">
+      <input
+        placeholder="Search nutrient"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        onKeyDown={onKeyDown}
+      />
+
+      {!query ? (
+        <div className="picker-chip-row">
+          {commonNutrients.map((nutrient) => (
+            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
+              {nutrientShortNames[nutrient]}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {!query && recent.length ? (
+        <div className="picker-recent-row">
+          <small>Recent:</small>
+          {recent.map((nutrient) => (
+            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
+              {nutrient}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="picker-list">
+        {Object.entries(nutrientGroups).map(([group, keys]) => {
+          const groupItems = keys.filter((key) => filtered.some((item) => item.key === key));
+          if (!groupItems.length) return null;
+          return (
+            <div key={group} className="picker-group">
+              <strong>{group}</strong>
+              {groupItems.map((nutrient) => {
+                const idx = filtered.findIndex((item) => item.key === nutrient);
+                return (
+                  <button
+                    type="button"
+                    key={nutrient}
+                    className={idx === highlightIndex ? 'picker-item highlighted' : 'picker-item'}
+                    onClick={() => selectNutrient(nutrient)}
+                  >
+                    <span>{nutrientIcons[nutrient] || '🧪'}</span>
+                    <span>{nutrient}</span>
+                    <small>{nutrientShortNames[nutrient]}</small>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
+        {!filtered.length ? <p className="muted">No nutrients found.</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function NutritionSummaryCards({ items = [], onRemove, onValueChange, onUnitChange }) {
+  return (
+    <div className="summary-card-grid nutrition-summary-grid">
+      {items.map((nutrition, index) => (
+        <div key={`${nutrition.nutrient}-${index}`} className="mini-summary-card">
+          <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
+          <div className="mini-summary-head nutrition-summary-head">
+            <span className="nutrient-icon">{nutrientIcons[nutrition.nutrient] || '🧪'}</span>
+            <small className="nutrient-full-name">{nutrition.nutrient}</small>
+            <small className="nutrient-short-name">{nutrientShortNames[nutrition.nutrient] || nutrition.nutrient}</small>
+          </div>
+          <div className="mini-summary-fields">
+            <input type="number" value={nutrition.value} onChange={(e) => onValueChange(index, e.target.value)} placeholder="Amount" />
+            <select value={nutrition.unit} onChange={(e) => onUnitChange(index, e.target.value)}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecipeIngredientSummaryCards({ items = [], ingredients = [], onChange, onRemove }) {
+  return (
+    <div className="summary-card-grid ingredient-summary-grid">
+      {items.map((item, index) => {
+        const ingredient = ingredients.find((ing) => String(getItemId(ing)) === String(item.ingredientId));
+        return (
+          <div key={`recipe-ingredient-${index}`} className="mini-summary-card ingredient-summary-card">
+            <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
+            {ingredient?.imageUrl ? <img src={ingredient.imageUrl} alt={ingredient.name || 'Ingredient'} className="mini-ingredient-image" /> : <div className="mini-ingredient-image fallback">🥣</div>}
+            <strong className="mini-ingredient-name">{item.ingredientName || ingredient?.name || 'Ingredient'}</strong>
+            <div className="mini-summary-fields ingredient-summary-fields">
+              <div className="ingredient-amount-row">
+                <input type="number" value={item.quantity} onChange={(e) => onChange(index, { quantity: Number(e.target.value) })} placeholder="Amt" />
+                <select value={item.unit} onChange={(e) => onChange(index, { unit: e.target.value })}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+              </div>
+              <input value={item.note || ''} onChange={(e) => onChange(index, { note: e.target.value })} placeholder="Note" />
+              <select value={item.ingredientId} onChange={(e) => onChange(index, { ingredientId: Number(e.target.value), ingredientName: ingredients.find((ing) => String(getItemId(ing)) === String(e.target.value))?.name || '' })}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function BackendExplorer() {
   const [activeTab, setActiveTab] = useState('foods');
   const [foods, setFoods] = useState([]);
@@ -92,6 +300,10 @@ export default function BackendExplorer() {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [createModal, setCreateModal] = useState({ open: false, type: '' });
+  const [createError, setCreateError] = useState('');
+  const [createSuccess, setCreateSuccess] = useState({ food: '', ingredient: '', recipe: '' });
+  const [updateNutritionDraft, setUpdateNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'G' });
   const [deleteModal, setDeleteModal] = useState({ open: false, message: '', action: null });
   const [updateModal, setUpdateModal] = useState({ open: false, type: '', title: '', itemId: null, form: null });
 
@@ -113,6 +325,21 @@ export default function BackendExplorer() {
   useEffect(() => { loadAll(); }, []);
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
+  function openCreateModal(type) {
+    setCreateError('');
+    setCreateSuccess((prev) => ({ ...prev, [type]: '' }));
+    setCreateModal({ open: true, type });
+  }
+
+  function closeCreateModal() {
+    setCreateError('');
+    setCreateModal({ open: false, type: '' });
+  }
+
+  function setCreateSuccessByType(type, message) {
+    setCreateSuccess((prev) => ({ ...prev, [type]: message }));
+  }
+
   async function run(action) {
     setLoading(true);
     setError('');
@@ -126,36 +353,58 @@ export default function BackendExplorer() {
   }
 
   function addNutrition() {
-    if (!nutritionDraft.value) return setError('Nutrition value is required.');
+    if (!nutritionDraft.value) return setCreateError('Nutrition value is required.');
     setIngredientNutritions((prev) => [...prev, { nutrient: nutritionDraft.nutrient, value: Number(nutritionDraft.value), unit: nutritionDraft.unit }]);
     setNutritionDraft((prev) => ({ ...prev, value: '' }));
   }
 
   async function createFood() {
-    if (!foodForm.name.trim()) return setError('Food name is required.');
-    await run(() => api.createFood({ name: foodForm.name.trim(), category: foodForm.category.trim(), imageUrl: foodForm.imageUrl.trim() || null, recipes: [] }));
-    setFoodForm({ name: '', category: '', imageUrl: '' });
+    if (!foodForm.name.trim()) return setCreateError('Food name is required.');
+    setLoading(true);
+    setCreateError('');
+    try {
+      await api.createFood({ name: foodForm.name.trim(), category: foodForm.category.trim(), imageUrl: foodForm.imageUrl.trim() || null, recipes: [] });
+      await loadAll();
+      setFoodForm({ name: '', category: '', imageUrl: '' });
+      setCreateSuccessByType('food', 'Food created successfully.');
+      closeCreateModal();
+    } catch (createFoodError) {
+      setCreateError(createFoodError.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function createIngredient() {
-    if (!ingredientForm.name.trim()) return setError('Ingredient name is required.');
-    await run(() => api.createIngredient({
-      name: ingredientForm.name.trim(),
-      category: ingredientForm.category.trim(),
-      description: ingredientForm.description.trim(),
-      servingAmount: Number(ingredientForm.servingAmount || 0),
-      servingUnit: ingredientForm.servingUnit || 'G',
-      imageUrl: ingredientForm.imageUrl.trim() || null,
-      nutritionList: ingredientNutritions,
-      nearbyStoreListings: []
-    }));
-    setIngredientForm({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
-    setIngredientNutritions([]);
-    setNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
+    if (!ingredientForm.name.trim()) return setCreateError('Ingredient name is required.');
+    setLoading(true);
+    setCreateError('');
+    try {
+      await api.createIngredient({
+        name: ingredientForm.name.trim(),
+        category: ingredientForm.category.trim(),
+        description: ingredientForm.description.trim(),
+        servingAmount: Number(ingredientForm.servingAmount || 0),
+        servingUnit: ingredientForm.servingUnit || 'G',
+        imageUrl: ingredientForm.imageUrl.trim() || null,
+        nutritionList: ingredientNutritions,
+        nearbyStoreListings: []
+      });
+      await loadAll();
+      setIngredientForm({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
+      setIngredientNutritions([]);
+      setNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
+      setCreateSuccessByType('ingredient', 'Ingredient created successfully.');
+      closeCreateModal();
+    } catch (createIngredientError) {
+      setCreateError(createIngredientError.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function addRecipeIngredient() {
-    if (!recipeIngredientDraft.ingredientId || !recipeIngredientDraft.quantity) return setError('Recipe ingredient needs ingredient and quantity.');
+    if (!recipeIngredientDraft.ingredientId || !recipeIngredientDraft.quantity) return setCreateError('Recipe ingredient needs ingredient and quantity.');
     const ingredientId = Number(recipeIngredientDraft.ingredientId);
     setRecipeIngredients((prev) => [...prev, {
       ingredientId,
@@ -168,26 +417,53 @@ export default function BackendExplorer() {
   }
 
   function addRecipeInstruction() {
-    if (!recipeInstructionDraft.description.trim()) return setError('Instruction description is required.');
+    if (!recipeInstructionDraft.description.trim()) return setCreateError('Instruction description is required.');
     setRecipeInstructions((prev) => [...prev, { step: prev.length + 1, description: recipeInstructionDraft.description.trim(), tutorialVideoUrl: recipeInstructionDraft.tutorialVideoUrl.trim() || null }]);
     setRecipeInstructionDraft({ description: '', tutorialVideoUrl: '' });
   }
 
   async function createRecipe() {
-    if (!recipeForm.foodId) return setError('Please select food for recipe.');
-    if (!recipeForm.version.trim()) return setError('Recipe version is required.');
-    if (!recipeIngredients.length) return setError('Please add at least one recipe ingredient.');
-    if (!recipeInstructions.length) return setError('Please add at least one recipe instruction.');
-    await run(() => api.createRecipeForFoodViaRecipeApi(recipeForm.foodId, {
-      version: recipeForm.version.trim(),
-      description: recipeForm.description.trim(),
-      foodId: Number(recipeForm.foodId),
-      ingredients: recipeIngredients.map(({ ingredientId, quantity, unit, note }) => ({ ingredientId, quantity: Number(quantity), unit, note })),
-      instructions: recipeInstructions.map((item, index) => ({ stepNumber: index + 1, description: item.description, tutorialVideoUrl: item.tutorialVideoUrl }))
+    if (!recipeForm.foodId) return setCreateError('Please select food for recipe.');
+    if (!recipeForm.version.trim()) return setCreateError('Recipe version is required.');
+    if (!recipeIngredients.length) return setCreateError('Please add at least one recipe ingredient.');
+    if (!recipeInstructions.length) return setCreateError('Please add at least one recipe instruction.');
+    setLoading(true);
+    setCreateError('');
+    try {
+      await api.createRecipeForFoodViaRecipeApi(recipeForm.foodId, {
+        version: recipeForm.version.trim(),
+        description: recipeForm.description.trim(),
+        foodId: Number(recipeForm.foodId),
+        ingredients: recipeIngredients.map(({ ingredientId, quantity, unit, note }) => ({ ingredientId, quantity: Number(quantity), unit, note })),
+        instructions: recipeInstructions.map((item, index) => ({ stepNumber: index + 1, description: item.description, tutorialVideoUrl: item.tutorialVideoUrl }))
+      });
+      await loadAll();
+      setRecipeForm({ foodId: '', version: 'v1', description: '' });
+      setRecipeIngredients([]);
+      setRecipeInstructions([]);
+      setCreateSuccessByType('recipe', 'Recipe created successfully.');
+      closeCreateModal();
+    } catch (createRecipeError) {
+      setCreateError(createRecipeError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+  function addUpdateNutrition() {
+    if (!updateNutritionDraft.value) return setError('Nutrition value is required.');
+    setUpdateModal((prev) => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        nutritionList: [
+          ...(prev.form.nutritionList || []),
+          { nutrient: updateNutritionDraft.nutrient, value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
+        ]
+      }
     }));
-    setRecipeForm({ foodId: '', version: 'v1', description: '' });
-    setRecipeIngredients([]);
-    setRecipeInstructions([]);
+    setUpdateNutritionDraft((prev) => ({ ...prev, value: '' }));
   }
 
   function requestDelete(message, action) { setDeleteModal({ open: true, message, action }); }
@@ -198,6 +474,7 @@ export default function BackendExplorer() {
   }
 
   function openIngredientUpdateModal(item) {
+    setUpdateNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
     setUpdateModal({
       open: true,
       type: 'ingredient',
@@ -277,13 +554,9 @@ export default function BackendExplorer() {
       {activeTab === 'foods' && (
         <div className="grid">
           <div className="card">
-            <h3>Create Food</h3>
-            <div className="form">
-              <input placeholder="Name" value={foodForm.name} onChange={(e) => setFoodForm((p) => ({ ...p, name: e.target.value }))} />
-              <input placeholder="Category" value={foodForm.category} onChange={(e) => setFoodForm((p) => ({ ...p, category: e.target.value }))} />
-              <input placeholder="Image URL" value={foodForm.imageUrl} onChange={(e) => setFoodForm((p) => ({ ...p, imageUrl: e.target.value }))} />
-              <button onClick={createFood}>Create Food</button>
-            </div>
+            <button onClick={() => openCreateModal('food')}>Create Food</button>
+            {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
+            <h3>Gallery</h3>
             <div className="gallery-grid">
               {foods.map((food) => {
                 const id = getItemId(food);
@@ -307,37 +580,9 @@ export default function BackendExplorer() {
       {activeTab === 'ingredients' && (
         <div className="grid">
           <div className="card">
-            <h3>Create Ingredient</h3>
-            <div className="form">
-              <input placeholder="Name" value={ingredientForm.name} onChange={(e) => setIngredientForm((p) => ({ ...p, name: e.target.value }))} />
-              <input placeholder="Category" value={ingredientForm.category} onChange={(e) => setIngredientForm((p) => ({ ...p, category: e.target.value }))} />
-              <input placeholder="Description" value={ingredientForm.description} onChange={(e) => setIngredientForm((p) => ({ ...p, description: e.target.value }))} />
-              <input placeholder="Serving Amount" type="number" value={ingredientForm.servingAmount} onChange={(e) => setIngredientForm((p) => ({ ...p, servingAmount: e.target.value }))} />
-              <select value={ingredientForm.servingUnit} onChange={(e) => setIngredientForm((p) => ({ ...p, servingUnit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-              <input placeholder="Image URL" value={ingredientForm.imageUrl} onChange={(e) => setIngredientForm((p) => ({ ...p, imageUrl: e.target.value }))} />
-            </div>
-
-            <h4>Add Nutrition</h4>
-            <div className="inline-builder">
-              <select value={nutritionDraft.nutrient} onChange={(e) => setNutritionDraft((p) => ({ ...p, nutrient: e.target.value }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
-              <input type="number" placeholder="Value" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
-              <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-              <button onClick={addNutrition}>Add Nutrition</button>
-            </div>
-            <div className="summary-box">
-              <strong>Nutrition Summary (Editable)</strong>
-              {!ingredientNutritions.length ? <p className="muted">No nutrition added yet.</p> : null}
-              {ingredientNutritions.map((nutrition, index) => (
-                <div key={`${nutrition.nutrient}-${index}`} className="summary-row">
-                  <select value={nutrition.nutrient} onChange={(e) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, nutrient: e.target.value } : item))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
-                  <input type="number" value={nutrition.value} onChange={(e) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, value: Number(e.target.value) } : item))} />
-                  <select value={nutrition.unit} onChange={(e) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, unit: e.target.value } : item))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                  <button className="danger" onClick={() => setIngredientNutritions((prev) => prev.filter((_, idx) => idx !== index))}>Remove</button>
-                </div>
-              ))}
-            </div>
-
-            <button onClick={createIngredient}>Create Ingredient</button>
+            <button onClick={() => openCreateModal('ingredient')}>Create Ingredient</button>
+            {createSuccess.ingredient ? <p className="success">{createSuccess.ingredient}</p> : null}
+            <h3>Gallery</h3>
             <div className="gallery-grid">
               {ingredients.map((ingredient) => {
                 const id = getItemId(ingredient);
@@ -366,63 +611,9 @@ export default function BackendExplorer() {
       {activeTab === 'recipes' && (
         <div className="grid">
           <div className="card">
-            <h3>Create Recipe</h3>
-            <div className="form">
-              <select value={recipeForm.foodId} onChange={(e) => setRecipeForm((p) => ({ ...p, foodId: e.target.value }))}>
-                <option value="">Select food</option>
-                {foods.map((food) => <option key={getItemId(food)} value={getItemId(food)}>{food.name}</option>)}
-              </select>
-              <input placeholder="Version" value={recipeForm.version} onChange={(e) => setRecipeForm((p) => ({ ...p, version: e.target.value }))} />
-              <input placeholder="Description" value={recipeForm.description} onChange={(e) => setRecipeForm((p) => ({ ...p, description: e.target.value }))} />
-            </div>
-
-            <h4>Add Recipe Ingredient</h4>
-            <div className="inline-builder">
-              <select value={recipeIngredientDraft.ingredientId} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, ingredientId: e.target.value }))}>
-                <option value="">Select ingredient</option>
-                {ingredients.map((ingredient) => <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>)}
-              </select>
-              <input type="number" placeholder="Quantity" value={recipeIngredientDraft.quantity} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, quantity: e.target.value }))} />
-              <select value={recipeIngredientDraft.unit} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-              <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, note: e.target.value }))} />
-              <button onClick={addRecipeIngredient}>Add Ingredient</button>
-            </div>
-
-            <div className="summary-box">
-              <strong>Recipe Ingredients Summary (Editable)</strong>
-              {!recipeIngredients.length ? <p className="muted">No recipe ingredients added yet.</p> : null}
-              {recipeIngredients.map((item, index) => (
-                <div key={`recipe-ingredient-${index}`} className="summary-row">
-                  <select value={item.ingredientId} onChange={(e) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, ingredientId: Number(e.target.value) } : current))}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
-                  <input type="number" value={item.quantity} onChange={(e) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, quantity: Number(e.target.value) } : current))} />
-                  <select value={item.unit} onChange={(e) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, unit: e.target.value } : current))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                  <input value={item.note || ''} onChange={(e) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, note: e.target.value } : current))} />
-                  <button className="danger" onClick={() => setRecipeIngredients((prev) => prev.filter((_, idx) => idx !== index))}>Remove</button>
-                </div>
-              ))}
-            </div>
-
-            <h4>Add Instruction</h4>
-            <div className="inline-builder">
-              <input placeholder="Instruction description" value={recipeInstructionDraft.description} onChange={(e) => setRecipeInstructionDraft((p) => ({ ...p, description: e.target.value }))} />
-              <input placeholder="Tutorial video URL (optional)" value={recipeInstructionDraft.tutorialVideoUrl} onChange={(e) => setRecipeInstructionDraft((p) => ({ ...p, tutorialVideoUrl: e.target.value }))} />
-              <button onClick={addRecipeInstruction}>Add Instruction</button>
-            </div>
-
-            <div className="summary-box">
-              <strong>Recipe Instructions Summary (Editable)</strong>
-              {!recipeInstructions.length ? <p className="muted">No instructions added yet.</p> : null}
-              {recipeInstructions.map((item, index) => (
-                <div key={`recipe-instruction-${index}`} className="summary-row">
-                  <input type="number" value={index + 1} readOnly />
-                  <input value={item.description} onChange={(e) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, description: e.target.value } : current))} />
-                  <input value={item.tutorialVideoUrl || ''} onChange={(e) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, tutorialVideoUrl: e.target.value } : current))} />
-                  <button className="danger" onClick={() => setRecipeInstructions((prev) => prev.filter((_, idx) => idx !== index))}>Remove</button>
-                </div>
-              ))}
-            </div>
-
-            <button onClick={createRecipe}>Create Recipe</button>
+            <button onClick={() => openCreateModal('recipe')}>Create Recipe</button>
+            {createSuccess.recipe ? <p className="success">{createSuccess.recipe}</p> : null}
+            <h3>Gallery</h3>
             <div className="gallery-grid">
               {recipes.map((recipe, index) => {
                 const id = getRecipeTileId(recipe, index);
@@ -472,6 +663,122 @@ export default function BackendExplorer() {
         </div>
       )}
 
+
+      {createModal.open ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-card modal-large">
+            <h3>
+              {createModal.type === 'food'
+                ? 'Create Food'
+                : createModal.type === 'ingredient'
+                  ? 'Create Ingredient'
+                  : 'Create Recipe'}
+            </h3>
+            {createError ? <p className="error">{createError}</p> : null}
+
+            {createModal.type === 'food' ? (
+              <div className="form">
+                <input placeholder="Name" value={foodForm.name} onChange={(e) => setFoodForm((p) => ({ ...p, name: e.target.value }))} />
+                <input placeholder="Category" value={foodForm.category} onChange={(e) => setFoodForm((p) => ({ ...p, category: e.target.value }))} />
+                <input placeholder="Image URL" value={foodForm.imageUrl} onChange={(e) => setFoodForm((p) => ({ ...p, imageUrl: e.target.value }))} />
+              </div>
+            ) : null}
+
+            {createModal.type === 'ingredient' ? (
+              <>
+                <div className="form">
+                  <input placeholder="Name" value={ingredientForm.name} onChange={(e) => setIngredientForm((p) => ({ ...p, name: e.target.value }))} />
+                  <input placeholder="Category" value={ingredientForm.category} onChange={(e) => setIngredientForm((p) => ({ ...p, category: e.target.value }))} />
+                  <input placeholder="Description" value={ingredientForm.description} onChange={(e) => setIngredientForm((p) => ({ ...p, description: e.target.value }))} />
+                  <input placeholder="Serving Amount" type="number" value={ingredientForm.servingAmount} onChange={(e) => setIngredientForm((p) => ({ ...p, servingAmount: e.target.value }))} />
+                  <select value={ingredientForm.servingUnit} onChange={(e) => setIngredientForm((p) => ({ ...p, servingUnit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                  <input placeholder="Image URL" value={ingredientForm.imageUrl} onChange={(e) => setIngredientForm((p) => ({ ...p, imageUrl: e.target.value }))} />
+                </div>
+
+                <h4>Add Nutrition</h4>
+                <div className="summary-box">
+                  <strong>Nutrition Summary (Editable)</strong>
+                  {!ingredientNutritions.length ? <p className="muted">No nutrition added yet.</p> : null}
+                  <NutritionSummaryCards
+                    items={ingredientNutritions}
+                    onRemove={(index) => setIngredientNutritions((prev) => prev.filter((_, idx) => idx !== index))}
+                    onValueChange={(index, value) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, value: Number(value) } : item))}
+                    onUnitChange={(index, unit) => setIngredientNutritions((prev) => prev.map((item, idx) => idx === index ? { ...item, unit } : item))}
+                  />
+                </div>
+                <div className="inline-builder">
+                  <NutrientPicker value={nutritionDraft.nutrient} onChange={(nutrient) => setNutritionDraft((p) => ({ ...p, nutrient }))} storageKey="create" />
+                  <input type="number" placeholder="Value" value={nutritionDraft.value} onChange={(e) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
+                  <select value={nutritionDraft.unit} onChange={(e) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                  <button onClick={addNutrition}>Add Nutrition</button>
+                </div>
+              </>
+            ) : null}
+
+            {createModal.type === 'recipe' ? (
+              <>
+                <div className="form">
+                  <select value={recipeForm.foodId} onChange={(e) => setRecipeForm((p) => ({ ...p, foodId: e.target.value }))}>
+                    <option value="">Select food</option>
+                    {foods.map((food) => <option key={getItemId(food)} value={getItemId(food)}>{food.name}</option>)}
+                  </select>
+                  <input placeholder="Version" value={recipeForm.version} onChange={(e) => setRecipeForm((p) => ({ ...p, version: e.target.value }))} />
+                  <input placeholder="Description" value={recipeForm.description} onChange={(e) => setRecipeForm((p) => ({ ...p, description: e.target.value }))} />
+                </div>
+
+                <h4>Add Ingredient</h4>
+                <p className="muted">If you don't find ingredient in the list, you can create one in ingredient tab.</p>
+                <div className="summary-box">
+                  <strong>Recipe Ingredients Summary (Editable)</strong>
+                  {!recipeIngredients.length ? <p className="muted">No recipe ingredients added yet.</p> : null}
+                  <RecipeIngredientSummaryCards
+                    items={recipeIngredients}
+                    ingredients={ingredients}
+                    onChange={(index, patch) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, ...patch } : current))}
+                    onRemove={(index) => setRecipeIngredients((prev) => prev.filter((_, idx) => idx !== index))}
+                  />
+                </div>
+                <div className="inline-builder">
+                  <select value={recipeIngredientDraft.ingredientId} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, ingredientId: e.target.value }))}>
+                    <option value="">Ingredient</option>
+                    {ingredients.map((ingredient) => <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>)}
+                  </select>
+                  <input type="number" placeholder="Quantity" value={recipeIngredientDraft.quantity} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, quantity: e.target.value }))} />
+                  <select value={recipeIngredientDraft.unit} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                  <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(e) => setRecipeIngredientDraft((p) => ({ ...p, note: e.target.value }))} />
+                  <button onClick={addRecipeIngredient}>Add Ingredient</button>
+                </div>
+
+                <h4>Add Instruction</h4>
+                <div className="inline-builder">
+                  <input placeholder="Instruction description" value={recipeInstructionDraft.description} onChange={(e) => setRecipeInstructionDraft((p) => ({ ...p, description: e.target.value }))} />
+                  <input placeholder="Tutorial video URL (optional)" value={recipeInstructionDraft.tutorialVideoUrl} onChange={(e) => setRecipeInstructionDraft((p) => ({ ...p, tutorialVideoUrl: e.target.value }))} />
+                  <button onClick={addRecipeInstruction}>Add Instruction</button>
+                </div>
+
+                <div className="summary-box">
+                  <strong>Recipe Instructions Summary (Editable)</strong>
+                  {!recipeInstructions.length ? <p className="muted">No instructions added yet.</p> : null}
+                  {recipeInstructions.map((item, index) => (
+                    <div key={`recipe-instruction-${index}`} className="summary-row">
+                      <input type="number" value={index + 1} readOnly />
+                      <input value={item.description} onChange={(e) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, description: e.target.value } : current))} />
+                      <input value={item.tutorialVideoUrl || ''} onChange={(e) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, tutorialVideoUrl: e.target.value } : current))} />
+                      <button className="danger" onClick={() => setRecipeInstructions((prev) => prev.filter((_, idx) => idx !== index))}>Remove</button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
+
+            <div className="detail-actions">
+              <button onClick={closeCreateModal}>Cancel</button>
+              <button onClick={createModal.type === 'food' ? createFood : createModal.type === 'ingredient' ? createIngredient : createRecipe}>Create</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {deleteModal.open ? (
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
@@ -500,32 +807,20 @@ export default function BackendExplorer() {
                 </div>
                 <input placeholder="Image URL" value={updateModal.form.imageUrl} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, imageUrl: e.target.value } }))} />
                 <div className="summary-box">
-                  <div className="summary-head">
-                    <strong>Nutrition</strong>
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() =>
-                        setUpdateModal((prev) => ({
-                          ...prev,
-                          form: {
-                            ...prev.form,
-                            nutritionList: [...(prev.form.nutritionList || []), { nutrient: 'CALORIES', value: '', unit: 'G' }]
-                          }
-                        }))
-                      }
-                    >
-                      Add Nutrition
-                    </button>
+                  <strong>Nutrition</strong>
+                  <div className="inline-builder">
+                    <NutrientPicker value={updateNutritionDraft.nutrient} onChange={(nutrient) => setUpdateNutritionDraft((prev) => ({ ...prev, nutrient }))} storageKey="update" />
+                    <input type="number" placeholder="Value" value={updateNutritionDraft.value} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, value: e.target.value }))} />
+                    <select value={updateNutritionDraft.unit} onChange={(e) => setUpdateNutritionDraft((prev) => ({ ...prev, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                    <button type="button" onClick={addUpdateNutrition}>Add Nutrition</button>
                   </div>
-                  {updateModal.form.nutritionList.map((nutrition, index) => (
-                    <div key={`upd-nut-${index}`} className="summary-row">
-                      <select value={nutrition.nutrient} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((n, idx) => idx === index ? { ...n, nutrient: e.target.value } : n) } }))}>{nutrientOptions.map((n) => <option key={n} value={n}>{n}</option>)}</select>
-                      <input type="number" value={nutrition.value} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((n, idx) => idx === index ? { ...n, value: e.target.value } : n) } }))} />
-                      <select value={nutrition.unit} onChange={(e) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((n, idx) => idx === index ? { ...n, unit: e.target.value } : n) } }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                      <button className="danger" onClick={() => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.filter((_, idx) => idx !== index) } }))}>Remove</button>
-                    </div>
-                  ))}
+                  {!updateModal.form.nutritionList.length ? <p className="muted">No nutrition added yet.</p> : null}
+                  <NutritionSummaryCards
+                    items={updateModal.form.nutritionList}
+                    onRemove={(index) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.filter((_, idx) => idx !== index) } }))}
+                    onValueChange={(index, value) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((item, idx) => idx === index ? { ...item, value } : item) } }))}
+                    onUnitChange={(index, unit) => setUpdateModal((prev) => ({ ...prev, form: { ...prev.form, nutritionList: prev.form.nutritionList.map((item, idx) => idx === index ? { ...item, unit } : item) } }))}
+                  />
                 </div>
               </div>
             ) : null}
