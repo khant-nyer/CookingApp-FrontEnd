@@ -240,6 +240,15 @@ button:disabled {
   color: #5f7673;
 }
 
+.picker-section-title {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #5f7673;
+}
+
 .picker-chip-row,
 .picker-recent-row {
   display: flex;
