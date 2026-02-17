@@ -182,23 +182,41 @@ function NutrientPicker({ value, onChange, storageKey = 'default' }) {
       />
 
       {!query ? (
-        <div className="picker-chip-row">
-          {commonNutrients.map((nutrient) => (
-            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
-              {nutrientShortNames[nutrient]}
-            </button>
-          ))}
+        <div className="picker-chip-section">
+          <small className="picker-section-title">Common nutrients</small>
+          <div className="picker-chip-row">
+            {commonNutrients.map((nutrient) => (
+              <button
+                type="button"
+                key={nutrient}
+                className={nutrient === value ? 'chip selected' : 'chip'}
+                onClick={() => selectNutrient(nutrient)}
+              >
+                <span className="chip-icon">{nutrientIcons[nutrient] || '🧪'}</span>
+                <span className="chip-main">{nutrientShortNames[nutrient]}</span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 
       {!query && recent.length ? (
-        <div className="picker-recent-row">
-          <small>Recent:</small>
-          {recent.map((nutrient) => (
-            <button type="button" key={nutrient} className={nutrient === value ? 'chip selected' : 'chip'} onClick={() => selectNutrient(nutrient)}>
-              {nutrient}
-            </button>
-          ))}
+        <div className="picker-chip-section">
+          <small className="picker-section-title">Recent picks</small>
+          <div className="picker-recent-row">
+            {recent.map((nutrient) => (
+              <button
+                type="button"
+                key={nutrient}
+                className={nutrient === value ? 'chip selected' : 'chip'}
+                onClick={() => selectNutrient(nutrient)}
+              >
+                <span className="chip-icon">{nutrientIcons[nutrient] || '🧪'}</span>
+                <span className="chip-main">{nutrientShortNames[nutrient] || nutrient}</span>
+                <span className="chip-sub">{nutrient.replace(/_/g, ' ')}</span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 
