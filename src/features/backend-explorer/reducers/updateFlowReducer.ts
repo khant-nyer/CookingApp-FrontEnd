@@ -1,10 +1,12 @@
-export const initialUpdateFlowState = {
+import type { UpdateFlowAction, UpdateFlowState } from '../types';
+
+export const initialUpdateFlowState: UpdateFlowState = {
   updateNutritionDraft: { nutrient: 'CALORIES', value: '', unit: 'G' },
   deleteModal: { open: false, message: '', action: null },
   updateModal: { open: false, type: '', title: '', itemId: null, form: null }
 };
 
-export function updateFlowReducer(state, action) {
+export function updateFlowReducer(state: UpdateFlowState, action: UpdateFlowAction): UpdateFlowState {
   switch (action.type) {
     case 'set_update_nutrition_draft': {
       const next = typeof action.value === 'function'
