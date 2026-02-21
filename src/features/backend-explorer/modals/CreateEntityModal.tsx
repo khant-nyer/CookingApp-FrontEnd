@@ -1,4 +1,54 @@
+import type { FormEvent } from 'react';
+import type {
+  CreateModalState,
+  Food,
+  FoodForm,
+  Ingredient,
+  IngredientForm,
+  IngredientNutrition,
+  NutritionDraft,
+  RecipeForm,
+  RecipeIngredientDraft,
+  RecipeIngredientItem,
+  RecipeInstructionDraft,
+  RecipeInstructionItem,
+  StateSetter
+} from '../types';
 import { NutrientPicker, NutritionSummaryCards, RecipeIngredientSummaryCards } from '../shared/ExplorerShared';
+
+interface CreateEntityModalProps {
+  createModal: CreateModalState;
+  createError: string;
+  closeCreateModal: () => void;
+  createFood: () => void;
+  createIngredient: () => void;
+  createRecipe: () => void;
+  foodForm: FoodForm;
+  setFoodForm: StateSetter<FoodForm>;
+  ingredientForm: IngredientForm;
+  setIngredientForm: StateSetter<IngredientForm>;
+  ingredientNutritions: IngredientNutrition[];
+  setIngredientNutritions: StateSetter<IngredientNutrition[]>;
+  nutritionDraft: NutritionDraft;
+  setNutritionDraft: StateSetter<NutritionDraft>;
+  unitOptions: readonly string[];
+  addNutrition: () => void;
+  recipeForm: RecipeForm;
+  setRecipeForm: StateSetter<RecipeForm>;
+  foods: Food[];
+  getItemId: (item: Food | Ingredient) => string | number | undefined;
+  recipeIngredients: RecipeIngredientItem[];
+  setRecipeIngredients: StateSetter<RecipeIngredientItem[]>;
+  ingredients: Ingredient[];
+  recipeIngredientDraft: RecipeIngredientDraft;
+  setRecipeIngredientDraft: StateSetter<RecipeIngredientDraft>;
+  addRecipeIngredient: () => void;
+  recipeInstructionDraft: RecipeInstructionDraft;
+  setRecipeInstructionDraft: StateSetter<RecipeInstructionDraft>;
+  addRecipeInstruction: () => void;
+  recipeInstructions: RecipeInstructionItem[];
+  setRecipeInstructions: StateSetter<RecipeInstructionItem[]>;
+}
 
 export default function CreateEntityModal({
   createModal,
@@ -32,8 +82,12 @@ export default function CreateEntityModal({
   addRecipeInstruction,
   recipeInstructions,
   setRecipeInstructions
-}) {
+}: CreateEntityModalProps) {
   if (!createModal.open) return null;
+
+  function preventSubmit(event: FormEvent) {
+    event.preventDefault();
+  }
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true">
@@ -48,23 +102,23 @@ export default function CreateEntityModal({
         {createError ? <p className="error">{createError}</p> : null}
 
         {createModal.type === 'food' ? (
-          <div className="form">
+          <form className="form" onSubmit={preventSubmit}>
             <input placeholder="Name" value={foodForm.name} onChange={(e) => setFoodForm((p) => ({ ...p, name: e.target.value }))} />
             <input placeholder="Category" value={foodForm.category} onChange={(e) => setFoodForm((p) => ({ ...p, category: e.target.value }))} />
             <input placeholder="Image URL" value={foodForm.imageUrl} onChange={(e) => setFoodForm((p) => ({ ...p, imageUrl: e.target.value }))} />
-          </div>
+          </form>
         ) : null}
 
         {createModal.type === 'ingredient' ? (
           <>
-            <div className="form">
+            <form className="form" onSubmit={preventSubmit}>
               <input placeholder="Name" value={ingredientForm.name} onChange={(e) => setIngredientForm((p) => ({ ...p, name: e.target.value }))} />
               <input placeholder="Category" value={ingredientForm.category} onChange={(e) => setIngredientForm((p) => ({ ...p, category: e.target.value }))} />
               <input placeholder="Description" value={ingredientForm.description} onChange={(e) => setIngredientForm((p) => ({ ...p, description: e.target.value }))} />
               <input placeholder="Serving Amount" type="number" value={ingredientForm.servingAmount} onChange={(e) => setIngredientForm((p) => ({ ...p, servingAmount: e.target.value }))} />
               <select value={ingredientForm.servingUnit} onChange={(e) => setIngredientForm((p) => ({ ...p, servingUnit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
               <input placeholder="Image URL" value={ingredientForm.imageUrl} onChange={(e) => setIngredientForm((p) => ({ ...p, imageUrl: e.target.value }))} />
-            </div>
+            </form>
 
             <h4>Add Nutrition</h4>
             <div className="summary-box">
@@ -90,14 +144,14 @@ export default function CreateEntityModal({
 
         {createModal.type === 'recipe' ? (
           <>
-            <div className="form">
+            <form className="form" onSubmit={preventSubmit}>
               <select value={recipeForm.foodId} onChange={(e) => setRecipeForm((p) => ({ ...p, foodId: e.target.value }))}>
                 <option value="">Select food</option>
                 {foods.map((food) => <option key={getItemId(food)} value={getItemId(food)}>{food.name}</option>)}
               </select>
               <input placeholder="Version" value={recipeForm.version} onChange={(e) => setRecipeForm((p) => ({ ...p, version: e.target.value }))} />
               <input placeholder="Description" value={recipeForm.description} onChange={(e) => setRecipeForm((p) => ({ ...p, description: e.target.value }))} />
-            </div>
+            </form>
 
             <h4>Add Ingredient</h4>
             <p className="muted">If you don't find ingredient in the list, you can create one in ingredient tab.</p>

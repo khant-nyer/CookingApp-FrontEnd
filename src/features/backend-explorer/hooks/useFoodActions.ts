@@ -1,6 +1,18 @@
 import { useCallback } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { api } from '../../../services/api';
+import type { EntityType, FoodForm } from '../types';
 import { buildCreateFoodPayload } from '../utils/payloadMappers';
+
+interface UseFoodActionsParams {
+  foodForm: FoodForm;
+  setFoodForm: Dispatch<SetStateAction<FoodForm>>;
+  setCreateError: (message: string) => void;
+  setCreateSuccessByType: (type: EntityType, message: string) => void;
+  closeCreateModal: () => void;
+  setLoading: Dispatch<SetStateAction<boolean>>;
+  loadAll: () => Promise<void>;
+}
 
 export default function useFoodActions({
   foodForm,
@@ -10,7 +22,7 @@ export default function useFoodActions({
   closeCreateModal,
   setLoading,
   loadAll
-}) {
+}: UseFoodActionsParams) {
   const createFood = useCallback(async () => {
     if (!foodForm.name.trim()) return setCreateError('Food name is required.');
 
@@ -23,7 +35,7 @@ export default function useFoodActions({
       setCreateSuccessByType('food', 'Food created successfully.');
       closeCreateModal();
     } catch (createFoodError) {
-      setCreateError(createFoodError.message);
+      setCreateError(createFoodError instanceof Error ? createFoodError.message : 'Unable to create food.');
     } finally {
       setLoading(false);
     }

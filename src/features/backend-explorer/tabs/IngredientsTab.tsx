@@ -1,4 +1,17 @@
+import type { CreateSuccessState, EntityType, Ingredient } from '../types';
 import { GalleryTile, TextDetail } from '../shared/ExplorerShared';
+
+interface IngredientsTabProps {
+  ingredients: Ingredient[];
+  selectedId: string;
+  setSelectedId: (value: string) => void;
+  selectedIngredient?: Ingredient;
+  createSuccess: CreateSuccessState;
+  openCreateModal: (type: EntityType) => void;
+  openIngredientUpdateModal: (ingredient: Ingredient) => void;
+  getItemId: (item: Ingredient) => string | number | undefined;
+  onDeleteIngredient: (ingredient: Ingredient) => void;
+}
 
 export default function IngredientsTab({
   ingredients,
@@ -10,7 +23,7 @@ export default function IngredientsTab({
   openIngredientUpdateModal,
   getItemId,
   onDeleteIngredient
-}) {
+}: IngredientsTabProps) {
   return (
     <div className="grid">
       <div className="card">
@@ -20,7 +33,7 @@ export default function IngredientsTab({
         <div className="gallery-grid">
           {ingredients.map((ingredient) => {
             const id = getItemId(ingredient);
-            return <GalleryTile key={id || ingredient.name} imageUrl={ingredient.imageUrl} fallbackText={ingredient.name || 'Unnamed ingredient'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(id)} />;
+            return <GalleryTile key={String(id || ingredient.name)} imageUrl={ingredient.imageUrl} fallbackText={ingredient.name || 'Unnamed ingredient'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id || ''))} />;
           })}
         </div>
       </div>
