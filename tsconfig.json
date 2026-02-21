@@ -16,10 +16,12 @@
     "jsx": "react-jsx",
     "allowJs": true,
     "checkJs": false,
-    "strict": false,
+    "strict": true,
     "types": [
       "vite/client"
-    ]
+    ],
+    "noImplicitAny": true,
+    "strictNullChecks": true
   },
   "include": [
     "src",
