@@ -20,11 +20,19 @@ import useIngredientActions from '../features/backend-explorer/hooks/useIngredie
 import useRecipeActions from '../features/backend-explorer/hooks/useRecipeActions';
 import { createFlowReducer, initialCreateFlowState } from '../features/backend-explorer/reducers/createFlowReducer';
 import { initialUpdateFlowState, updateFlowReducer } from '../features/backend-explorer/reducers/updateFlowReducer';
+import type {
+  DeleteModalState,
+  EntityType,
+  IngredientUpdateForm,
+  NutritionDraft,
+  UpdateModalState,
+  Updater
+} from '../features/backend-explorer/types';
 
-const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'];
+const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'] as const;
 
 export default function BackendExplorer() {
-  const [activeTab, setActiveTab] = useState('foods');
+  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('foods');
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
 
@@ -64,7 +72,7 @@ export default function BackendExplorer() {
   }, []);
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
-  function openCreateModal(type) {
+  function openCreateModal(type: EntityType) {
     dispatchCreateFlow({ type: 'open_create_modal', entityType: type });
   }
 
@@ -72,27 +80,27 @@ export default function BackendExplorer() {
     dispatchCreateFlow({ type: 'close_create_modal' });
   }
 
-  function setCreateSuccessByType(type, message) {
+  function setCreateSuccessByType(type: EntityType, message: string) {
     dispatchCreateFlow({ type: 'set_create_success', entityType: type, message });
   }
 
-  async function run(action) {
+  async function run(action: () => Promise<unknown> | unknown) {
     await runWithRefresh(action);
   }
 
-  function setCreateError(message) {
+  function setCreateError(message: string) {
     dispatchCreateFlow({ type: 'set_create_error', message });
   }
 
-  function setUpdateModal(value) {
+  function setUpdateModal(value: Updater<UpdateModalState>) {
     dispatchUpdateFlow({ type: 'set_update_modal', value });
   }
 
-  function setDeleteModal(value) {
+  function setDeleteModal(value: Updater<DeleteModalState>) {
     dispatchUpdateFlow({ type: 'set_delete_modal', value });
   }
 
-  function setUpdateNutritionDraft(value) {
+  function setUpdateNutritionDraft(value: Updater<NutritionDraft>) {
     dispatchUpdateFlow({ type: 'set_update_nutrition_draft', value });
   }
 
@@ -142,29 +150,32 @@ export default function BackendExplorer() {
 
   function addUpdateNutrition() {
     if (!updateNutritionDraft.value) return setError('Nutrition value is required.');
-    setUpdateModal((prev) => ({
-      ...prev,
-      form: {
-        ...prev.form,
-        nutritionList: [
-          ...(prev.form.nutritionList || []),
-          { nutrient: normalizeNutrientKey(updateNutritionDraft.nutrient), value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
-        ]
-      }
-    }));
+    setUpdateModal((prev) => {
+      const form = (prev.form || {}) as IngredientUpdateForm;
+      return {
+        ...prev,
+        form: {
+          ...form,
+          nutritionList: [
+            ...(form.nutritionList || []),
+            { nutrient: normalizeNutrientKey(updateNutritionDraft.nutrient), value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
+          ]
+        }
+      };
+    });
     setUpdateNutritionDraft((prev) => ({ ...prev, value: '' }));
   }
 
-  function requestDelete(message, action) { setDeleteModal({ open: true, message, action }); }
-  function handleDeleteFood(food) {
+  function requestDelete(message: string, action: () => Promise<unknown> | unknown) { setDeleteModal({ open: true, message, action }); }
+  function handleDeleteFood(food: any) {
     requestDelete('Delete this food?', () => api.deleteFood(getItemId(food)));
   }
 
-  function handleDeleteIngredient(ingredient) {
+  function handleDeleteIngredient(ingredient: any) {
     requestDelete('Delete this ingredient?', () => api.deleteIngredient(getItemId(ingredient)));
   }
 
-  function handleDeleteRecipe(recipe) {
+  function handleDeleteRecipe(recipe: any) {
     requestDelete('Delete this recipe?', () => api.deleteRecipe(getItemId(recipe)));
   }
 
@@ -174,7 +185,7 @@ export default function BackendExplorer() {
     setDeleteModal({ open: false, message: '', action: null });
   }
 
-  function openIngredientUpdateModal(item) {
+  function openIngredientUpdateModal(item: any) {
     setUpdateNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
     setUpdateModal({
       open: true,
@@ -188,12 +199,12 @@ export default function BackendExplorer() {
         servingAmount: String(item?.servingAmount ?? ''),
         servingUnit: item?.servingUnit || 'G',
         imageUrl: item?.imageUrl || '',
-        nutritionList: Array.isArray(item?.nutritionList) ? item.nutritionList.map((n) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: n.value ?? '', unit: n.unit || 'G' })) : []
+        nutritionList: Array.isArray(item?.nutritionList) ? item.nutritionList.map((n: any) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: n.value ?? '', unit: n.unit || 'G' })) : []
       }
     });
   }
 
-  function openRecipeUpdateModal(item) {
+  function openRecipeUpdateModal(item: any) {
     setUpdateModal({
       open: true,
       type: 'recipe',
@@ -203,15 +214,15 @@ export default function BackendExplorer() {
         foodId: String(item?.foodId ?? ''),
         version: item?.version || '',
         description: item?.description || '',
-        ingredients: Array.isArray(item?.ingredients) ? item.ingredients.map((ri) => ({ ingredientId: String(ri.ingredientId ?? ''), quantity: String(ri.quantity ?? ''), unit: ri.unit || 'G', note: ri.note || '' })) : [],
-        instructions: Array.isArray(item?.instructions) ? item.instructions.map((inst) => ({ description: inst.description || '', tutorialVideoUrl: inst.tutorialVideoUrl || '' })) : []
+        ingredients: Array.isArray(item?.ingredients) ? item.ingredients.map((ri: any) => ({ ingredientId: String(ri.ingredientId ?? ''), quantity: String(ri.quantity ?? ''), unit: ri.unit || 'G', note: ri.note || '' })) : [],
+        instructions: Array.isArray(item?.instructions) ? item.instructions.map((inst: any) => ({ description: inst.description || '', tutorialVideoUrl: inst.tutorialVideoUrl || '' })) : []
       }
     });
   }
 
   async function confirmUpdate() {
     if (updateModal.type === 'ingredient') {
-      const form = updateModal.form;
+      const form = updateModal.form as IngredientUpdateForm;
       await run(() => api.updateIngredient(updateModal.itemId, buildUpdateIngredientPayload(form)));
     }
 
@@ -223,10 +234,10 @@ export default function BackendExplorer() {
     setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
   }
 
-  const selectedFood = useMemo(() => foods.find((item) => String(getItemId(item)) === String(selectedId)), [foods, selectedId]);
-  const selectedIngredient = useMemo(() => ingredients.find((item) => String(getItemId(item)) === String(selectedId)), [ingredients, selectedId]);
-  const selectedRecipe = useMemo(() => recipes.find((item, index) => String(getRecipeTileId(item, index)) === String(selectedId)), [recipes, selectedId]);
-  const nutrientFilteredIngredients = useMemo(() => ingredients.filter((ingredient) => Array.isArray(ingredient?.nutritionList) && ingredient.nutritionList.some((nutrition) => nutrition?.nutrient === selectedNutrient)), [ingredients, selectedNutrient]);
+  const selectedFood = useMemo(() => foods.find((item: any) => String(getItemId(item)) === String(selectedId)), [foods, selectedId]);
+  const selectedIngredient = useMemo(() => ingredients.find((item: any) => String(getItemId(item)) === String(selectedId)), [ingredients, selectedId]);
+  const selectedRecipe = useMemo(() => recipes.find((item: any, index: number) => String(getRecipeTileId(item, index)) === String(selectedId)), [recipes, selectedId]);
+  const nutrientFilteredIngredients = useMemo(() => ingredients.filter((ingredient: any) => Array.isArray(ingredient?.nutritionList) && ingredient.nutritionList.some((nutrition: any) => nutrition?.nutrient === selectedNutrient)), [ingredients, selectedNutrient]);
 
   return (
     <section>

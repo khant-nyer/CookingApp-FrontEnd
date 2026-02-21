@@ -1,10 +1,12 @@
-export const initialCreateFlowState = {
+import type { CreateFlowAction, CreateFlowState } from '../types';
+
+export const initialCreateFlowState: CreateFlowState = {
   createModal: { open: false, type: '' },
   createError: '',
   createSuccess: { food: '', ingredient: '', recipe: '' }
 };
 
-export function createFlowReducer(state, action) {
+export function createFlowReducer(state: CreateFlowState, action: CreateFlowAction): CreateFlowState {
   switch (action.type) {
     case 'open_create_modal':
       return {
