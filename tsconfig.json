@@ -14,8 +14,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "allowJs": true,
-    "checkJs": false,
     "strict": true,
     "types": [
       "vite/client"
@@ -24,8 +22,7 @@
     "strictNullChecks": true
   },
   "include": [
-    "src",
-    "vite.config.js"
+    "src"
   ],
   "references": [
     {
