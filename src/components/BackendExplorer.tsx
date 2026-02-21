@@ -23,16 +23,28 @@ import { initialUpdateFlowState, updateFlowReducer } from '../features/backend-e
 import type {
   DeleteModalState,
   EntityType,
+  FoodForm,
+  Ingredient,
+  IngredientForm,
+  IngredientNutrition,
   IngredientUpdateForm,
   NutritionDraft,
+  Recipe,
+  RecipeForm,
+  RecipeIngredientDraft,
+  RecipeIngredientItem,
+  RecipeInstructionDraft,
+  RecipeInstructionItem,
+  RecipeUpdateForm,
+  TabKey,
   UpdateModalState,
   Updater
 } from '../features/backend-explorer/types';
 
-const tabs = ['foods', 'ingredients', 'recipes', 'nutrition'] as const;
+const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
 export default function BackendExplorer() {
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('foods');
+  const [activeTab, setActiveTab] = useState<TabKey>('foods');
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
 
@@ -48,16 +60,16 @@ export default function BackendExplorer() {
     runWithRefresh
   } = useBackendData();
 
-  const [foodForm, setFoodForm] = useState({ name: '', category: '', imageUrl: '' });
-  const [ingredientForm, setIngredientForm] = useState({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
-  const [nutritionDraft, setNutritionDraft] = useState({ nutrient: 'CALORIES', value: '', unit: 'G' });
-  const [ingredientNutritions, setIngredientNutritions] = useState([]);
+  const [foodForm, setFoodForm] = useState<FoodForm>({ name: '', category: '', imageUrl: '' });
+  const [ingredientForm, setIngredientForm] = useState<IngredientForm>({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
+  const [nutritionDraft, setNutritionDraft] = useState<NutritionDraft>({ nutrient: 'CALORIES', value: '', unit: 'G' });
+  const [ingredientNutritions, setIngredientNutritions] = useState<IngredientNutrition[]>([]);
 
-  const [recipeForm, setRecipeForm] = useState({ foodId: '', version: 'v1', description: '' });
-  const [recipeIngredientDraft, setRecipeIngredientDraft] = useState({ ingredientId: '', quantity: '', unit: 'G', note: '' });
-  const [recipeInstructionDraft, setRecipeInstructionDraft] = useState({ description: '', tutorialVideoUrl: '' });
-  const [recipeIngredients, setRecipeIngredients] = useState([]);
-  const [recipeInstructions, setRecipeInstructions] = useState([]);
+  const [recipeForm, setRecipeForm] = useState<RecipeForm>({ foodId: '', version: 'v1', description: '' });
+  const [recipeIngredientDraft, setRecipeIngredientDraft] = useState<RecipeIngredientDraft>({ ingredientId: '', quantity: '', unit: 'G', note: '' });
+  const [recipeInstructionDraft, setRecipeInstructionDraft] = useState<RecipeInstructionDraft>({ description: '', tutorialVideoUrl: '' });
+  const [recipeIngredients, setRecipeIngredients] = useState<RecipeIngredientItem[]>([]);
+  const [recipeInstructions, setRecipeInstructions] = useState<RecipeInstructionItem[]>([]);
 
   const [createFlow, dispatchCreateFlow] = useReducer(createFlowReducer, initialCreateFlowState);
   const [updateFlow, dispatchUpdateFlow] = useReducer(updateFlowReducer, initialUpdateFlowState);
@@ -147,11 +159,10 @@ export default function BackendExplorer() {
     loadAll
   });
 
-
   function addUpdateNutrition() {
     if (!updateNutritionDraft.value) return setError('Nutrition value is required.');
     setUpdateModal((prev) => {
-      const form = (prev.form || {}) as IngredientUpdateForm;
+      const form = prev.form as IngredientUpdateForm;
       return {
         ...prev,
         form: {
@@ -166,16 +177,19 @@ export default function BackendExplorer() {
     setUpdateNutritionDraft((prev) => ({ ...prev, value: '' }));
   }
 
-  function requestDelete(message: string, action: () => Promise<unknown> | unknown) { setDeleteModal({ open: true, message, action }); }
-  function handleDeleteFood(food: any) {
+  function requestDelete(message: string, action: () => Promise<unknown> | unknown) {
+    setDeleteModal({ open: true, message, action });
+  }
+
+  function handleDeleteFood(food: { id?: string | number; _id?: string | number }) {
     requestDelete('Delete this food?', () => api.deleteFood(getItemId(food)));
   }
 
-  function handleDeleteIngredient(ingredient: any) {
+  function handleDeleteIngredient(ingredient: Ingredient) {
     requestDelete('Delete this ingredient?', () => api.deleteIngredient(getItemId(ingredient)));
   }
 
-  function handleDeleteRecipe(recipe: any) {
+  function handleDeleteRecipe(recipe: Recipe) {
     requestDelete('Delete this recipe?', () => api.deleteRecipe(getItemId(recipe)));
   }
 
@@ -185,12 +199,12 @@ export default function BackendExplorer() {
     setDeleteModal({ open: false, message: '', action: null });
   }
 
-  function openIngredientUpdateModal(item: any) {
+  function openIngredientUpdateModal(item: Ingredient) {
     setUpdateNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
     setUpdateModal({
       open: true,
       type: 'ingredient',
-      itemId: getItemId(item),
+      itemId: getItemId(item) || null,
       title: `Update ${item?.name || 'Ingredient'}`,
       form: {
         name: item?.name || '',
@@ -199,23 +213,25 @@ export default function BackendExplorer() {
         servingAmount: String(item?.servingAmount ?? ''),
         servingUnit: item?.servingUnit || 'G',
         imageUrl: item?.imageUrl || '',
-        nutritionList: Array.isArray(item?.nutritionList) ? item.nutritionList.map((n: any) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: n.value ?? '', unit: n.unit || 'G' })) : []
+        nutritionList: Array.isArray(item?.nutritionList)
+          ? item.nutritionList.map((n) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: n.value ?? '', unit: n.unit || 'G' }))
+          : []
       }
     });
   }
 
-  function openRecipeUpdateModal(item: any) {
+  function openRecipeUpdateModal(item: Recipe) {
     setUpdateModal({
       open: true,
       type: 'recipe',
-      itemId: getItemId(item),
+      itemId: getItemId(item) || null,
       title: `Update ${item?.foodName || 'Recipe'} ${item?.version ? `(${item.version})` : ''}`,
       form: {
         foodId: String(item?.foodId ?? ''),
         version: item?.version || '',
         description: item?.description || '',
-        ingredients: Array.isArray(item?.ingredients) ? item.ingredients.map((ri: any) => ({ ingredientId: String(ri.ingredientId ?? ''), quantity: String(ri.quantity ?? ''), unit: ri.unit || 'G', note: ri.note || '' })) : [],
-        instructions: Array.isArray(item?.instructions) ? item.instructions.map((inst: any) => ({ description: inst.description || '', tutorialVideoUrl: inst.tutorialVideoUrl || '' })) : []
+        ingredients: Array.isArray(item?.ingredients) ? item.ingredients.map((ri) => ({ ingredientId: String(ri.ingredientId ?? ''), quantity: String(ri.quantity ?? ''), unit: ri.unit || 'G', note: ri.note || '' })) : [],
+        instructions: Array.isArray(item?.instructions) ? item.instructions.map((inst) => ({ description: inst.description || '', tutorialVideoUrl: inst.tutorialVideoUrl || '' })) : []
       }
     });
   }
@@ -227,17 +243,17 @@ export default function BackendExplorer() {
     }
 
     if (updateModal.type === 'recipe') {
-      const form = updateModal.form;
+      const form = updateModal.form as RecipeUpdateForm;
       await run(() => api.updateRecipe(updateModal.itemId, buildUpdateRecipePayload(form)));
     }
 
     setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
   }
 
-  const selectedFood = useMemo(() => foods.find((item: any) => String(getItemId(item)) === String(selectedId)), [foods, selectedId]);
-  const selectedIngredient = useMemo(() => ingredients.find((item: any) => String(getItemId(item)) === String(selectedId)), [ingredients, selectedId]);
-  const selectedRecipe = useMemo(() => recipes.find((item: any, index: number) => String(getRecipeTileId(item, index)) === String(selectedId)), [recipes, selectedId]);
-  const nutrientFilteredIngredients = useMemo(() => ingredients.filter((ingredient: any) => Array.isArray(ingredient?.nutritionList) && ingredient.nutritionList.some((nutrition: any) => nutrition?.nutrient === selectedNutrient)), [ingredients, selectedNutrient]);
+  const selectedFood = useMemo(() => foods.find((item) => String(getItemId(item)) === String(selectedId)), [foods, selectedId]);
+  const selectedIngredient = useMemo(() => ingredients.find((item) => String(getItemId(item)) === String(selectedId)), [ingredients, selectedId]);
+  const selectedRecipe = useMemo(() => recipes.find((item, index) => String(getRecipeTileId(item, index)) === String(selectedId)), [recipes, selectedId]);
+  const nutrientFilteredIngredients = useMemo(() => ingredients.filter((ingredient) => Array.isArray(ingredient?.nutritionList) && ingredient.nutritionList.some((nutrition) => nutrition?.nutrient === selectedNutrient)), [ingredients, selectedNutrient]);
 
   return (
     <section>
@@ -299,7 +315,6 @@ export default function BackendExplorer() {
         />
       )}
 
-
       <CreateEntityModal
         createModal={createModal}
         createError={createError}
@@ -352,7 +367,6 @@ export default function BackendExplorer() {
         addUpdateNutrition={addUpdateNutrition}
         confirmUpdate={confirmUpdate}
       />
-
     </section>
   );
 }

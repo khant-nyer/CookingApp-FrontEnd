@@ -1,7 +1,23 @@
 import { useCallback } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { api } from '../../../services/api';
+import type { EntityType, IngredientForm, IngredientNutrition, NutritionDraft } from '../types';
 import { normalizeNutrientKey } from '../utils/nutrients';
 import { buildCreateIngredientPayload } from '../utils/payloadMappers';
+
+interface UseIngredientActionsParams {
+  ingredientForm: IngredientForm;
+  setIngredientForm: Dispatch<SetStateAction<IngredientForm>>;
+  nutritionDraft: NutritionDraft;
+  setNutritionDraft: Dispatch<SetStateAction<NutritionDraft>>;
+  ingredientNutritions: IngredientNutrition[];
+  setIngredientNutritions: Dispatch<SetStateAction<IngredientNutrition[]>>;
+  setCreateError: (message: string) => void;
+  setCreateSuccessByType: (type: EntityType, message: string) => void;
+  closeCreateModal: () => void;
+  setLoading: Dispatch<SetStateAction<boolean>>;
+  loadAll: () => Promise<void>;
+}
 
 export default function useIngredientActions({
   ingredientForm,
@@ -15,7 +31,7 @@ export default function useIngredientActions({
   closeCreateModal,
   setLoading,
   loadAll
-}) {
+}: UseIngredientActionsParams) {
   const addNutrition = useCallback(() => {
     if (!nutritionDraft.value) return setCreateError('Nutrition value is required.');
     setIngredientNutritions((prev) => [
@@ -43,7 +59,7 @@ export default function useIngredientActions({
       setCreateSuccessByType('ingredient', 'Ingredient created successfully.');
       closeCreateModal();
     } catch (createIngredientError) {
-      setCreateError(createIngredientError.message);
+      setCreateError(createIngredientError instanceof Error ? createIngredientError.message : 'Unable to create ingredient.');
     } finally {
       setLoading(false);
     }

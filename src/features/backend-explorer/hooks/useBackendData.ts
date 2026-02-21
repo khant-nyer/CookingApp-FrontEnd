@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
 import { api } from '../../../services/api';
+import type { Food, Ingredient, Recipe } from '../types';
 
 export default function useBackendData() {
-  const [foods, setFoods] = useState([]);
-  const [ingredients, setIngredients] = useState([]);
-  const [recipes, setRecipes] = useState([]);
+  const [foods, setFoods] = useState<Food[]>([]);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -17,24 +18,24 @@ export default function useBackendData() {
         api.getIngredients(),
         api.getRecipes()
       ]);
-      setFoods(Array.isArray(foodData) ? foodData : []);
-      setIngredients(Array.isArray(ingredientData) ? ingredientData : []);
-      setRecipes(Array.isArray(recipeData) ? recipeData : []);
+      setFoods(Array.isArray(foodData) ? (foodData as Food[]) : []);
+      setIngredients(Array.isArray(ingredientData) ? (ingredientData as Ingredient[]) : []);
+      setRecipes(Array.isArray(recipeData) ? (recipeData as Recipe[]) : []);
     } catch (loadError) {
-      setError(loadError.message);
+      setError(loadError instanceof Error ? loadError.message : 'Failed to load data.');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const runWithRefresh = useCallback(async (action) => {
+  const runWithRefresh = useCallback(async (action: () => Promise<unknown> | unknown) => {
     setLoading(true);
     setError('');
     try {
       await action();
       await loadAll();
     } catch (actionError) {
-      setError(actionError.message);
+      setError(actionError instanceof Error ? actionError.message : 'Action failed.');
       setLoading(false);
     }
   }, [loadAll]);
