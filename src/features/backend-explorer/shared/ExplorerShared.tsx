@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import {
   nutrientCatalog,
   nutrientGroups,
@@ -7,9 +8,19 @@ import {
   nutrientShortNames
 } from '../constants/nutrients';
 import { unitOptions } from '../constants/units';
+import type { Ingredient, IngredientNutrition, RecipeIngredientItem } from '../types';
 import { getItemId } from '../utils/ids';
 
-export function GalleryTile({ imageUrl, fallbackText, onClick, isSelected, subtitle }) {
+interface GalleryTileProps {
+  key?: string | number;
+  imageUrl?: string;
+  fallbackText: string;
+  onClick: () => void;
+  isSelected?: boolean;
+  subtitle?: string;
+}
+
+export function GalleryTile({ imageUrl, fallbackText, onClick, isSelected, subtitle }: GalleryTileProps) {
   return (
     <button className={isSelected ? 'gallery-tile selected' : 'gallery-tile'} onClick={onClick}>
       {imageUrl ? <img src={imageUrl} alt={fallbackText} className="gallery-image" /> : <div className="gallery-fallback">{fallbackText}</div>}
@@ -19,7 +30,16 @@ export function GalleryTile({ imageUrl, fallbackText, onClick, isSelected, subti
   );
 }
 
-export function TextDetail({ title, imageUrl, fields = [], sections = [], onDelete, onUpdate }) {
+interface TextDetailProps {
+  title: string;
+  imageUrl?: string;
+  fields?: Array<{ label: string; value?: string | number }>;
+  sections?: Array<{ title: string; items: string[] }>;
+  onDelete: () => void;
+  onUpdate?: () => void;
+}
+
+export function TextDetail({ title, imageUrl, fields = [], sections = [], onDelete, onUpdate }: TextDetailProps) {
   return (
     <div className="card detail-card">
       <h3>{title}</h3>
@@ -46,7 +66,14 @@ export function TextDetail({ title, imageUrl, fields = [], sections = [], onDele
   );
 }
 
-export function NutritionIcon({ nutrient, selected, onClick }) {
+interface NutritionIconProps {
+  key?: string | number;
+  nutrient: string;
+  selected?: boolean;
+  onClick: () => void;
+}
+
+export function NutritionIcon({ nutrient, selected, onClick }: NutritionIconProps) {
   return (
     <button className={selected ? 'nutrient-pill selected' : 'nutrient-pill'} onClick={onClick}>
       <span className="nutrient-icon">{nutrientIcons[nutrient] || '🧪'}</span>
@@ -55,7 +82,13 @@ export function NutritionIcon({ nutrient, selected, onClick }) {
   );
 }
 
-export function NutrientPicker({ value, onChange, storageKey = 'default' }) {
+interface NutrientPickerProps {
+  value: string;
+  onChange: (nutrient: string) => void;
+  storageKey?: string;
+}
+
+export function NutrientPicker({ value, onChange, storageKey = 'default' }: NutrientPickerProps) {
   const [query, setQuery] = useState('');
   const [highlightIndex, setHighlightIndex] = useState(0);
 
@@ -78,7 +111,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }) {
     try {
       const raw = localStorage.getItem(`nutrient-recent-${storageKey}`);
       const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed.filter((item) => nutrientOptions.includes(item)) : [];
+      return Array.isArray(parsed) ? parsed.filter((item: string) => nutrientOptions.includes(item)) : [];
     } catch {
       return [];
     }
@@ -88,7 +121,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }) {
     setHighlightIndex(0);
   }, [normalizedQuery]);
 
-  function selectNutrient(nutrient) {
+  function selectNutrient(nutrient: string) {
     onChange(nutrient);
     setQuery('');
     try {
@@ -99,7 +132,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }) {
     }
   }
 
-  function onKeyDown(event) {
+  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (!filtered.length) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -131,7 +164,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }) {
         <div className="picker-chip-section">
           <small className="picker-section-title">Recent picks</small>
           <div className="picker-recent-row">
-            {recent.length ? recent.map((nutrient) => (
+            {recent.length ? recent.map((nutrient: string) => (
               <button
                 type="button"
                 key={nutrient}
@@ -184,7 +217,14 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }) {
   );
 }
 
-export function NutritionSummaryCards({ items = [], onRemove, onValueChange, onUnitChange }) {
+interface NutritionSummaryCardsProps {
+  items?: IngredientNutrition[];
+  onRemove: (index: number) => void;
+  onValueChange: (index: number, value: string) => void;
+  onUnitChange: (index: number, unit: string) => void;
+}
+
+export function NutritionSummaryCards({ items = [], onRemove, onValueChange, onUnitChange }: NutritionSummaryCardsProps) {
   return (
     <div className="summary-card-grid nutrition-summary-grid">
       {items.map((nutrition, index) => (
@@ -205,7 +245,14 @@ export function NutritionSummaryCards({ items = [], onRemove, onValueChange, onU
   );
 }
 
-export function RecipeIngredientSummaryCards({ items = [], ingredients = [], onChange, onRemove }) {
+interface RecipeIngredientSummaryCardsProps {
+  items?: RecipeIngredientItem[];
+  ingredients?: Ingredient[];
+  onChange: (index: number, patch: Partial<RecipeIngredientItem>) => void;
+  onRemove: (index: number) => void;
+}
+
+export function RecipeIngredientSummaryCards({ items = [], ingredients = [], onChange, onRemove }: RecipeIngredientSummaryCardsProps) {
   return (
     <div className="summary-card-grid ingredient-summary-grid">
       {items.map((item, index) => {

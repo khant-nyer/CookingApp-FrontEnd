@@ -1,5 +1,14 @@
 import { nutrientOptions } from '../constants/nutrients';
+import type { Ingredient, TabKey } from '../types';
 import { GalleryTile, NutritionIcon } from '../shared/ExplorerShared';
+
+interface NutritionTabProps {
+  selectedNutrient: string;
+  setSelectedNutrient: (nutrient: string) => void;
+  nutrientFilteredIngredients: Ingredient[];
+  setActiveTab: (tab: TabKey) => void;
+  getItemId: (item: Ingredient) => string | number | undefined;
+}
 
 export default function NutritionTab({
   selectedNutrient,
@@ -7,7 +16,7 @@ export default function NutritionTab({
   nutrientFilteredIngredients,
   setActiveTab,
   getItemId
-}) {
+}: NutritionTabProps) {
   return (
     <div className="grid">
       <div className="card">
@@ -26,7 +35,7 @@ export default function NutritionTab({
         <div className="gallery-grid">
           {nutrientFilteredIngredients.map((ingredient) => {
             const match = ingredient.nutritionList?.find((item) => item.nutrient === selectedNutrient);
-            return <GalleryTile key={getItemId(ingredient) || ingredient.name} imageUrl={ingredient.imageUrl} fallbackText={ingredient.name || 'Unnamed ingredient'} subtitle={match ? `${match.value} ${match.unit}` : ''} onClick={() => setActiveTab('ingredients')} />;
+            return <GalleryTile key={String(getItemId(ingredient) || ingredient.name)} imageUrl={ingredient.imageUrl} fallbackText={ingredient.name || 'Unnamed ingredient'} subtitle={match ? `${match.value} ${match.unit}` : ''} onClick={() => setActiveTab('ingredients')} />;
           })}
         </div>
       </div>
