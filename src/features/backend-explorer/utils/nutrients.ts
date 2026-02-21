@@ -1,6 +1,6 @@
 import { nutrientAliasToKey } from '../constants/nutrients';
 
-export function normalizeNutrientKey(nutrient) {
+export function normalizeNutrientKey(nutrient: string): string {
   if (!nutrient) return 'CALORIES';
 
   const direct = nutrientAliasToKey[nutrient];

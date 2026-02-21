@@ -1,21 +1,36 @@
 import { useEffect, useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 import { api } from '../services/api';
 
-const initialRecipe = { title: '', description: '', ingredients: '' };
+interface RecipeDashboardItem {
+  id?: string | number;
+  _id?: string | number;
+  title?: string;
+  description?: string;
+  ingredients?: string[] | string;
+}
+
+interface RecipeFormState {
+  title: string;
+  description: string;
+  ingredients: string;
+}
+
+const initialRecipe: RecipeFormState = { title: '', description: '', ingredients: '' };
 
 export default function RecipeDashboard() {
-  const [recipes, setRecipes] = useState([]);
-  const [form, setForm] = useState(initialRecipe);
+  const [recipes, setRecipes] = useState<RecipeDashboardItem[]>([]);
+  const [form, setForm] = useState<RecipeFormState>(initialRecipe);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function loadRecipes() {
     try {
       setError('');
-      const data = await api.getRecipes();
+      const data = await api.getRecipes() as RecipeDashboardItem[] | { recipes?: RecipeDashboardItem[] };
       setRecipes(Array.isArray(data) ? data : data.recipes || []);
     } catch (loadError) {
-      setError(loadError.message);
+      setError(loadError instanceof Error ? loadError.message : 'Failed to load recipes.');
     }
   }
 
@@ -23,12 +38,12 @@ export default function RecipeDashboard() {
     loadRecipes();
   }, []);
 
-  function onChange(event) {
+  function onChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  async function onSubmit(event) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError('');
@@ -45,7 +60,7 @@ export default function RecipeDashboard() {
       setForm(initialRecipe);
       await loadRecipes();
     } catch (submitError) {
-      setError(submitError.message);
+      setError(submitError instanceof Error ? submitError.message : 'Failed to create recipe.');
     } finally {
       setLoading(false);
     }
@@ -61,7 +76,7 @@ export default function RecipeDashboard() {
         {error && <p className="error">{error}</p>}
         <ul className="recipe-list">
           {recipes.map((recipe) => (
-            <li key={recipe.id || recipe._id || recipe.title}>
+            <li key={String(recipe.id || recipe._id || recipe.title)}>
               <h3>{recipe.title}</h3>
               <p>{recipe.description}</p>
               {recipe.ingredients?.length ? (

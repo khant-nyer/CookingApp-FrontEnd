@@ -1,7 +1,36 @@
 import { useCallback } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { api } from '../../../services/api';
+import type {
+  EntityType,
+  Ingredient,
+  RecipeForm,
+  RecipeIngredientDraft,
+  RecipeIngredientItem,
+  RecipeInstructionDraft,
+  RecipeInstructionItem
+} from '../types';
 import { getItemId } from '../utils/ids';
 import { buildCreateRecipePayload } from '../utils/payloadMappers';
+
+interface UseRecipeActionsParams {
+  ingredients: Ingredient[];
+  recipeForm: RecipeForm;
+  setRecipeForm: Dispatch<SetStateAction<RecipeForm>>;
+  recipeIngredientDraft: RecipeIngredientDraft;
+  setRecipeIngredientDraft: Dispatch<SetStateAction<RecipeIngredientDraft>>;
+  recipeInstructionDraft: RecipeInstructionDraft;
+  setRecipeInstructionDraft: Dispatch<SetStateAction<RecipeInstructionDraft>>;
+  recipeIngredients: RecipeIngredientItem[];
+  setRecipeIngredients: Dispatch<SetStateAction<RecipeIngredientItem[]>>;
+  recipeInstructions: RecipeInstructionItem[];
+  setRecipeInstructions: Dispatch<SetStateAction<RecipeInstructionItem[]>>;
+  setCreateError: (message: string) => void;
+  setCreateSuccessByType: (type: EntityType, message: string) => void;
+  closeCreateModal: () => void;
+  setLoading: Dispatch<SetStateAction<boolean>>;
+  loadAll: () => Promise<void>;
+}
 
 export default function useRecipeActions({
   ingredients,
@@ -20,7 +49,7 @@ export default function useRecipeActions({
   closeCreateModal,
   setLoading,
   loadAll
-}) {
+}: UseRecipeActionsParams) {
   const addRecipeIngredient = useCallback(() => {
     if (!recipeIngredientDraft.ingredientId || !recipeIngredientDraft.quantity) {
       return setCreateError('Recipe ingredient needs ingredient and quantity.');
@@ -70,7 +99,7 @@ export default function useRecipeActions({
       setCreateSuccessByType('recipe', 'Recipe created successfully.');
       closeCreateModal();
     } catch (createRecipeError) {
-      setCreateError(createRecipeError.message);
+      setCreateError(createRecipeError instanceof Error ? createRecipeError.message : 'Unable to create recipe.');
     } finally {
       setLoading(false);
     }

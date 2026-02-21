@@ -1,6 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
-const NUTRIENT_ALIASES = {
+const NUTRIENT_ALIASES: Record<string, string> = {
   SUGAR: 'SUGARS',
   SUGARS: 'SUGARS',
   'TOTAL SUGARS': 'SUGARS',
@@ -8,7 +8,10 @@ const NUTRIENT_ALIASES = {
   'ADDED SUGARS': 'ADDED_SUGARS'
 };
 
-function normalizeNutrient(nutrient) {
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+export type ApiPayload = Record<string, JsonValue>;
+
+function normalizeNutrient(nutrient: string | null | undefined) {
   if (nutrient == null) return nutrient;
   const raw = String(nutrient).trim();
   if (!raw) return raw;
@@ -20,34 +23,34 @@ function normalizeNutrient(nutrient) {
   return raw.toUpperCase().replace(/\s+/g, '_');
 }
 
-function normalizeIngredientPayload(payload = {}) {
+function normalizeIngredientPayload(payload: ApiPayload = {}) {
   if (!Array.isArray(payload?.nutritionList)) return payload;
   return {
     ...payload,
     nutritionList: payload.nutritionList.map((item) => ({
-      ...item,
-      nutrient: normalizeNutrient(item?.nutrient)
+      ...(item as ApiPayload),
+      nutrient: normalizeNutrient((item as ApiPayload)?.nutrient as string)
     }))
   };
 }
 
-function buildUrl(path) {
+function buildUrl(path: string) {
   return `${API_BASE_URL}${path}`;
 }
 
-function getHeaders() {
+function getHeaders(): HeadersInit {
   return {
     'Content-Type': 'application/json'
   };
 }
 
-async function request(path, options = {}) {
+async function request<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   const url = buildUrl(path);
 
-  let response;
+  let response: Response;
   try {
     response = await fetch(url, options);
-  } catch (networkError) {
+  } catch {
     throw new Error(
       `Cannot connect to backend via ${url}. If running frontend on Vite dev server, keep VITE_API_BASE_URL empty to use proxy, or set it to your backend origin.`
     );
@@ -55,11 +58,11 @@ async function request(path, options = {}) {
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.message || `Request failed: ${response.status}`);
+    throw new Error((errorBody as { message?: string }).message || `Request failed: ${response.status}`);
   }
 
-  if (response.status === 204) return null;
-  return response.json();
+  if (response.status === 204) return null as T;
+  return response.json() as Promise<T>;
 }
 
 export const api = {
@@ -67,20 +70,20 @@ export const api = {
   getFoods() {
     return request('/api/foods', { headers: getHeaders() });
   },
-  createFood(payload) {
+  createFood(payload: ApiPayload) {
     return request('/api/foods', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   },
-  deleteFood(id) {
+  deleteFood(id: string | number | undefined) {
     return request(`/api/foods/${id}`, { method: 'DELETE', headers: getHeaders() });
   },
-  getFoodRecipeStatus(id) {
+  getFoodRecipeStatus(id: string | number | undefined) {
     return request(`/api/foods/${id}/recipe-status`, { headers: getHeaders() });
   },
-  createRecipeForFood(foodId, payload) {
+  createRecipeForFood(foodId: string | number, payload: ApiPayload) {
     return request(`/api/foods/${foodId}/recipes`, {
       method: 'POST',
       headers: getHeaders(),
@@ -92,34 +95,34 @@ export const api = {
   getIngredients() {
     return request('/api/ingredients', { headers: getHeaders() });
   },
-  createIngredient(payload) {
+  createIngredient(payload: ApiPayload) {
     return request('/api/ingredients', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(normalizeIngredientPayload(payload))
     });
   },
-  deleteIngredient(id) {
+  deleteIngredient(id: string | number | undefined) {
     return request(`/api/ingredients/${id}`, { method: 'DELETE', headers: getHeaders() });
   },
-  updateIngredient(id, payload) {
+  updateIngredient(id: string | number | null, payload: ApiPayload) {
     return request(`/api/ingredients/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(normalizeIngredientPayload(payload))
     });
   },
-  searchIngredientsByName(name) {
+  searchIngredientsByName(name: string) {
     return request(`/api/ingredients/search?name=${encodeURIComponent(name || '')}`, {
       headers: getHeaders()
     });
   },
-  searchIngredientsByNutrition(nutrient, minValue) {
-    const params = new URLSearchParams({ nutrient: normalizeNutrient(nutrient) });
+  searchIngredientsByNutrition(nutrient: string, minValue?: string | number | null) {
+    const params = new URLSearchParams({ nutrient: normalizeNutrient(nutrient) || '' });
     if (minValue !== '' && minValue != null) params.set('minValue', String(minValue));
     return request(`/api/ingredients/search/by-nutrition?${params.toString()}`, { headers: getHeaders() });
   },
-  discoverSupermarkets(ingredientName, city, userId) {
+  discoverSupermarkets(ingredientName: string, city?: string, userId?: string | number) {
     const params = new URLSearchParams({ ingredientName });
     if (city) params.set('city', city);
     if (userId) params.set('userId', String(userId));
@@ -130,25 +133,41 @@ export const api = {
   getRecipes() {
     return request('/api/recipes', { headers: getHeaders() });
   },
-  createRecipe(payload) {
+  createRecipe(payload: ApiPayload) {
     return request('/api/recipes', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   },
-  deleteRecipe(id) {
+  deleteRecipe(id: string | number | undefined) {
     return request(`/api/recipes/${id}`, { method: 'DELETE', headers: getHeaders() });
   },
-  updateRecipe(id, payload) {
+  updateRecipe(id: string | number | null, payload: ApiPayload) {
     return request(`/api/recipes/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   },
-  createRecipeForFoodViaRecipeApi(foodId, payload) {
+  createRecipeForFoodViaRecipeApi(foodId: string | number, payload: ApiPayload) {
     return request(`/api/recipes/foods/${foodId}`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
+  },
+
+  // Auth (optional backend support)
+  login(payload: { email: string; password: string }) {
+    return request<{ token?: string; accessToken?: string; user?: { email?: string; name?: string } }>('/api/auth/login', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
+  },
+  register(payload: { name: string; email: string; password: string }) {
+    return request('/api/auth/register', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(payload)

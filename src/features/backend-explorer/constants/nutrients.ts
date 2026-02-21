@@ -1,4 +1,12 @@
-export const nutrientCatalog = [
+interface NutrientCatalogItem {
+  key: string;
+  short: string;
+  group: string;
+  icon: string;
+  aliases: string[];
+}
+
+export const nutrientCatalog: NutrientCatalogItem[] = [
   { key: 'CALORIES', short: 'CAL', group: 'Energy', icon: '🔥', aliases: ['energy', 'kcal'] },
   { key: 'PROTEIN', short: 'PRO', group: 'Macronutrients', icon: '💪', aliases: ['prot'] },
   { key: 'CARBOHYDRATES', short: 'CARB', group: 'Macronutrients', icon: '🍞', aliases: ['carbs'] },
@@ -43,8 +51,7 @@ export const nutrientCatalog = [
 ];
 
 export const nutrientOptions = nutrientCatalog.map((item) => item.key);
-
-export const nutrientAliasToKey = nutrientCatalog.reduce((acc, item) => {
+export const nutrientAliasToKey: Record<string, string> = nutrientCatalog.reduce<Record<string, string>>((acc, item) => {
   acc[item.key] = item.key;
   acc[item.key.toLowerCase()] = item.key;
   (item.aliases || []).forEach((alias) => {
@@ -54,9 +61,9 @@ export const nutrientAliasToKey = nutrientCatalog.reduce((acc, item) => {
   return acc;
 }, { SUGAR: 'SUGARS', sugar: 'SUGARS' });
 
-export const nutrientIcons = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.icon || '🧪']));
-export const nutrientShortNames = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.short || item.key]));
-export const nutrientGroups = nutrientCatalog.reduce((acc, item) => {
+export const nutrientIcons = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.icon || '🧪'])) as Record<string, string>;
+export const nutrientShortNames = Object.fromEntries(nutrientCatalog.map((item) => [item.key, item.short || item.key])) as Record<string, string>;
+export const nutrientGroups = nutrientCatalog.reduce<Record<string, string[]>>((acc, item) => {
   acc[item.group] = acc[item.group] || [];
   acc[item.group].push(item.key);
   return acc;

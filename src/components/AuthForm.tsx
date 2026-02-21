@@ -1,19 +1,28 @@
 import { useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
+
+type AuthMode = 'login' | 'register';
+
+interface AuthFormState {
+  name: string;
+  email: string;
+  password: string;
+}
 
 export default function AuthForm() {
   const { login, register } = useAuth();
-  const [mode, setMode] = useState('login');
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [mode, setMode] = useState<AuthMode>('login');
+  const [form, setForm] = useState<AuthFormState>({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  function onChange(event) {
+  function onChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  async function onSubmit(event) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError('');
@@ -25,7 +34,7 @@ export default function AuthForm() {
         await register(form.name, form.email, form.password);
       }
     } catch (submitError) {
-      setError(submitError.message);
+      setError(submitError instanceof Error ? submitError.message : 'Authentication failed.');
     } finally {
       setLoading(false);
     }

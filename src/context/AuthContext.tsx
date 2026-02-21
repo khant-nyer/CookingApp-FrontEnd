@@ -1,21 +1,41 @@
 import { createContext, useContext, useMemo, useState } from 'react';
+import type { PropsWithChildren } from 'react';
 import { api } from '../services/api';
 
-const AuthContext = createContext(null);
+interface AuthUser {
+  email?: string;
+  name?: string;
+}
+
+interface AuthContextValue {
+  token: string | null;
+  user: AuthUser | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
 
 const TOKEN_STORAGE_KEY = 'cooking_app_token';
 const USER_STORAGE_KEY = 'cooking_app_user';
 
-export function AuthProvider({ children }) {
-  const [token, setToken] = useState(localStorage.getItem(TOKEN_STORAGE_KEY));
-  const [user, setUser] = useState(() => {
+export function AuthProvider({ children }: PropsWithChildren) {
+  const [token, setToken] = useState<string | null>(localStorage.getItem(TOKEN_STORAGE_KEY));
+  const [user, setUser] = useState<AuthUser | null>(() => {
     const raw = localStorage.getItem(USER_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as AuthUser;
+    } catch {
+      return null;
+    }
   });
 
-  async function login(email, password) {
+  async function login(email: string, password: string) {
     const data = await api.login({ email, password });
-    const nextToken = data.token || data.accessToken;
+    const nextToken = data.token || data.accessToken || '';
     const nextUser = data.user || { email };
 
     setToken(nextToken);
@@ -24,7 +44,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
   }
 
-  async function register(name, email, password) {
+  async function register(name: string, email: string, password: string) {
     await api.register({ name, email, password });
     await login(email, password);
   }
