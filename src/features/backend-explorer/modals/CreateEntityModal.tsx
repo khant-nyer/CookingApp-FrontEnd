@@ -85,7 +85,7 @@ export default function CreateEntityModal({
 }: CreateEntityModalProps) {
   if (!createModal.open) return null;
 
-  function preventSubmit(event: FormEvent) {
+  function preventSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
   }
 

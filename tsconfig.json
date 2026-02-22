@@ -15,11 +15,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "types": [
-      "vite/client"
-    ],
     "noImplicitAny": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "types": [
+      "react",
+      "react-dom",
+      "vite/client"
+    ]
   },
   "include": [
     "src"
@@ -28,5 +30,9 @@
     {
       "path": "./tsconfig.node.json"
     }
+  ],
+  "exclude": [
+    "src/react-local.d.ts",
+    "src/react-shim.d.ts"
   ]
 }

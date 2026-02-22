@@ -115,7 +115,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
     } catch {
       return [];
     }
-  }, [storageKey, value]);
+  }, [storageKey]);
 
   useEffect(() => {
     setHighlightIndex(0);
