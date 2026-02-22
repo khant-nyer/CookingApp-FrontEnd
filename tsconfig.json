@@ -16,7 +16,12 @@
     "jsx": "react-jsx",
     "strict": true,
     "noImplicitAny": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "types": [
+      "react",
+      "react-dom",
+      "vite/client"
+    ]
   },
   "include": [
     "src"
