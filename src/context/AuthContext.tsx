@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { api } from '../services/api';
 
@@ -16,7 +16,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthContext = createContext<AuthContextValue | null>(null);
 
 const TOKEN_STORAGE_KEY = 'cooking_app_token';
 const USER_STORAGE_KEY = 'cooking_app_user';
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   });
 
-  async function login(email: string, password: string) {
+  const login = useCallback(async (email: string, password: string) => {
     const data = await api.login({ email, password });
     const nextToken = data.token || data.accessToken || '';
     const nextUser = data.user || { email };
@@ -42,34 +42,24 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setUser(nextUser);
     localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
-  }
+  }, []);
 
-  async function register(name: string, email: string, password: string) {
+  const register = useCallback(async (name: string, email: string, password: string) => {
     await api.register({ name, email, password });
     await login(email, password);
-  }
+  }, [login]);
 
-  function logout() {
+  const logout = useCallback(() => {
     setToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
-  }
+  }, []);
 
   const value = useMemo(
     () => ({ token, user, login, register, logout, isAuthenticated: Boolean(token) }),
-    [token, user]
+    [token, user, login, register, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth must be used inside AuthProvider');
-  }
-
-  return context;
 }

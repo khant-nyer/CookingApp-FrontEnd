@@ -81,7 +81,7 @@ export default function BackendExplorer() {
     if (hasLoadedInitiallyRef.current) return;
     hasLoadedInitiallyRef.current = true;
     loadAll();
-  }, []);
+  }, [loadAll]);
   useEffect(() => { setSelectedId(''); }, [activeTab]);
 
   function openCreateModal(type: EntityType) {
