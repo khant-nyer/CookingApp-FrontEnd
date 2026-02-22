@@ -14,6 +14,20 @@ npm install
 npm run dev
 ```
 
+
+## Quality gates (Phase 3C/3D)
+
+Before opening a PR, run:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+CI runs the same commands on each PR and on pushes to protected branches.
+
 ## Backend routes currently wired in UI (no auth)
 
 ### Foods
