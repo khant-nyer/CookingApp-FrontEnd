@@ -1,22 +1,8 @@
-import { createContext, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { api } from '../services/api';
-
-interface AuthUser {
-  email?: string;
-  name?: string;
-}
-
-interface AuthContextValue {
-  token: string | null;
-  user: AuthUser | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
-
-export const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext } from './auth-context';
+import type { AuthUser } from './auth-context';
 
 const TOKEN_STORAGE_KEY = 'cooking_app_token';
 const USER_STORAGE_KEY = 'cooking_app_user';
