@@ -32,7 +32,6 @@
     }
   ],
   "exclude": [
-    "src/react-local.d.ts",
     "src/react-shim.d.ts"
   ]
 }
