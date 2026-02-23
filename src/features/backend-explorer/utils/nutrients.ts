@@ -1,16 +1,30 @@
 import { nutrientAliasToKey } from '../constants/nutrients';
 
-export function normalizeNutrientKey(nutrient: string): string {
-  if (!nutrient) return 'CALORIES';
+interface NormalizeNutrientOptions {
+  fallback?: string;
+  allowUnknown?: boolean;
+}
 
-  const direct = nutrientAliasToKey[nutrient];
-  if (direct) return direct;
+export function normalizeNutrientKey(
+  nutrient: string | null | undefined,
+  { fallback = 'CALORIES', allowUnknown = false }: NormalizeNutrientOptions = {}
+): string {
+  if (nutrient == null) return fallback;
 
-  const upper = nutrientAliasToKey[String(nutrient).toUpperCase()];
-  if (upper) return upper;
+  const raw = String(nutrient).trim();
+  if (!raw) return fallback;
 
-  const lower = nutrientAliasToKey[String(nutrient).toLowerCase()];
-  if (lower) return lower;
+  const normalizedToken = raw.replace(/[_\s]+/g, ' ').toUpperCase();
+  const candidates = [raw, raw.toUpperCase(), raw.toLowerCase(), normalizedToken, normalizedToken.toLowerCase()];
 
-  return 'CALORIES';
+  for (const candidate of candidates) {
+    const resolved = nutrientAliasToKey[candidate];
+    if (resolved) return resolved;
+  }
+
+  if (allowUnknown) {
+    return raw.toUpperCase().replace(/\s+/g, '_');
+  }
+
+  return fallback;
 }

@@ -1,27 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+import { normalizeNutrientKey } from '../features/backend-explorer/utils/nutrients';
 
-const NUTRIENT_ALIASES: Record<string, string> = {
-  SUGAR: 'SUGARS',
-  SUGARS: 'SUGARS',
-  'TOTAL SUGARS': 'SUGARS',
-  'ADDED SUGAR': 'ADDED_SUGARS',
-  'ADDED SUGARS': 'ADDED_SUGARS'
-};
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 export type ApiPayload = Record<string, JsonValue>;
-
-function normalizeNutrient(nutrient: string | null | undefined) {
-  if (nutrient == null) return nutrient;
-  const raw = String(nutrient).trim();
-  if (!raw) return raw;
-  const byRaw = NUTRIENT_ALIASES[raw];
-  if (byRaw) return byRaw;
-  const normalizedToken = raw.replace(/[_\s]+/g, ' ').toUpperCase();
-  const byToken = NUTRIENT_ALIASES[normalizedToken];
-  if (byToken) return byToken;
-  return raw.toUpperCase().replace(/\s+/g, '_');
-}
 
 function normalizeIngredientPayload(payload: ApiPayload = {}) {
   if (!Array.isArray(payload?.nutritionList)) return payload;
@@ -29,7 +11,7 @@ function normalizeIngredientPayload(payload: ApiPayload = {}) {
     ...payload,
     nutritionList: payload.nutritionList.map((item) => ({
       ...(item as ApiPayload),
-      nutrient: normalizeNutrient((item as ApiPayload)?.nutrient as string)
+      nutrient: normalizeNutrientKey((item as ApiPayload)?.nutrient as string, { allowUnknown: true, fallback: '' })
     }))
   };
 }
@@ -118,7 +100,7 @@ export const api = {
     });
   },
   searchIngredientsByNutrition(nutrient: string, minValue?: string | number | null) {
-    const params = new URLSearchParams({ nutrient: normalizeNutrient(nutrient) || '' });
+    const params = new URLSearchParams({ nutrient: normalizeNutrientKey(nutrient, { allowUnknown: true, fallback: '' }) || '' });
     if (minValue !== '' && minValue != null) params.set('minValue', String(minValue));
     return request(`/api/ingredients/search/by-nutrition?${params.toString()}`, { headers: getHeaders() });
   },
