@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { api } from '../services/api';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import { getItemId, getRecipeTileId } from '../features/backend-explorer/utils/ids';
-import { normalizeNutrientKey } from '../features/backend-explorer/utils/nutrients';
+import { normalizeNutrientKey, normalizeNutritionEntry } from '../features/backend-explorer/utils/nutrients';
 import {
   buildUpdateIngredientPayload,
   buildUpdateRecipePayload
@@ -161,16 +161,17 @@ export default function BackendExplorer() {
 
   function addUpdateNutrition() {
     if (!updateNutritionDraft.value) return setError('Nutrition value is required.');
+
+    const nutritionEntry = normalizeNutritionEntry(updateNutritionDraft);
+    if (!nutritionEntry) return setError('Nutrition value must be a valid number.');
+
     setUpdateModal((prev) => {
       const form = prev.form as IngredientUpdateForm;
       return {
         ...prev,
         form: {
           ...form,
-          nutritionList: [
-            ...(form.nutritionList || []),
-            { nutrient: normalizeNutrientKey(updateNutritionDraft.nutrient), value: Number(updateNutritionDraft.value), unit: updateNutritionDraft.unit }
-          ]
+          nutritionList: [...(form.nutritionList || []), nutritionEntry]
         }
       };
     });
