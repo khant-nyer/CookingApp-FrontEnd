@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from 'react';
+import type { ChangeEvent, Dispatch, KeyboardEvent, SetStateAction } from 'react';
 
 export type EntityType = 'food' | 'ingredient' | 'recipe';
 export type TabKey = 'foods' | 'ingredients' | 'recipes' | 'nutrition';
@@ -6,6 +6,9 @@ export type TabKey = 'foods' | 'ingredients' | 'recipes' | 'nutrition';
 export type Nullable<T> = T | null;
 export type Updater<T> = T | ((prev: T) => T);
 export type StateSetter<T> = Dispatch<SetStateAction<T>>;
+export type InputChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
+export type InputKeyboardEvent = KeyboardEvent<HTMLInputElement>;
+
 
 export interface Identifiable {
   id?: string | number;

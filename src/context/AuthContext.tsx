@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
-import { api } from '../services/api';
+import { api, setApiTokenProvider } from '../services/api';
 import { AuthContext } from './auth-context';
 import type { AuthUser } from './auth-context';
 
@@ -18,6 +18,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return null;
     }
   });
+
+
+  useEffect(() => {
+    setApiTokenProvider(() => token);
+  }, [token]);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await api.login({ email, password });

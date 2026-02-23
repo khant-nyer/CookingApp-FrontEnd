@@ -1,4 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const DEFAULT_TIMEOUT_MS = 10_000;
+const MAX_GET_RETRIES = 1;
+const TOKEN_STORAGE_KEY = 'cooking_app_token';
 
 const NUTRIENT_ALIASES: Record<string, string> = {
   SUGAR: 'SUGARS',
@@ -10,6 +13,54 @@ const NUTRIENT_ALIASES: Record<string, string> = {
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 export type ApiPayload = Record<string, JsonValue>;
+
+type TokenProvider = () => string | null;
+
+export interface ApiErrorOptions {
+  status?: number | null;
+  code?: string;
+  details?: unknown;
+  retryable?: boolean;
+  isTimeout?: boolean;
+  isNetworkError?: boolean;
+}
+
+export class ApiError extends Error {
+  status: number | null;
+  code: string;
+  details: unknown;
+  retryable: boolean;
+  isTimeout: boolean;
+  isNetworkError: boolean;
+
+  constructor(message: string, options: ApiErrorOptions = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = options.status ?? null;
+    this.code = options.code || 'API_ERROR';
+    this.details = options.details;
+    this.retryable = Boolean(options.retryable);
+    this.isTimeout = Boolean(options.isTimeout);
+    this.isNetworkError = Boolean(options.isNetworkError);
+  }
+}
+
+interface RequestOptions extends RequestInit {
+  timeoutMs?: number;
+  skipAuth?: boolean;
+}
+
+let tokenProvider: TokenProvider = () => {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+export function setApiTokenProvider(provider: TokenProvider) {
+  tokenProvider = provider;
+}
 
 function normalizeNutrient(nutrient: string | null | undefined) {
   if (nutrient == null) return nutrient;
@@ -38,122 +89,207 @@ function buildUrl(path: string) {
   return `${API_BASE_URL}${path}`;
 }
 
-function getHeaders(): HeadersInit {
-  return {
+function getHeaders(options: { skipAuth?: boolean } = {}): HeadersInit {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
+
+  if (!options.skipAuth) {
+    const token = tokenProvider();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
 }
 
-async function request<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = buildUrl(path);
+function shouldRetry(method: string, error: ApiError, attempt: number) {
+  if (method !== 'GET' || attempt >= MAX_GET_RETRIES) return false;
+  return error.retryable;
+}
 
-  let response: Response;
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function parseErrorEnvelope(response: Response): Promise<ApiError> {
+  const status = response.status;
+  const fallbackMessage = `Request failed: ${status}`;
+
+  let body: unknown = null;
   try {
-    response = await fetch(url, options);
+    body = await response.clone().json();
   } catch {
-    throw new Error(
-      `Cannot connect to backend via ${url}. If running frontend on Vite dev server, keep VITE_API_BASE_URL empty to use proxy, or set it to your backend origin.`
+    try {
+      const text = await response.text();
+      body = text ? { message: text } : null;
+    } catch {
+      body = null;
+    }
+  }
+
+  const envelope = body as {
+    message?: string;
+    error?: string;
+    code?: string;
+    details?: unknown;
+  } | null;
+
+  return new ApiError(envelope?.message || envelope?.error || fallbackMessage, {
+    status,
+    code: envelope?.code || 'HTTP_ERROR',
+    details: envelope?.details ?? body,
+    retryable: status >= 500
+  });
+}
+
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number) {
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+  } catch (fetchError) {
+    if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
+      throw new ApiError(`Request timed out after ${timeoutMs}ms`, {
+        code: 'REQUEST_TIMEOUT',
+        isTimeout: true,
+        retryable: true
+      });
+    }
+
+    throw new ApiError(
+      `Cannot connect to backend via ${url}. If running frontend on Vite dev server, keep VITE_API_BASE_URL empty to use proxy, or set it to your backend origin.`,
+      {
+        code: 'NETWORK_ERROR',
+        details: fetchError,
+        isNetworkError: true,
+        retryable: true
+      }
     );
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
+}
+
+async function request<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
+  const url = buildUrl(path);
+  const {
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    skipAuth = false,
+    method: rawMethod,
+    headers,
+    ...rest
+  } = options;
+
+  const method = (rawMethod || 'GET').toUpperCase();
+  const mergedHeaders = { ...getHeaders({ skipAuth }), ...(headers || {}) };
+
+  for (let attempt = 0; attempt <= MAX_GET_RETRIES; attempt += 1) {
+    try {
+      const response = await fetchWithTimeout(url, { ...rest, method, headers: mergedHeaders }, timeoutMs);
+
+      if (!response.ok) {
+        throw await parseErrorEnvelope(response);
+      }
+
+      if (response.status === 204) return null as T;
+      return response.json() as Promise<T>;
+    } catch (error) {
+      const apiError = error instanceof ApiError
+        ? error
+        : new ApiError('Unexpected request failure', { code: 'UNEXPECTED_ERROR', details: error });
+
+      if (!shouldRetry(method, apiError, attempt)) throw apiError;
+      await wait((attempt + 1) * 250);
+    }
   }
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error((errorBody as { message?: string }).message || `Request failed: ${response.status}`);
-  }
-
-  if (response.status === 204) return null as T;
-  return response.json() as Promise<T>;
+  throw new ApiError('Request failed after retries', { code: 'RETRY_EXHAUSTED', retryable: false });
 }
 
 export const api = {
   // Foods
   getFoods() {
-    return request('/api/foods', { headers: getHeaders() });
+    return request('/api/foods');
   },
   createFood(payload: ApiPayload) {
     return request('/api/foods', {
       method: 'POST',
-      headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   },
   deleteFood(id: string | number | undefined) {
-    return request(`/api/foods/${id}`, { method: 'DELETE', headers: getHeaders() });
+    return request(`/api/foods/${id}`, { method: 'DELETE' });
   },
   getFoodRecipeStatus(id: string | number | undefined) {
-    return request(`/api/foods/${id}/recipe-status`, { headers: getHeaders() });
+    return request(`/api/foods/${id}/recipe-status`);
   },
   createRecipeForFood(foodId: string | number, payload: ApiPayload) {
     return request(`/api/foods/${foodId}/recipes`, {
       method: 'POST',
-      headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   },
 
   // Ingredients
   getIngredients() {
-    return request('/api/ingredients', { headers: getHeaders() });
+    return request('/api/ingredients');
   },
   createIngredient(payload: ApiPayload) {
     return request('/api/ingredients', {
       method: 'POST',
-      headers: getHeaders(),
       body: JSON.stringify(normalizeIngredientPayload(payload))
     });
   },
   deleteIngredient(id: string | number | undefined) {
-    return request(`/api/ingredients/${id}`, { method: 'DELETE', headers: getHeaders() });
+    return request(`/api/ingredients/${id}`, { method: 'DELETE' });
   },
   updateIngredient(id: string | number | null, payload: ApiPayload) {
     return request(`/api/ingredients/${id}`, {
       method: 'PUT',
-      headers: getHeaders(),
       body: JSON.stringify(normalizeIngredientPayload(payload))
     });
   },
   searchIngredientsByName(name: string) {
-    return request(`/api/ingredients/search?name=${encodeURIComponent(name || '')}`, {
-      headers: getHeaders()
-    });
+    return request(`/api/ingredients/search?name=${encodeURIComponent(name || '')}`);
   },
   searchIngredientsByNutrition(nutrient: string, minValue?: string | number | null) {
     const params = new URLSearchParams({ nutrient: normalizeNutrient(nutrient) || '' });
     if (minValue !== '' && minValue != null) params.set('minValue', String(minValue));
-    return request(`/api/ingredients/search/by-nutrition?${params.toString()}`, { headers: getHeaders() });
+    return request(`/api/ingredients/search/by-nutrition?${params.toString()}`);
   },
   discoverSupermarkets(ingredientName: string, city?: string, userId?: string | number) {
     const params = new URLSearchParams({ ingredientName });
     if (city) params.set('city', city);
     if (userId) params.set('userId', String(userId));
-    return request(`/api/ingredients/discover-supermarkets?${params.toString()}`, { headers: getHeaders() });
+    return request(`/api/ingredients/discover-supermarkets?${params.toString()}`);
   },
 
   // Recipes
   getRecipes() {
-    return request('/api/recipes', { headers: getHeaders() });
+    return request('/api/recipes');
   },
   createRecipe(payload: ApiPayload) {
     return request('/api/recipes', {
       method: 'POST',
-      headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   },
   deleteRecipe(id: string | number | undefined) {
-    return request(`/api/recipes/${id}`, { method: 'DELETE', headers: getHeaders() });
+    return request(`/api/recipes/${id}`, { method: 'DELETE' });
   },
   updateRecipe(id: string | number | null, payload: ApiPayload) {
     return request(`/api/recipes/${id}`, {
       method: 'PUT',
-      headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   },
   createRecipeForFoodViaRecipeApi(foodId: string | number, payload: ApiPayload) {
     return request(`/api/recipes/foods/${foodId}`, {
       method: 'POST',
-      headers: getHeaders(),
       body: JSON.stringify(payload)
     });
   },
@@ -162,15 +298,15 @@ export const api = {
   login(payload: { email: string; password: string }) {
     return request<{ token?: string; accessToken?: string; user?: { email?: string; name?: string } }>('/api/auth/login', {
       method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      skipAuth: true
     });
   },
   register(payload: { name: string; email: string; password: string }) {
     return request('/api/auth/register', {
       method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      skipAuth: true
     });
   }
 };

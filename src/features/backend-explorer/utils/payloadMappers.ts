@@ -8,7 +8,7 @@ import type {
   RecipeForm,
   RecipeUpdateForm
 } from '../types';
-import { normalizeNutrientKey } from './nutrients';
+import { normalizeNutritionEntry } from './nutrients';
 
 export function buildCreateFoodPayload(foodForm: FoodForm) {
   return {
@@ -27,11 +27,9 @@ export function buildCreateIngredientPayload(ingredientForm: IngredientForm, ing
     servingAmount: Number(ingredientForm.servingAmount) || 0,
     servingUnit: ingredientForm.servingUnit,
     imageUrl: ingredientForm.imageUrl.trim() || null,
-    nutritionList: ingredientNutritions.map((nutrition) => ({
-      nutrient: normalizeNutrientKey(nutrition.nutrient),
-      value: Number(nutrition.value),
-      unit: nutrition.unit
-    }))
+    nutritionList: ingredientNutritions
+      .map((nutrition) => normalizeNutritionEntry(nutrition))
+      .filter((nutrition): nutrition is { nutrient: string; value: number; unit: string } => nutrition !== null)
   };
 }
 
@@ -66,11 +64,9 @@ export function buildUpdateIngredientPayload(form: IngredientUpdateForm) {
     servingAmount: Number(form.servingAmount) || 0,
     servingUnit: form.servingUnit,
     imageUrl: form.imageUrl.trim() || null,
-    nutritionList: (form.nutritionList || []).map((nutrition) => ({
-      nutrient: normalizeNutrientKey(nutrition.nutrient),
-      value: Number(nutrition.value),
-      unit: nutrition.unit
-    }))
+    nutritionList: (form.nutritionList || [])
+      .map((nutrition) => normalizeNutritionEntry(nutrition))
+      .filter((nutrition): nutrition is { nutrient: string; value: number; unit: string } => nutrition !== null)
   };
 }
 

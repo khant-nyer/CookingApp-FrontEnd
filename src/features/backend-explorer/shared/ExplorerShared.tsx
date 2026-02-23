@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { KeyboardEvent } from 'react';
 import {
   nutrientCatalog,
   nutrientGroups,
@@ -8,7 +7,7 @@ import {
   nutrientShortNames
 } from '../constants/nutrients';
 import { unitOptions } from '../constants/units';
-import type { Ingredient, IngredientNutrition, RecipeIngredientItem } from '../types';
+import type { Ingredient, IngredientNutrition, InputChangeEvent, InputKeyboardEvent, RecipeIngredientItem } from '../types';
 import { getItemId } from '../utils/ids';
 
 interface GalleryTileProps {
@@ -132,7 +131,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
     }
   }
 
-  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+  function onKeyDown(event: InputKeyboardEvent) {
     if (!filtered.length) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -156,7 +155,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
           <input
             placeholder="Search nutrient"
             value={query}
-            onChange={(event: { target: { value: string } }) => setQuery(event.target.value)}
+            onChange={(event: InputChangeEvent) => setQuery(event.target.value)}
             onKeyDown={onKeyDown}
           />
         </div>
@@ -236,8 +235,8 @@ export function NutritionSummaryCards({ items = [], onRemove, onValueChange, onU
             <small className="nutrient-short-name">{nutrientShortNames[nutrition.nutrient] || nutrition.nutrient}</small>
           </div>
           <div className="mini-summary-fields">
-            <input type="number" value={nutrition.value} onChange={(e: { target: { value: string } }) => onValueChange(index, e.target.value)} placeholder="Amount" />
-            <select value={nutrition.unit} onChange={(e: { target: { value: string } }) => onUnitChange(index, e.target.value)}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+            <input type="number" value={nutrition.value} onChange={(event: InputChangeEvent) => onValueChange(index, event.target.value)} placeholder="Amount" />
+            <select value={nutrition.unit} onChange={(event: InputChangeEvent) => onUnitChange(index, event.target.value)}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
           </div>
         </div>
       ))}
@@ -264,11 +263,11 @@ export function RecipeIngredientSummaryCards({ items = [], ingredients = [], onC
             <strong className="mini-ingredient-name">{item.ingredientName || ingredient?.name || 'Ingredient'}</strong>
             <div className="mini-summary-fields ingredient-summary-fields">
               <div className="ingredient-amount-row">
-                <input type="number" value={item.quantity} onChange={(e: { target: { value: string } }) => onChange(index, { quantity: Number(e.target.value) })} placeholder="Amt" />
-                <select value={item.unit} onChange={(e: { target: { value: string } }) => onChange(index, { unit: e.target.value })}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                <input type="number" value={item.quantity} onChange={(event: InputChangeEvent) => onChange(index, { quantity: Number(event.target.value) })} placeholder="Amt" />
+                <select value={item.unit} onChange={(event: InputChangeEvent) => onChange(index, { unit: event.target.value })}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
               </div>
-              <input value={item.note || ''} onChange={(e: { target: { value: string } }) => onChange(index, { note: e.target.value })} placeholder="Note" />
-              <select value={item.ingredientId} onChange={(e: { target: { value: string } }) => onChange(index, { ingredientId: Number(e.target.value), ingredientName: ingredients.find((ing) => String(getItemId(ing)) === String(e.target.value))?.name || '' })}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
+              <input value={item.note || ''} onChange={(event: InputChangeEvent) => onChange(index, { note: event.target.value })} placeholder="Note" />
+              <select value={item.ingredientId} onChange={(event: InputChangeEvent) => onChange(index, { ingredientId: Number(event.target.value), ingredientName: ingredients.find((ing) => String(getItemId(ing)) === String(event.target.value))?.name || '' })}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
             </div>
           </div>
         );
