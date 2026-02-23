@@ -5,6 +5,7 @@ import type {
   FoodForm,
   Ingredient,
   IngredientForm,
+  InputChangeEvent,
   IngredientNutrition,
   NutritionDraft,
   RecipeForm,
@@ -103,21 +104,21 @@ export default function CreateEntityModal({
 
         {createModal.type === 'food' ? (
           <form className="form" onSubmit={preventSubmit}>
-            <input placeholder="Name" value={foodForm.name} onChange={(e: { target: { value: string } }) => setFoodForm((p) => ({ ...p, name: e.target.value }))} />
-            <input placeholder="Category" value={foodForm.category} onChange={(e: { target: { value: string } }) => setFoodForm((p) => ({ ...p, category: e.target.value }))} />
-            <input placeholder="Image URL" value={foodForm.imageUrl} onChange={(e: { target: { value: string } }) => setFoodForm((p) => ({ ...p, imageUrl: e.target.value }))} />
+            <input placeholder="Name" value={foodForm.name} onChange={(event: InputChangeEvent) => setFoodForm((p) => ({ ...p, name: event.target.value }))} />
+            <input placeholder="Category" value={foodForm.category} onChange={(event: InputChangeEvent) => setFoodForm((p) => ({ ...p, category: event.target.value }))} />
+            <input placeholder="Image URL" value={foodForm.imageUrl} onChange={(event: InputChangeEvent) => setFoodForm((p) => ({ ...p, imageUrl: event.target.value }))} />
           </form>
         ) : null}
 
         {createModal.type === 'ingredient' ? (
           <>
             <form className="form" onSubmit={preventSubmit}>
-              <input placeholder="Name" value={ingredientForm.name} onChange={(e: { target: { value: string } }) => setIngredientForm((p) => ({ ...p, name: e.target.value }))} />
-              <input placeholder="Category" value={ingredientForm.category} onChange={(e: { target: { value: string } }) => setIngredientForm((p) => ({ ...p, category: e.target.value }))} />
-              <input placeholder="Description" value={ingredientForm.description} onChange={(e: { target: { value: string } }) => setIngredientForm((p) => ({ ...p, description: e.target.value }))} />
-              <input placeholder="Serving Amount" type="number" value={ingredientForm.servingAmount} onChange={(e: { target: { value: string } }) => setIngredientForm((p) => ({ ...p, servingAmount: e.target.value }))} />
-              <select value={ingredientForm.servingUnit} onChange={(e: { target: { value: string } }) => setIngredientForm((p) => ({ ...p, servingUnit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-              <input placeholder="Image URL" value={ingredientForm.imageUrl} onChange={(e: { target: { value: string } }) => setIngredientForm((p) => ({ ...p, imageUrl: e.target.value }))} />
+              <input placeholder="Name" value={ingredientForm.name} onChange={(event: InputChangeEvent) => setIngredientForm((p) => ({ ...p, name: event.target.value }))} />
+              <input placeholder="Category" value={ingredientForm.category} onChange={(event: InputChangeEvent) => setIngredientForm((p) => ({ ...p, category: event.target.value }))} />
+              <input placeholder="Description" value={ingredientForm.description} onChange={(event: InputChangeEvent) => setIngredientForm((p) => ({ ...p, description: event.target.value }))} />
+              <input placeholder="Serving Amount" type="number" value={ingredientForm.servingAmount} onChange={(event: InputChangeEvent) => setIngredientForm((p) => ({ ...p, servingAmount: event.target.value }))} />
+              <select value={ingredientForm.servingUnit} onChange={(event: InputChangeEvent) => setIngredientForm((p) => ({ ...p, servingUnit: event.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+              <input placeholder="Image URL" value={ingredientForm.imageUrl} onChange={(event: InputChangeEvent) => setIngredientForm((p) => ({ ...p, imageUrl: event.target.value }))} />
             </form>
 
             <h4>Add Nutrition</h4>
@@ -134,8 +135,8 @@ export default function CreateEntityModal({
             <div className="nutrition-builder">
               <NutrientPicker value={nutritionDraft.nutrient} onChange={(nutrient) => setNutritionDraft((p) => ({ ...p, nutrient }))} storageKey="create" />
               <div className="nutrition-builder-actions">
-                <input type="number" placeholder="Amount" value={nutritionDraft.value} onChange={(e: { target: { value: string } }) => setNutritionDraft((p) => ({ ...p, value: e.target.value }))} />
-                <select value={nutritionDraft.unit} onChange={(e: { target: { value: string } }) => setNutritionDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                <input type="number" placeholder="Amount" value={nutritionDraft.value} onChange={(event: InputChangeEvent) => setNutritionDraft((p) => ({ ...p, value: event.target.value }))} />
+                <select value={nutritionDraft.unit} onChange={(event: InputChangeEvent) => setNutritionDraft((p) => ({ ...p, unit: event.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
                 <button onClick={addNutrition}>Add Nutrition</button>
               </div>
             </div>
@@ -145,12 +146,12 @@ export default function CreateEntityModal({
         {createModal.type === 'recipe' ? (
           <>
             <form className="form" onSubmit={preventSubmit}>
-              <select value={recipeForm.foodId} onChange={(e: { target: { value: string } }) => setRecipeForm((p) => ({ ...p, foodId: e.target.value }))}>
+              <select value={recipeForm.foodId} onChange={(event: InputChangeEvent) => setRecipeForm((p) => ({ ...p, foodId: event.target.value }))}>
                 <option value="">Select food</option>
                 {foods.map((food) => <option key={getItemId(food)} value={getItemId(food)}>{food.name}</option>)}
               </select>
-              <input placeholder="Version" value={recipeForm.version} onChange={(e: { target: { value: string } }) => setRecipeForm((p) => ({ ...p, version: e.target.value }))} />
-              <input placeholder="Description" value={recipeForm.description} onChange={(e: { target: { value: string } }) => setRecipeForm((p) => ({ ...p, description: e.target.value }))} />
+              <input placeholder="Version" value={recipeForm.version} onChange={(event: InputChangeEvent) => setRecipeForm((p) => ({ ...p, version: event.target.value }))} />
+              <input placeholder="Description" value={recipeForm.description} onChange={(event: InputChangeEvent) => setRecipeForm((p) => ({ ...p, description: event.target.value }))} />
             </form>
 
             <h4>Add Ingredient</h4>
@@ -166,20 +167,20 @@ export default function CreateEntityModal({
               />
             </div>
             <div className="inline-builder">
-              <select value={recipeIngredientDraft.ingredientId} onChange={(e: { target: { value: string } }) => setRecipeIngredientDraft((p) => ({ ...p, ingredientId: e.target.value }))}>
+              <select value={recipeIngredientDraft.ingredientId} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, ingredientId: event.target.value }))}>
                 <option value="">Ingredient</option>
                 {ingredients.map((ingredient) => <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>)}
               </select>
-              <input type="number" placeholder="Quantity" value={recipeIngredientDraft.quantity} onChange={(e: { target: { value: string } }) => setRecipeIngredientDraft((p) => ({ ...p, quantity: e.target.value }))} />
-              <select value={recipeIngredientDraft.unit} onChange={(e: { target: { value: string } }) => setRecipeIngredientDraft((p) => ({ ...p, unit: e.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-              <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(e: { target: { value: string } }) => setRecipeIngredientDraft((p) => ({ ...p, note: e.target.value }))} />
+              <input type="number" placeholder="Quantity" value={recipeIngredientDraft.quantity} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, quantity: event.target.value }))} />
+              <select value={recipeIngredientDraft.unit} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, unit: event.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+              <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, note: event.target.value }))} />
               <button onClick={addRecipeIngredient}>Add Ingredient</button>
             </div>
 
             <h4>Add Instruction</h4>
             <div className="inline-builder">
-              <input placeholder="Instruction description" value={recipeInstructionDraft.description} onChange={(e: { target: { value: string } }) => setRecipeInstructionDraft((p) => ({ ...p, description: e.target.value }))} />
-              <input placeholder="Tutorial video URL (optional)" value={recipeInstructionDraft.tutorialVideoUrl} onChange={(e: { target: { value: string } }) => setRecipeInstructionDraft((p) => ({ ...p, tutorialVideoUrl: e.target.value }))} />
+              <input placeholder="Instruction description" value={recipeInstructionDraft.description} onChange={(event: InputChangeEvent) => setRecipeInstructionDraft((p) => ({ ...p, description: event.target.value }))} />
+              <input placeholder="Tutorial video URL (optional)" value={recipeInstructionDraft.tutorialVideoUrl} onChange={(event: InputChangeEvent) => setRecipeInstructionDraft((p) => ({ ...p, tutorialVideoUrl: event.target.value }))} />
               <button onClick={addRecipeInstruction}>Add Instruction</button>
             </div>
 
@@ -189,8 +190,8 @@ export default function CreateEntityModal({
               {recipeInstructions.map((item, index) => (
                 <div key={`recipe-instruction-${index}`} className="summary-row">
                   <input type="number" value={index + 1} readOnly />
-                  <input value={item.description} onChange={(e: { target: { value: string } }) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, description: e.target.value } : current))} />
-                  <input value={item.tutorialVideoUrl || ''} onChange={(e: { target: { value: string } }) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, tutorialVideoUrl: e.target.value } : current))} />
+                  <input value={item.description} onChange={(event: InputChangeEvent) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, description: event.target.value } : current))} />
+                  <input value={item.tutorialVideoUrl || ''} onChange={(event: InputChangeEvent) => setRecipeInstructions((prev) => prev.map((current, idx) => idx === index ? { ...current, tutorialVideoUrl: event.target.value } : current))} />
                   <button className="danger" onClick={() => setRecipeInstructions((prev) => prev.filter((_, idx) => idx !== index))}>Remove</button>
                 </div>
               ))}
