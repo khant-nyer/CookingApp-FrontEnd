@@ -53,7 +53,7 @@ export function buildCreateRecipePayload(
     instructions: recipeInstructions.map((item, index) => ({
       step: item.step || index + 1,
       description: item.description.trim(),
-      tutorialVideoUrl: item.tutorialVideoUrl ? item.tutorialVideoUrl.trim() : null
+      tutorialVideoUrl: item.tutorialVideoUrl?.trim() || null
     }))
   };
 }
@@ -88,7 +88,7 @@ export function buildUpdateRecipePayload(form: RecipeUpdateForm) {
     instructions: (form.instructions || []).map((item, index) => ({
       step: index + 1,
       description: item.description.trim(),
-      tutorialVideoUrl: item.tutorialVideoUrl ? item.tutorialVideoUrl.trim() : null
+      tutorialVideoUrl: item.tutorialVideoUrl?.trim() || null
     }))
   };
 }
