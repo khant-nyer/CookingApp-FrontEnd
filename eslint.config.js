@@ -25,14 +25,31 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }]
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'no-restricted-imports': ['error', {
+        patterns: [
+          {
+            group: [
+              '../features/backend-explorer/*/*',
+              '../features/backend-explorer/*/*/*',
+              '../../features/backend-explorer/*/*',
+              '../../features/backend-explorer/*/*/*'
+            ],
+            message: 'Avoid deep imports across feature boundaries; import through feature entry points.'
+          },
+          {
+            group: ['**/styles.css'],
+            message: 'Use split style entry points (`src/styles/base.css` or feature-scoped style files).'
+          }
+        ]
+      }]
     }
-  }
-,
+  },
   {
-    files: ['src/context/useAuth.ts'],
+    files: ['src/components/BackendExplorer.tsx', 'src/context/useAuth.ts'],
     rules: {
-      'react-refresh/only-export-components': 'off'
+      'react-refresh/only-export-components': 'off',
+      'no-restricted-imports': 'off'
     }
   }
 );
