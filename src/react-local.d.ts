@@ -30,8 +30,8 @@ declare module 'react' {
     currentTarget: T;
   }
 
-  export interface ChangeEvent<T = Element> extends SyntheticEvent<T> {}
-  export interface FormEvent<T = Element> extends SyntheticEvent<T> {}
+  export type ChangeEvent<T = Element> = SyntheticEvent<T>;
+  export type FormEvent<T = Element> = SyntheticEvent<T>;
   export interface KeyboardEvent<T = Element> extends SyntheticEvent<T> {
     key: string;
   }
