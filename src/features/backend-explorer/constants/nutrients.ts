@@ -13,7 +13,7 @@ export const nutrientCatalog: NutrientCatalogItem[] = [
   { key: 'FAT', short: 'FAT', group: 'Macronutrients', icon: '🥑', aliases: ['total fat'] },
   { key: 'DIETARY_FIBER', short: 'DFIB', group: 'Macronutrients', icon: '🌿', aliases: ['fiber'] },
   { key: 'SUGARS', short: 'SUG', group: 'Macronutrients', icon: '🍬', aliases: ['sugar', 'total sugars'] },
-  { key: 'ADDED_SUGARS', short: 'ASUG', group: 'Macronutrients', icon: '🧁', aliases: ['added sugar'] },
+  { key: 'ADDED_SUGARS', short: 'ASUG', group: 'Macronutrients', icon: '🧁', aliases: ['added sugar', 'added sugars'] },
   { key: 'CHOLESTEROL', short: 'CHOL', group: 'Macronutrients', icon: '🧪', aliases: [] },
   { key: 'SATURATED_FAT', short: 'SAT', group: 'Fat Types', icon: '🧈', aliases: [] },
   { key: 'MONOUNSATURATED_FAT', short: 'MUFA', group: 'Fat Types', icon: '🫒', aliases: [] },
