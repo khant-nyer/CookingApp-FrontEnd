@@ -1,12 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { getItemId, getRecipeTileId } from './ids';
-import { normalizeNutrientKey } from './nutrients';
+import { normalizeNutrientKey, normalizeNutritionEntry } from './nutrients';
 
 describe('core utility behavior', () => {
   it('normalizes nutrient aliases and unknown values', () => {
     expect(normalizeNutrientKey('SUGAR')).toBe('SUGARS');
     expect(normalizeNutrientKey('added sugars')).toBe('ADDED_SUGARS');
     expect(normalizeNutrientKey('not-a-known-key')).toBe('CALORIES');
+  });
+
+
+  it('normalizes nutrition entries with fallback unit and rejects invalid values', () => {
+    expect(normalizeNutritionEntry({ nutrient: 'added sugars', value: '5', unit: '' })).toEqual({
+      nutrient: 'ADDED_SUGARS',
+      value: 5,
+      unit: 'G'
+    });
+
+    expect(normalizeNutritionEntry({ nutrient: 'UNKNOWN', value: '3', unit: 'ML' })).toEqual({
+      nutrient: 'CALORIES',
+      value: 3,
+      unit: 'ML'
+    });
+
+    expect(normalizeNutritionEntry({ nutrient: 'SUGAR', value: 'not-a-number', unit: 'G' })).toBeNull();
   });
 
   it('reads entity id from id/_id', () => {

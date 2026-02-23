@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { api } from '../../../services/api';
 import type { EntityType, IngredientForm, IngredientNutrition, NutritionDraft } from '../types';
-import { normalizeNutrientKey } from '../utils/nutrients';
+import { normalizeNutritionEntry } from '../utils/nutrients';
 import { buildCreateIngredientPayload } from '../utils/payloadMappers';
 
 interface UseIngredientActionsParams {
@@ -34,14 +34,11 @@ export default function useIngredientActions({
 }: UseIngredientActionsParams) {
   const addNutrition = useCallback(() => {
     if (!nutritionDraft.value) return setCreateError('Nutrition value is required.');
-    setIngredientNutritions((prev) => [
-      ...prev,
-      {
-        nutrient: normalizeNutrientKey(nutritionDraft.nutrient),
-        value: Number(nutritionDraft.value),
-        unit: nutritionDraft.unit
-      }
-    ]);
+
+    const nutritionEntry = normalizeNutritionEntry(nutritionDraft);
+    if (!nutritionEntry) return setCreateError('Nutrition value must be a valid number.');
+
+    setIngredientNutritions((prev) => [...prev, nutritionEntry]);
     setNutritionDraft((prev) => ({ ...prev, value: '' }));
   }, [nutritionDraft, setCreateError, setIngredientNutritions, setNutritionDraft]);
 
