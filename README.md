@@ -64,6 +64,7 @@ CI runs the same commands on each PR and on pushes to protected branches.
 # VITE_COGNITO_USER_POOL_ID=ap-southeast-2_rt542m5n0
 # VITE_COGNITO_REGION=ap-southeast-2
 # VITE_COGNITO_USER_POOL_CLIENT_ID=7frnm8fk0j7iv8mqg54fiqd9cp
+# VITE_COGNITO_BACKEND_TOKEN_USE=access
 ```
 
 ## DTO notes from backend (used to prefill payload editors)
