@@ -27,6 +27,10 @@ function resolveBackendToken(idToken: string | null, accessToken: string | null)
   return BACKEND_TOKEN_USE === 'id' ? idToken : accessToken;
 }
 
+function resolveBackendToken(idToken: string | null, accessToken: string | null) {
+  return BACKEND_TOKEN_USE === 'id' ? idToken : accessToken;
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
   const [idToken, setIdToken] = useState<string | null>(() => {
     const previousSignature = localStorage.getItem(AUTH_CONFIG_SIGNATURE_KEY);
@@ -108,6 +112,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setIdToken(null);
     setAccessToken(null);
     setToken(null);
+    setAccessToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(ID_TOKEN_STORAGE_KEY);
