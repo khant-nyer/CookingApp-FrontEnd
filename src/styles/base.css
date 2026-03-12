@@ -103,3 +103,28 @@ button:disabled {
     padding: 1rem 0.75rem 2rem;
   }
 }
+
+.auth-header {
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.link-btn {
+  border: none;
+  background: transparent;
+  color: #0f766e;
+  padding: 0;
+  text-align: left;
+  margin-right: 1rem;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
