@@ -82,6 +82,8 @@ If you see CORS errors from `http://localhost:5173`, use Vite proxy mode (defaul
 
 If backend expects Cognito access tokens, ensure `VITE_COGNITO_BACKEND_TOKEN_USE=access`, then logout/login again to refresh stored tokens.
 
+If backend returns `invalid_token` with `Token client does not match configured app client`, verify `VITE_COGNITO_USER_POOL_CLIENT_ID` matches backend config exactly, then logout/login (or clear local storage) to mint a fresh token.
+
 - Start backend server first (commonly on port `8080` for Spring Boot).
 - Set API base URL explicitly:
 

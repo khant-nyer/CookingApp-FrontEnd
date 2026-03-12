@@ -15,14 +15,40 @@ const TOKEN_STORAGE_KEY = 'cooking_app_token';
 const ID_TOKEN_STORAGE_KEY = 'cooking_app_id_token';
 const ACCESS_TOKEN_STORAGE_KEY = 'cooking_app_access_token';
 const USER_STORAGE_KEY = 'cooking_app_user';
+const AUTH_CONFIG_SIGNATURE_KEY = 'cooking_app_auth_config_signature';
+const AUTH_CONFIG_SIGNATURE = [
+  import.meta.env.VITE_COGNITO_USER_POOL_ID || '',
+  import.meta.env.VITE_COGNITO_REGION || '',
+  import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID || '',
+  BACKEND_TOKEN_USE
+].join('|');
+
+function resolveBackendToken(idToken: string | null, accessToken: string | null) {
+  return BACKEND_TOKEN_USE === 'id' ? idToken : accessToken;
+}
 
 function resolveBackendToken(idToken: string | null, accessToken: string | null) {
   return BACKEND_TOKEN_USE === 'id' ? idToken : accessToken;
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [idToken, setIdToken] = useState<string | null>(localStorage.getItem(ID_TOKEN_STORAGE_KEY));
-  const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY));
+  const [idToken, setIdToken] = useState<string | null>(() => {
+    const previousSignature = localStorage.getItem(AUTH_CONFIG_SIGNATURE_KEY);
+    if (previousSignature && previousSignature !== AUTH_CONFIG_SIGNATURE) {
+      localStorage.removeItem(ID_TOKEN_STORAGE_KEY);
+      localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      return null;
+    }
+    return localStorage.getItem(ID_TOKEN_STORAGE_KEY);
+  });
+  const [accessToken, setAccessToken] = useState<string | null>(() => {
+    const previousSignature = localStorage.getItem(AUTH_CONFIG_SIGNATURE_KEY);
+    if (previousSignature && previousSignature !== AUTH_CONFIG_SIGNATURE) {
+      return null;
+    }
+    return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+  });
   const [token, setToken] = useState<string | null>(() =>
     resolveBackendToken(localStorage.getItem(ID_TOKEN_STORAGE_KEY), localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY))
   );
@@ -35,6 +61,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return null;
     }
   });
+
+  useEffect(() => {
+    localStorage.setItem(AUTH_CONFIG_SIGNATURE_KEY, AUTH_CONFIG_SIGNATURE);
+  }, []);
 
   useEffect(() => {
     const resolvedToken = resolveBackendToken(idToken, accessToken);
