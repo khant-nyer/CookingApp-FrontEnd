@@ -1,6 +1,10 @@
-const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID as string | undefined;
-const userPoolClientId = import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID as string | undefined;
-const explicitRegion = import.meta.env.VITE_COGNITO_REGION as string | undefined;
+const DEFAULT_COGNITO_USER_POOL_ID = 'ap-southeast-2_rt542m5n0';
+const DEFAULT_COGNITO_REGION = 'ap-southeast-2';
+const DEFAULT_COGNITO_CLIENT_ID = '7frnm8fk0j7iv8mqg54fiqd9cp';
+
+const userPoolId = (import.meta.env.VITE_COGNITO_USER_POOL_ID as string | undefined) || DEFAULT_COGNITO_USER_POOL_ID;
+const userPoolClientId = (import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID as string | undefined) || DEFAULT_COGNITO_CLIENT_ID;
+const explicitRegion = (import.meta.env.VITE_COGNITO_REGION as string | undefined) || DEFAULT_COGNITO_REGION;
 
 function deriveRegion() {
   if (explicitRegion) return explicitRegion;
