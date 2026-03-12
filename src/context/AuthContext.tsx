@@ -81,6 +81,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setIdToken(null);
     setAccessToken(null);
     setToken(null);
+    setAccessToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(ID_TOKEN_STORAGE_KEY);
