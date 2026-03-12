@@ -23,9 +23,7 @@ const AUTH_CONFIG_SIGNATURE = [
   BACKEND_TOKEN_USE
 ].join('|');
 
-function resolveBackendToken(idToken: string | null, accessToken: string | null) {
-  return BACKEND_TOKEN_USE === 'id' ? idToken : accessToken;
-}
+
 
 function resolveBackendToken(idToken: string | null, accessToken: string | null) {
   return BACKEND_TOKEN_USE === 'id' ? idToken : accessToken;
