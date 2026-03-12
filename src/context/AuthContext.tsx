@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { api, setApiTokenProvider } from '../services/api';
+import {
+  confirmForgotPassword as confirmForgotPasswordWithCognito,
+  loginWithCognito,
+  logoutFromCognito,
+  startForgotPassword
+} from '../services/cognitoAuth';
 import { AuthContext } from './auth-context';
 import type { AuthUser } from './auth-context';
 
@@ -19,15 +25,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   });
 
-
   useEffect(() => {
     setApiTokenProvider(() => token);
   }, [token]);
 
   const login = useCallback(async (email: string, password: string) => {
-    const data = await api.login({ email, password });
-    const nextToken = data.token || data.accessToken || '';
-    const nextUser = data.user || { email };
+    const data = await loginWithCognito(email, password);
+    const nextToken = data.accessToken;
+    const nextUser = { email: data.email, userId: data.userId };
 
     setToken(nextToken);
     setUser(nextUser);
@@ -40,16 +45,34 @@ export function AuthProvider({ children }: PropsWithChildren) {
     await login(email, password);
   }, [login]);
 
-  const logout = useCallback(() => {
+  const forgotPassword = useCallback(async (email: string) => {
+    await startForgotPassword(email);
+  }, []);
+
+  const confirmForgotPassword = useCallback(async (email: string, code: string, newPassword: string) => {
+    await confirmForgotPasswordWithCognito(email, code, newPassword);
+  }, []);
+
+  const logout = useCallback(async () => {
+    await logoutFromCognito(token);
     setToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
-  }, []);
+  }, [token]);
 
   const value = useMemo(
-    () => ({ token, user, login, register, logout, isAuthenticated: Boolean(token) }),
-    [token, user, login, register, logout]
+    () => ({
+      token,
+      user,
+      login,
+      register,
+      forgotPassword,
+      confirmForgotPassword,
+      logout,
+      isAuthenticated: Boolean(token)
+    }),
+    [token, user, login, register, forgotPassword, confirmForgotPassword, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
