@@ -23,14 +23,9 @@ function resolveBackendToken(idToken: string | null, accessToken: string | null)
 export function AuthProvider({ children }: PropsWithChildren) {
   const [idToken, setIdToken] = useState<string | null>(localStorage.getItem(ID_TOKEN_STORAGE_KEY));
   const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY));
-  const [token, setToken] = useState<string | null>(() => {
-    const persisted = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (persisted) return persisted;
-    return resolveBackendToken(
-      localStorage.getItem(ID_TOKEN_STORAGE_KEY),
-      localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
-    );
-  });
+  const [token, setToken] = useState<string | null>(() =>
+    resolveBackendToken(localStorage.getItem(ID_TOKEN_STORAGE_KEY), localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY))
+  );
   const [user, setUser] = useState<AuthUser | null>(() => {
     const raw = localStorage.getItem(USER_STORAGE_KEY);
     if (!raw) return null;
@@ -42,24 +37,30 @@ export function AuthProvider({ children }: PropsWithChildren) {
   });
 
   useEffect(() => {
+    const resolvedToken = resolveBackendToken(idToken, accessToken);
+    setToken(resolvedToken);
+
+    if (resolvedToken) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, resolvedToken);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  }, [idToken, accessToken]);
+
+  useEffect(() => {
     setApiTokenProvider(() => token);
   }, [token]);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await loginWithCognito(email, password);
-    const nextIdToken = data.idToken;
-    const nextAccessToken = data.accessToken;
-    const nextBackendToken = resolveBackendToken(nextIdToken, nextAccessToken);
     const nextUser = { email: data.email, userId: data.userId };
 
-    setIdToken(nextIdToken);
-    setAccessToken(nextAccessToken);
-    setToken(nextBackendToken);
+    setIdToken(data.idToken);
+    setAccessToken(data.accessToken);
     setUser(nextUser);
 
-    localStorage.setItem(ID_TOKEN_STORAGE_KEY, nextIdToken);
-    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, nextAccessToken);
-    if (nextBackendToken) localStorage.setItem(TOKEN_STORAGE_KEY, nextBackendToken);
+    localStorage.setItem(ID_TOKEN_STORAGE_KEY, data.idToken);
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, data.accessToken);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
   }, []);
 

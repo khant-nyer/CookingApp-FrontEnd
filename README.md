@@ -80,6 +80,8 @@ If you see `ERR_CONNECTION_REFUSED` for `/api/...`, frontend is running but back
 
 If you see CORS errors from `http://localhost:5173`, use Vite proxy mode (default in this repo) by leaving `VITE_API_BASE_URL` empty.
 
+If backend expects Cognito access tokens, ensure `VITE_COGNITO_BACKEND_TOKEN_USE=access`, then logout/login again to refresh stored tokens.
+
 - Start backend server first (commonly on port `8080` for Spring Boot).
 - Set API base URL explicitly:
 
