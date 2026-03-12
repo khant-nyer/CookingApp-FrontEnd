@@ -16,6 +16,14 @@ export type ApiPayload = Record<string, JsonValue>;
 
 type TokenProvider = () => string | null;
 
+function readStoredToken() {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
 export interface ApiErrorOptions {
   status?: number | null;
   code?: string;
@@ -50,13 +58,7 @@ interface RequestOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
-let tokenProvider: TokenProvider = () => {
-  try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-};
+let tokenProvider: TokenProvider = readStoredToken;
 
 export function setApiTokenProvider(provider: TokenProvider) {
   tokenProvider = provider;
@@ -95,7 +97,7 @@ function getHeaders(options: { skipAuth?: boolean } = {}): HeadersInit {
   };
 
   if (!options.skipAuth) {
-    const token = tokenProvider();
+    const token = tokenProvider() || readStoredToken();
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
