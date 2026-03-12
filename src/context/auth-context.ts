@@ -3,6 +3,7 @@ import { createContext } from 'react';
 export interface AuthUser {
   email?: string;
   name?: string;
+  userId?: string;
 }
 
 export interface AuthContextValue {
@@ -10,7 +11,9 @@ export interface AuthContextValue {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  forgotPassword: (email: string) => Promise<void>;
+  confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
 

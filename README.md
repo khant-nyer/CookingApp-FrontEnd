@@ -1,6 +1,6 @@
 # CookingApp FrontEnd
 
-React + Vite frontend for the CookingApp backend controllers you shared.
+React + Vite frontend for the CookingApp backend controllers with Cognito login/logout and forgot password handled in frontend.
 
 ## Requirements
 
@@ -59,6 +59,12 @@ CI runs the same commands on each PR and on pushes to protected branches.
 
 # Optional: direct backend call (may require backend CORS config)
 # VITE_API_BASE_URL=http://localhost:8080
+
+# Cognito auth (frontend direct login/logout/forgot password)
+# VITE_COGNITO_USER_POOL_ID=ap-southeast-2_rt542m5n0
+# VITE_COGNITO_REGION=ap-southeast-2
+# VITE_COGNITO_USER_POOL_CLIENT_ID=7frnm8fk0j7iv8mqg54fiqd9cp
+# VITE_COGNITO_BACKEND_TOKEN_USE=access
 ```
 
 ## DTO notes from backend (used to prefill payload editors)
@@ -73,6 +79,8 @@ CI runs the same commands on each PR and on pushes to protected branches.
 If you see `ERR_CONNECTION_REFUSED` for `/api/...`, frontend is running but backend is unreachable.
 
 If you see CORS errors from `http://localhost:5173`, use Vite proxy mode (default in this repo) by leaving `VITE_API_BASE_URL` empty.
+
+If backend expects Cognito access tokens, ensure `VITE_COGNITO_BACKEND_TOKEN_USE=access`, then logout/login again to refresh stored tokens.
 
 - Start backend server first (commonly on port `8080` for Spring Boot).
 - Set API base URL explicitly:
