@@ -1,13 +1,26 @@
+import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
+import { useAuth } from './context/useAuth';
 
 export default function App() {
+  const { isAuthenticated, user, logout } = useAuth();
+
   return (
     <main className="container">
-      <h1>Cooking App Frontend</h1>
-      <p className="muted">
-        Aligned to shared backend controllers: Foods, Ingredients, Recipes (no security/auth yet).
-      </p>
-      <BackendExplorer />
+      <header className="header-row auth-header">
+        <div>
+          <h1>Cooking App Frontend</h1>
+          <p className="muted">Connected to Cognito auth and backend controllers.</p>
+        </div>
+        {isAuthenticated && (
+          <div className="auth-actions">
+            <span className="muted">{user?.email || 'Authenticated user'}</span>
+            <button onClick={() => void logout()}>Logout</button>
+          </div>
+        )}
+      </header>
+
+      {!isAuthenticated ? <AuthForm /> : <BackendExplorer />}
     </main>
   );
 }

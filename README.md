@@ -1,6 +1,6 @@
 # CookingApp FrontEnd
 
-React + Vite frontend for the CookingApp backend controllers you shared.
+React + Vite frontend for the CookingApp backend controllers with Cognito login/logout and forgot password handled in frontend.
 
 ## Requirements
 
@@ -59,6 +59,10 @@ CI runs the same commands on each PR and on pushes to protected branches.
 
 # Optional: direct backend call (may require backend CORS config)
 # VITE_API_BASE_URL=http://localhost:8080
+
+# Cognito auth (frontend direct login/logout/forgot password)
+# VITE_COGNITO_USER_POOL_ID=us-east-1_xxxxx
+# VITE_COGNITO_USER_POOL_CLIENT_ID=xxxxxxxx
 ```
 
 ## DTO notes from backend (used to prefill payload editors)
