@@ -11,10 +11,12 @@ import { AuthContext } from './auth-context';
 import type { AuthUser } from './auth-context';
 
 const TOKEN_STORAGE_KEY = 'cooking_app_token';
+const ACCESS_TOKEN_STORAGE_KEY = 'cooking_app_access_token';
 const USER_STORAGE_KEY = 'cooking_app_user';
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string | null>(localStorage.getItem(TOKEN_STORAGE_KEY));
+  const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY));
   const [user, setUser] = useState<AuthUser | null>(() => {
     const raw = localStorage.getItem(USER_STORAGE_KEY);
     if (!raw) return null;
@@ -31,12 +33,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await loginWithCognito(email, password);
-    const nextToken = data.accessToken;
+    const nextToken = data.idToken;
+    const nextAccessToken = data.accessToken;
     const nextUser = { email: data.email, userId: data.userId };
 
     setToken(nextToken);
+    setAccessToken(nextAccessToken);
     setUser(nextUser);
     localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, nextAccessToken);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
   }, []);
 
@@ -54,12 +59,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const logout = useCallback(async () => {
-    await logoutFromCognito(token);
+    await logoutFromCognito(accessToken);
     setToken(null);
+    setAccessToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
-  }, [token]);
+  }, [accessToken]);
 
   const value = useMemo(
     () => ({

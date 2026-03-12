@@ -67,6 +67,7 @@ function parseJwtPayload(token: string) {
 
 export interface CognitoAuthResult {
   accessToken: string;
+  idToken: string;
   email?: string;
   userId?: string;
 }
@@ -89,16 +90,17 @@ export async function loginWithCognito(email: string, password: string): Promise
   }
 
   const accessToken = data.AuthenticationResult?.AccessToken;
+  const idToken = data.AuthenticationResult?.IdToken;
 
-  if (!accessToken) {
-    throw new Error('Cognito login succeeded but no access token was returned.');
+  if (!accessToken || !idToken) {
+    throw new Error('Cognito login succeeded but access/id token was not returned.');
   }
 
-  const idToken = data.AuthenticationResult?.IdToken;
-  const payload = idToken ? parseJwtPayload(idToken) : null;
+  const payload = parseJwtPayload(idToken);
 
   return {
     accessToken,
+    idToken,
     email: payload?.email || email,
     userId: payload?.sub
   };
