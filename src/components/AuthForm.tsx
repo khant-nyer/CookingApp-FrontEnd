@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
+import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
 
 type AuthMode = 'login' | 'register' | 'verify-email' | 'forgot-password' | 'reset-password';
@@ -59,9 +60,34 @@ export default function AuthForm() {
         setForm((prev) => ({ ...prev, password: '', newPassword: '', code: '' }));
       }
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Authentication failed.');
+      console.error('Auth form submission failed', submitError);
+      setError(
+        getFriendlyAuthErrorMessage(
+          submitError,
+          mode === 'verify-email'
+            ? 'verify-email'
+            : mode === 'forgot-password'
+              ? 'forgot-password'
+              : mode === 'reset-password'
+                ? 'reset-password'
+                : mode
+        )
+      );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onResendVerificationCode() {
+    setError('');
+    setSuccess('');
+
+    try {
+      await resendVerificationCode(form.email);
+      setSuccess('A new verification code has been sent.');
+    } catch (resendError) {
+      console.error('Resend verification failed', resendError);
+      setError(getFriendlyAuthErrorMessage(resendError, 'resend-verification'));
     }
   }
 
@@ -128,7 +154,7 @@ export default function AuthForm() {
               Verification code
               <input name="code" value={form.code} onChange={onChange} required />
             </label>
-            <button type="button" className="link-btn" onClick={() => void resendVerificationCode(form.email)}>
+            <button type="button" className="link-btn" onClick={() => void onResendVerificationCode()}>
               Resend verification code
             </button>
           </>

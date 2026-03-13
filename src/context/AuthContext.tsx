@@ -11,6 +11,7 @@ import {
   resendEmailVerificationCode,
   startForgotPassword
 } from '../services/cognitoAuth';
+import { getFriendlyAuthErrorMessage, isUnrecoverableSessionExtensionError } from '../services/authErrorMessages';
 import { AuthContext } from './auth-context';
 import type { AuthUser } from './auth-context';
 
@@ -223,19 +224,30 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const extendSession = useCallback(async () => {
     if (!refreshToken) {
-      throw new Error('Cannot extend session: no refresh token available.');
+      throw new Error(getFriendlyAuthErrorMessage(new Error('missing refresh token'), 'extend-session'));
     }
 
-    const refreshedSession = await refreshSessionWithCognito(refreshToken);
-    updateSession({
-      idToken: refreshedSession.idToken,
-      accessToken: refreshedSession.accessToken,
-      refreshToken: refreshedSession.refreshToken ?? refreshToken
-    });
+    try {
+      const refreshedSession = await refreshSessionWithCognito(refreshToken);
+      updateSession({
+        idToken: refreshedSession.idToken,
+        accessToken: refreshedSession.accessToken,
+        refreshToken: refreshedSession.refreshToken ?? refreshToken
+      });
 
-    setIsExpiryWarningOpen(false);
-    setSecondsToExpiry(0);
-  }, [refreshToken, updateSession]);
+      setIsExpiryWarningOpen(false);
+      setSecondsToExpiry(0);
+    } catch (error) {
+      console.error('Session extension failed', error);
+      const friendlyMessage = getFriendlyAuthErrorMessage(error, 'extend-session');
+
+      if (isUnrecoverableSessionExtensionError(error)) {
+        clearLocalAuthState();
+      }
+
+      throw new Error(friendlyMessage);
+    }
+  }, [refreshToken, updateSession, clearLocalAuthState]);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await loginWithCognito(email, password);

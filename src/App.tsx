@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
 import SessionExpiryModal from './components/SessionExpiryModal';
@@ -13,6 +14,27 @@ export default function App() {
     dismissExpiryWarning,
     extendSession
   } = useAuth();
+  const [sessionExtendError, setSessionExtendError] = useState('');
+  const [isExtendingSession, setIsExtendingSession] = useState(false);
+
+  async function onExtendSession() {
+    setIsExtendingSession(true);
+    setSessionExtendError('');
+
+    try {
+      await extendSession();
+      setSessionExtendError('');
+    } catch (error) {
+      setSessionExtendError(error instanceof Error ? error.message : 'Unable to extend your session.');
+    } finally {
+      setIsExtendingSession(false);
+    }
+  }
+
+  function onDismissSessionWarning() {
+    setSessionExtendError('');
+    dismissExpiryWarning();
+  }
 
   return (
     <main className="container">
@@ -34,8 +56,10 @@ export default function App() {
       <SessionExpiryModal
         isOpen={isAuthenticated && isExpiryWarningOpen}
         secondsToExpiry={secondsToExpiry}
-        onDismiss={dismissExpiryWarning}
-        onExtendSession={extendSession}
+        errorMessage={sessionExtendError}
+        isExtending={isExtendingSession}
+        onDismiss={onDismissSessionWarning}
+        onExtendSession={onExtendSession}
         onLogoutNow={logout}
       />
     </main>
