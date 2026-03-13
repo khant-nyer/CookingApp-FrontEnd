@@ -1,10 +1,6 @@
-const DEFAULT_COGNITO_USER_POOL_ID = 'ap-southeast-2_rt542m5n0';
-const DEFAULT_COGNITO_REGION = 'ap-southeast-2';
-const DEFAULT_COGNITO_CLIENT_ID = '7frnm8fk0j7iv8mqg54fiqd9cp';
-
-const userPoolId = (import.meta.env.VITE_COGNITO_USER_POOL_ID as string | undefined) || DEFAULT_COGNITO_USER_POOL_ID;
-const userPoolClientId = (import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID as string | undefined) || DEFAULT_COGNITO_CLIENT_ID;
-const explicitRegion = (import.meta.env.VITE_COGNITO_REGION as string | undefined) || DEFAULT_COGNITO_REGION;
+const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID as string | undefined;
+const userPoolClientId = import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID as string | undefined;
+const explicitRegion = import.meta.env.VITE_COGNITO_REGION as string | undefined;
 
 function deriveRegion() {
   if (explicitRegion) return explicitRegion;
@@ -26,9 +22,9 @@ export class CognitoServiceError extends Error {
 }
 
 function assertCognitoConfigured() {
-  if (!region || !userPoolClientId) {
+  if (!region || !userPoolClientId || !userPoolId) {
     throw new Error(
-      'Cognito is not configured. Set VITE_COGNITO_USER_POOL_ID or VITE_COGNITO_REGION and VITE_COGNITO_USER_POOL_CLIENT_ID.'
+      'Cognito is not configured. Set VITE_COGNITO_USER_POOL_ID, VITE_COGNITO_REGION (optional if derivable), and VITE_COGNITO_USER_POOL_CLIENT_ID.'
     );
   }
 }
@@ -78,6 +74,7 @@ export function isExpiredSessionError(error: unknown) {
 function parseJwtPayload(token: string) {
   try {
     const payload = token.split('.')[1];
+    if (!payload) return null;
     const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
     const json = decodeURIComponent(
       atob(base64)
@@ -186,7 +183,6 @@ export async function confirmForgotPassword(email: string, confirmationCode: str
     Password: newPassword
   });
 }
-
 
 export async function confirmEmailVerification(email: string, confirmationCode: string) {
   await cognitoRequest('ConfirmSignUp', {
