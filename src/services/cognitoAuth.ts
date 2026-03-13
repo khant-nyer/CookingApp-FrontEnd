@@ -15,6 +15,16 @@ function deriveRegion() {
 
 const region = deriveRegion();
 
+export class CognitoServiceError extends Error {
+  code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.code = code;
+    this.name = 'CognitoServiceError';
+  }
+}
+
 function assertCognitoConfigured() {
   if (!region || !userPoolClientId) {
     throw new Error(
@@ -30,20 +40,30 @@ function cognitoEndpoint() {
 async function cognitoRequest<T>(target: string, body: Record<string, unknown>) {
   assertCognitoConfigured();
 
-  const response = await fetch(cognitoEndpoint(), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-amz-json-1.1',
-      'X-Amz-Target': `AWSCognitoIdentityProviderService.${target}`
-    },
-    body: JSON.stringify(body)
-  });
+  let response: Response;
+  try {
+    response = await fetch(cognitoEndpoint(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-amz-json-1.1',
+        'X-Amz-Target': `AWSCognitoIdentityProviderService.${target}`
+      },
+      body: JSON.stringify(body)
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new CognitoServiceError('NetworkError', error.message || 'Network error while contacting Cognito.');
+    }
+    throw new CognitoServiceError('NetworkError', 'Network error while contacting Cognito.');
+  }
 
-  const data = await response.json();
+  const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
 
   if (!response.ok) {
-    const message = data?.message || data?.Message || 'Cognito request failed.';
-    throw new Error(message);
+    const rawType = (data.__type || data.name || '') as string;
+    const code = rawType.includes('#') ? rawType.split('#')[1] : rawType || 'CognitoError';
+    const message = (data.message || data.Message || 'Cognito request failed.') as string;
+    throw new CognitoServiceError(code, message);
   }
 
   return data as T;
@@ -74,13 +94,14 @@ function parseJwtPayload(token: string) {
 export interface CognitoAuthResult {
   accessToken: string;
   idToken: string;
+  refreshToken?: string;
   email?: string;
   userId?: string;
 }
 
 export async function loginWithCognito(email: string, password: string): Promise<CognitoAuthResult> {
   const data = await cognitoRequest<{
-    AuthenticationResult?: { AccessToken?: string; IdToken?: string };
+    AuthenticationResult?: { AccessToken?: string; IdToken?: string; RefreshToken?: string };
     ChallengeName?: string;
   }>('InitiateAuth', {
     AuthFlow: 'USER_PASSWORD_AUTH',
@@ -97,6 +118,7 @@ export async function loginWithCognito(email: string, password: string): Promise
 
   const accessToken = data.AuthenticationResult?.AccessToken;
   const idToken = data.AuthenticationResult?.IdToken;
+  const refreshToken = data.AuthenticationResult?.RefreshToken;
 
   if (!accessToken || !idToken) {
     throw new Error('Cognito login succeeded but access/id token was not returned.');
@@ -107,8 +129,40 @@ export async function loginWithCognito(email: string, password: string): Promise
   return {
     accessToken,
     idToken,
+    refreshToken,
     email: payload?.email || email,
     userId: payload?.sub
+  };
+}
+
+export interface CognitoRefreshResult {
+  accessToken: string;
+  idToken: string;
+  refreshToken?: string;
+}
+
+export async function refreshSessionWithCognito(refreshToken: string): Promise<CognitoRefreshResult> {
+  const data = await cognitoRequest<{
+    AuthenticationResult?: { AccessToken?: string; IdToken?: string; RefreshToken?: string };
+  }>('InitiateAuth', {
+    AuthFlow: 'REFRESH_TOKEN_AUTH',
+    ClientId: userPoolClientId,
+    AuthParameters: {
+      REFRESH_TOKEN: refreshToken
+    }
+  });
+
+  const accessToken = data.AuthenticationResult?.AccessToken;
+  const idToken = data.AuthenticationResult?.IdToken;
+
+  if (!accessToken || !idToken) {
+    throw new Error('Cognito refresh succeeded but access/id token was not returned.');
+  }
+
+  return {
+    accessToken,
+    idToken,
+    refreshToken: data.AuthenticationResult?.RefreshToken
   };
 }
 
