@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { api, setApiTokenProvider } from '../services/api';
 import {
+  confirmEmailVerification,
   confirmForgotPassword as confirmForgotPasswordWithCognito,
   isExpiredSessionError,
   loginWithCognito,
   logoutFromCognito,
+  resendEmailVerificationCode,
   startForgotPassword
 } from '../services/cognitoAuth';
 import { AuthContext } from './auth-context';
@@ -146,8 +148,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
       password,
       ...(profileImageUrl ? { profileImageUrl } : {})
     });
+  }, []);
+
+  const verifyEmail = useCallback(async (email: string, code: string, password: string) => {
+    await confirmEmailVerification(email, code);
     await login(email, password);
   }, [login]);
+
+  const resendVerificationCode = useCallback(async (email: string) => {
+    await resendEmailVerificationCode(email);
+  }, []);
 
   const forgotPassword = useCallback(async (email: string) => {
     await startForgotPassword(email);
@@ -175,12 +185,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
       user,
       login,
       register,
+      verifyEmail,
+      resendVerificationCode,
       forgotPassword,
       confirmForgotPassword,
       logout,
       isAuthenticated: Boolean(token)
     }),
-    [token, user, login, register, forgotPassword, confirmForgotPassword, logout]
+    [token, user, login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

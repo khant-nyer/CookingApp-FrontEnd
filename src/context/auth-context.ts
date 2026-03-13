@@ -11,6 +11,8 @@ export interface AuthContextValue {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
   register: (userName: string, email: string, password: string, profileImageUrl?: string) => Promise<void>;
+  verifyEmail: (email: string, code: string, password: string) => Promise<void>;
+  resendVerificationCode: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;

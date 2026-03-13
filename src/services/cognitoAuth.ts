@@ -132,3 +132,19 @@ export async function confirmForgotPassword(email: string, confirmationCode: str
     Password: newPassword
   });
 }
+
+
+export async function confirmEmailVerification(email: string, confirmationCode: string) {
+  await cognitoRequest('ConfirmSignUp', {
+    ClientId: userPoolClientId,
+    Username: email,
+    ConfirmationCode: confirmationCode
+  });
+}
+
+export async function resendEmailVerificationCode(email: string) {
+  await cognitoRequest('ResendConfirmationCode', {
+    ClientId: userPoolClientId,
+    Username: email
+  });
+}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 
-type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
+type AuthMode = 'login' | 'register' | 'verify-email' | 'forgot-password' | 'reset-password';
 
 interface AuthFormState {
   userName: string;
@@ -14,7 +14,7 @@ interface AuthFormState {
 }
 
 export default function AuthForm() {
-  const { login, register, forgotPassword, confirmForgotPassword } = useAuth();
+  const { login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [form, setForm] = useState<AuthFormState>({
     userName: '',
@@ -44,6 +44,10 @@ export default function AuthForm() {
         await login(form.email, form.password);
       } else if (mode === 'register') {
         await register(form.userName, form.email, form.password, form.profileImageUrl || undefined);
+        setSuccess('Registration successful. Please verify your email with the code sent by Cognito.');
+        setMode('verify-email');
+      } else if (mode === 'verify-email') {
+        await verifyEmail(form.email, form.code, form.password);
       } else if (mode === 'forgot-password') {
         await forgotPassword(form.email);
         setSuccess('Verification code sent. Check your email.');
@@ -68,25 +72,27 @@ export default function AuthForm() {
           ? 'Login'
           : mode === 'register'
             ? 'Create account'
-            : mode === 'forgot-password'
+            : mode === 'verify-email'
+              ? 'Verify email'
+              : mode === 'forgot-password'
               ? 'Forgot password'
               : 'Reset password'}
       </h2>
       <form onSubmit={onSubmit} className="form">
-        {mode === 'register' && (
+        {(mode === 'register' || mode === 'verify-email') && (
           <label>
             Username
-            <input name="userName" value={form.userName} onChange={onChange} required />
+            <input name="userName" value={form.userName} onChange={onChange} required={mode === 'register'} disabled={mode === 'verify-email'} />
           </label>
         )}
 
         <label>
           Email
-          <input name="email" value={form.email} onChange={onChange} type="email" required />
+          <input name="email" value={form.email} onChange={onChange} type="email" required disabled={mode === 'verify-email'} />
         </label>
 
 
-        {mode === 'register' && (
+        {(mode === 'register' || mode === 'verify-email') && (
           <label>
             Profile image URL
             <input
@@ -94,12 +100,13 @@ export default function AuthForm() {
               value={form.profileImageUrl}
               onChange={onChange}
               type="url"
+              disabled={mode === 'verify-email'}
               placeholder="https://example.com/avatar.png"
             />
           </label>
         )}
 
-        {(mode === 'login' || mode === 'register') && (
+        {(mode === 'login' || mode === 'register' || mode === 'verify-email') && (
           <label>
             Password
             <input
@@ -109,8 +116,22 @@ export default function AuthForm() {
               type="password"
               minLength={6}
               required
+              disabled={mode === 'verify-email'}
             />
           </label>
+        )}
+
+
+        {mode === 'verify-email' && (
+          <>
+            <label>
+              Verification code
+              <input name="code" value={form.code} onChange={onChange} required />
+            </label>
+            <button type="button" className="link-btn" onClick={() => void resendVerificationCode(form.email)}>
+              Resend verification code
+            </button>
+          </>
         )}
 
         {mode === 'reset-password' && (
@@ -143,13 +164,15 @@ export default function AuthForm() {
               ? 'Login'
               : mode === 'register'
                 ? 'Register'
-                : mode === 'forgot-password'
+                : mode === 'verify-email'
+                  ? 'Verify email'
+                  : mode === 'forgot-password'
                   ? 'Send code'
                   : 'Reset password'}
         </button>
       </form>
 
-      {(mode === 'login' || mode === 'register') && (
+      {(mode === 'login' || mode === 'register' || mode === 'verify-email') && (
         <>
           <button
             type="button"
@@ -158,7 +181,7 @@ export default function AuthForm() {
           >
             {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
           </button>
-          {mode === 'login' && (
+          {(mode === 'login' || mode === 'verify-email') && (
             <button type="button" className="link-btn" onClick={() => setMode('forgot-password')}>
               Forgot password?
             </button>
