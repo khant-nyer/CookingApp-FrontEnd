@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { api, setApiTokenProvider } from '../services/api';
 import {
@@ -7,6 +7,7 @@ import {
   isExpiredSessionError,
   loginWithCognito,
   logoutFromCognito,
+  refreshSessionWithCognito,
   resendEmailVerificationCode,
   startForgotPassword
 } from '../services/cognitoAuth';
@@ -26,6 +27,7 @@ const AUTH_CONFIG_SIGNATURE = [
   import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID || '',
   BACKEND_TOKEN_USE
 ].join('|');
+const EXPIRY_WARNING_WINDOW_MS = 5 * 60 * 1000;
 
 
 
@@ -50,6 +52,9 @@ function parseTokenExpiry(token: string | null) {
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const warningTimeoutRef = useRef<number | null>(null);
+  const expiryTimeoutRef = useRef<number | null>(null);
+  const countdownIntervalRef = useRef<number | null>(null);
   const [idToken, setIdToken] = useState<string | null>(() => {
     const previousSignature = localStorage.getItem(AUTH_CONFIG_SIGNATURE_KEY);
     if (previousSignature && previousSignature !== AUTH_CONFIG_SIGNATURE) {
@@ -87,6 +92,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return null;
     }
   });
+  const [isExpiryWarningOpen, setIsExpiryWarningOpen] = useState(false);
+  const [secondsToExpiry, setSecondsToExpiry] = useState(0);
 
   useEffect(() => {
     localStorage.setItem(AUTH_CONFIG_SIGNATURE_KEY, AUTH_CONFIG_SIGNATURE);
@@ -118,6 +125,45 @@ export function AuthProvider({ children }: PropsWithChildren) {
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
     sessionStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+    setIsExpiryWarningOpen(false);
+    setSecondsToExpiry(0);
+  }, []);
+
+  const clearAuthListenerTimers = useCallback(() => {
+    if (warningTimeoutRef.current !== null) {
+      window.clearTimeout(warningTimeoutRef.current);
+      warningTimeoutRef.current = null;
+    }
+
+    if (expiryTimeoutRef.current !== null) {
+      window.clearTimeout(expiryTimeoutRef.current);
+      expiryTimeoutRef.current = null;
+    }
+
+    if (countdownIntervalRef.current !== null) {
+      window.clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+  }, []);
+
+  const startExpiryCountdown = useCallback((expiryTimeMs: number) => {
+    if (countdownIntervalRef.current !== null) {
+      window.clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+
+    const updateCountdown = () => {
+      const secondsLeft = Math.max(0, Math.ceil((expiryTimeMs - Date.now()) / 1000));
+      setSecondsToExpiry(secondsLeft);
+
+      if (secondsLeft <= 0 && countdownIntervalRef.current !== null) {
+        window.clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
+
+    updateCountdown();
+    countdownIntervalRef.current = window.setInterval(updateCountdown, 1000);
   }, []);
 
   const updateSession = useCallback(
@@ -143,8 +189,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   );
 
   useEffect(() => {
+    clearAuthListenerTimers();
+    setIsExpiryWarningOpen(false);
+    setSecondsToExpiry(0);
+
     const expiryTime = parseTokenExpiry(accessToken);
-    if (!expiryTime) return;
+    if (!accessToken || !expiryTime) return;
 
     const timeLeftMs = expiryTime - Date.now();
     if (timeLeftMs <= 0) {
@@ -152,14 +202,40 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => {
+    const warningDelayMs = Math.max(0, timeLeftMs - EXPIRY_WARNING_WINDOW_MS);
+    warningTimeoutRef.current = window.setTimeout(() => {
+      setIsExpiryWarningOpen(true);
+      startExpiryCountdown(expiryTime);
+    }, warningDelayMs);
+
+    expiryTimeoutRef.current = window.setTimeout(() => {
       clearLocalAuthState();
     }, timeLeftMs);
 
     return () => {
-      window.clearTimeout(timeoutId);
+      clearAuthListenerTimers();
     };
-  }, [accessToken, clearLocalAuthState]);
+  }, [accessToken, clearAuthListenerTimers, clearLocalAuthState, startExpiryCountdown]);
+
+  const dismissExpiryWarning = useCallback(() => {
+    setIsExpiryWarningOpen(false);
+  }, []);
+
+  const extendSession = useCallback(async () => {
+    if (!refreshToken) {
+      throw new Error('Cannot extend session: no refresh token available.');
+    }
+
+    const refreshedSession = await refreshSessionWithCognito(refreshToken);
+    updateSession({
+      idToken: refreshedSession.idToken,
+      accessToken: refreshedSession.accessToken,
+      refreshToken: refreshedSession.refreshToken ?? refreshToken
+    });
+
+    setIsExpiryWarningOpen(false);
+    setSecondsToExpiry(0);
+  }, [refreshToken, updateSession]);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await loginWithCognito(email, password);
@@ -213,16 +289,34 @@ export function AuthProvider({ children }: PropsWithChildren) {
     () => ({
       token,
       user,
+      isExpiryWarningOpen,
+      secondsToExpiry,
       login,
       register,
       verifyEmail,
       resendVerificationCode,
       forgotPassword,
       confirmForgotPassword,
+      dismissExpiryWarning,
+      extendSession,
       logout,
       isAuthenticated: Boolean(token)
     }),
-    [token, user, login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword, logout]
+    [
+      token,
+      user,
+      isExpiryWarningOpen,
+      secondsToExpiry,
+      login,
+      register,
+      verifyEmail,
+      resendVerificationCode,
+      forgotPassword,
+      confirmForgotPassword,
+      dismissExpiryWarning,
+      extendSession,
+      logout
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
