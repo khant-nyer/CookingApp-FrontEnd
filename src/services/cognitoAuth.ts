@@ -49,6 +49,12 @@ async function cognitoRequest<T>(target: string, body: Record<string, unknown>) 
   return data as T;
 }
 
+export function isExpiredSessionError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  return message.includes('access token has expired') || message.includes('token has expired');
+}
+
 function parseJwtPayload(token: string) {
   try {
     const payload = token.split('.')[1];
