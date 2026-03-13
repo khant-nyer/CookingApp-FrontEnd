@@ -15,6 +15,11 @@ describe('auth error mapping', () => {
     expect(getFriendlyAuthErrorMessage(error, 'login')).toBe('Network issue detected. Check your connection and try again.');
   });
 
+  it('maps configuration failures to setup guidance', () => {
+    const error = new CognitoServiceError('ConfigurationError', 'missing env');
+    expect(getFriendlyAuthErrorMessage(error, 'login')).toContain('Authentication is not configured for this environment.');
+  });
+
   it('flags unrecoverable extend-session errors', () => {
     expect(isUnrecoverableSessionExtensionError(new CognitoServiceError('NotAuthorizedException', 'nope'))).toBe(true);
     expect(isUnrecoverableSessionExtensionError(new CognitoServiceError('TooManyRequestsException', 'slow down'))).toBe(false);

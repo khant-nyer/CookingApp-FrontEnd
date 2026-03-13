@@ -77,9 +77,10 @@ CI runs the same commands on each PR and on pushes to protected branches.
 # VITE_API_BASE_URL=http://localhost:8080
 
 # Cognito auth (frontend direct login/logout/forgot password)
-# VITE_COGNITO_USER_POOL_ID=ap-southeast-2_rt542m5n0
+# These are required for auth flows. Put them in `.env.local` and restart `npm run dev`.
+# VITE_COGNITO_USER_POOL_ID=ap-southeast-2_xxxxxxxx
 # VITE_COGNITO_REGION=ap-southeast-2
-# VITE_COGNITO_USER_POOL_CLIENT_ID=7frnm8fk0j7iv8mqg54fiqd9cp
+# VITE_COGNITO_USER_POOL_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 # VITE_COGNITO_BACKEND_TOKEN_USE=access
 ```
 

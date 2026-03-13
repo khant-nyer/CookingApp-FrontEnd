@@ -27,6 +27,8 @@ const COGNITO_CODE_MESSAGES: Record<string, string> = {
   TooManyRequestsException: 'Too many requests right now. Please wait and try again.',
   InvalidPasswordException: 'Your password does not meet policy requirements. Please use a stronger password.',
   NotAuthorizedException: 'Your credentials are invalid or your session is no longer valid. Please sign in again.',
+  ConfigurationError:
+    'Authentication is not configured for this environment. Please set VITE_COGNITO_USER_POOL_ID, VITE_COGNITO_USER_POOL_CLIENT_ID, and VITE_COGNITO_REGION in your .env file, then restart the app.',
   NetworkError: 'Network issue detected. Check your connection and try again.',
   TimeoutError: 'Request timed out. Please try again.'
 };

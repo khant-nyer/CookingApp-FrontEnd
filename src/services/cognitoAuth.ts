@@ -23,7 +23,8 @@ export class CognitoServiceError extends Error {
 
 function assertCognitoConfigured() {
   if (!region || !userPoolClientId || !userPoolId) {
-    throw new Error(
+    throw new CognitoServiceError(
+      'ConfigurationError',
       'Cognito is not configured. Set VITE_COGNITO_USER_POOL_ID, VITE_COGNITO_REGION (optional if derivable), and VITE_COGNITO_USER_POOL_CLIENT_ID.'
     );
   }
