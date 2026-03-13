@@ -139,8 +139,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    await api.register({ name, email, password });
+  const register = useCallback(async (userName: string, email: string, password: string, profileImageUrl?: string) => {
+    await api.register({
+      email,
+      userName,
+      password,
+      ...(profileImageUrl ? { profileImageUrl } : {})
+    });
     await login(email, password);
   }, [login]);
 

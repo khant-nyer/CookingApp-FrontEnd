@@ -5,7 +5,8 @@ import { useAuth } from '../context/useAuth';
 type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
 
 interface AuthFormState {
-  name: string;
+  userName: string;
+  profileImageUrl: string;
   email: string;
   password: string;
   code: string;
@@ -16,9 +17,10 @@ export default function AuthForm() {
   const { login, register, forgotPassword, confirmForgotPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [form, setForm] = useState<AuthFormState>({
-    name: '',
+    userName: '',
     email: '',
     password: '',
+    profileImageUrl: '',
     code: '',
     newPassword: ''
   });
@@ -41,7 +43,7 @@ export default function AuthForm() {
       if (mode === 'login') {
         await login(form.email, form.password);
       } else if (mode === 'register') {
-        await register(form.name, form.email, form.password);
+        await register(form.userName, form.email, form.password, form.profileImageUrl || undefined);
       } else if (mode === 'forgot-password') {
         await forgotPassword(form.email);
         setSuccess('Verification code sent. Check your email.');
@@ -73,8 +75,8 @@ export default function AuthForm() {
       <form onSubmit={onSubmit} className="form">
         {mode === 'register' && (
           <label>
-            Name
-            <input name="name" value={form.name} onChange={onChange} required />
+            Username
+            <input name="userName" value={form.userName} onChange={onChange} required />
           </label>
         )}
 
@@ -82,6 +84,20 @@ export default function AuthForm() {
           Email
           <input name="email" value={form.email} onChange={onChange} type="email" required />
         </label>
+
+
+        {mode === 'register' && (
+          <label>
+            Profile image URL
+            <input
+              name="profileImageUrl"
+              value={form.profileImageUrl}
+              onChange={onChange}
+              type="url"
+              placeholder="https://example.com/avatar.png"
+            />
+          </label>
+        )}
 
         {(mode === 'login' || mode === 'register') && (
           <label>
