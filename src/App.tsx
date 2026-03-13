@@ -1,9 +1,18 @@
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
+import SessionExpiryModal from './components/SessionExpiryModal';
 import { useAuth } from './context/useAuth';
 
 export default function App() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const {
+    isAuthenticated,
+    user,
+    logout,
+    isExpiryWarningOpen,
+    secondsToExpiry,
+    dismissExpiryWarning,
+    extendSession
+  } = useAuth();
 
   return (
     <main className="container">
@@ -21,6 +30,14 @@ export default function App() {
       </header>
 
       {!isAuthenticated ? <AuthForm /> : <BackendExplorer />}
+
+      <SessionExpiryModal
+        isOpen={isAuthenticated && isExpiryWarningOpen}
+        secondsToExpiry={secondsToExpiry}
+        onDismiss={dismissExpiryWarning}
+        onExtendSession={extendSession}
+        onLogoutNow={logout}
+      />
     </main>
   );
 }
