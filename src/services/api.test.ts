@@ -77,6 +77,41 @@ describe('api hardening behavior', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
+  it('does not retry non-GET requests when failing', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ message: 'temporary' }), { status: 503 }));
+
+    await expect(api.createFood({ name: 'Test' })).rejects.toBeInstanceOf(ApiError);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('normalizes ingredient nutrients for create and update requests', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockImplementation(async () => new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }));
+
+    const payload = {
+      name: 'Sugar',
+      nutritionList: [
+        { nutrient: 'total sugars', value: 5, unit: 'G' },
+        { nutrient: 'added sugar', value: 1, unit: 'G' }
+      ]
+    };
+
+    await api.createIngredient(payload);
+    await api.updateIngredient('ingredient-1', payload);
+
+    const firstBody = JSON.parse(String((fetchSpy.mock.calls[0]?.[1] as RequestInit).body));
+    const secondBody = JSON.parse(String((fetchSpy.mock.calls[1]?.[1] as RequestInit).body));
+
+    expect(firstBody.nutritionList[0].nutrient).toBe('SUGARS');
+    expect(firstBody.nutritionList[1].nutrient).toBe('ADDED_SUGARS');
+    expect(secondBody.nutritionList[0].nutrient).toBe('SUGARS');
+    expect(secondBody.nutritionList[1].nutrient).toBe('ADDED_SUGARS');
+  });
+
   it('exposes ApiError class type', () => {
     const err = new ApiError('failed', { status: 500, code: 'ERR', retryable: true });
     expect(err.name).toBe('ApiError');

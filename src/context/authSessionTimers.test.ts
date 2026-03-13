@@ -14,6 +14,22 @@ describe('authSessionTimers', () => {
     });
   });
 
+  it('opens warning immediately when exactly at warning-window threshold', () => {
+    const nowMs = 1_000;
+    const warningWindowMs = 5_000;
+    const timing = calculateSessionTiming(nowMs + warningWindowMs, nowMs, warningWindowMs);
+
+    expect(timing).toEqual({
+      warningDelayMs: 0,
+      expiryDelayMs: warningWindowMs
+    });
+  });
+
+  it('supports just-before-expiry behavior', () => {
+    const timing = calculateSessionTiming(10_000, 9_999, 5_000);
+    expect(timing).toEqual({ warningDelayMs: 0, expiryDelayMs: 1 });
+  });
+
   it('returns null when already expired', () => {
     expect(calculateSessionTiming(1000, 1001, 100)).toBeNull();
   });
@@ -29,6 +45,7 @@ describe('authSessionTimers', () => {
 
   it('calculates countdown seconds safely', () => {
     expect(calculateSecondsToExpiry(5000, 1000)).toBe(4);
+    expect(calculateSecondsToExpiry(5000, 4999)).toBe(1);
     expect(calculateSecondsToExpiry(5000, 6000)).toBe(0);
   });
 });

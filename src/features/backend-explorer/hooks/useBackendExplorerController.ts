@@ -13,6 +13,7 @@ import useRecipeActions from './useRecipeActions';
 import { createFlowReducer, initialCreateFlowState } from '../reducers/createFlowReducer';
 import { initialUpdateFlowState, updateFlowReducer } from '../reducers/updateFlowReducer';
 import type {
+  BackendExplorerController,
   DeleteModalState,
   EntityType,
   FoodForm,
@@ -33,7 +34,57 @@ import type {
   Updater
 } from '../types';
 
-export default function useBackendExplorerController() {
+export function getSelectedIdForTabChange() {
+  return '';
+}
+
+export function appendUpdateNutritionToForm(form: IngredientUpdateForm, draft: NutritionDraft) {
+  const nutritionEntry = normalizeNutritionEntry(draft);
+  if (!nutritionEntry) return null;
+
+  return {
+    ...form,
+    nutritionList: [...(form.nutritionList || []), nutritionEntry]
+  };
+}
+
+export async function executeDeleteConfirmation({
+  deleteModal,
+  run,
+  setDeleteModal
+}: {
+  deleteModal: DeleteModalState;
+  run: (action: () => Promise<unknown> | unknown) => Promise<void>;
+  setDeleteModal: (value: Updater<DeleteModalState>) => void;
+}) {
+  if (!deleteModal.action) {
+    setDeleteModal({ open: false, message: '', action: null });
+    return;
+  }
+
+  await run(deleteModal.action);
+  setDeleteModal({ open: false, message: '', action: null });
+}
+
+export async function executeUpdateConfirmation({
+  updateModal,
+  run
+}: {
+  updateModal: UpdateModalState;
+  run: (action: () => Promise<unknown> | unknown) => Promise<void>;
+}) {
+  if (updateModal.type === 'ingredient') {
+    const form = updateModal.form as IngredientUpdateForm;
+    await run(() => api.updateIngredient(updateModal.itemId, buildUpdateIngredientPayload(form)));
+  }
+
+  if (updateModal.type === 'recipe') {
+    const form = updateModal.form as RecipeUpdateForm;
+    await run(() => api.updateRecipe(updateModal.itemId, buildUpdateRecipePayload(form)));
+  }
+}
+
+export default function useBackendExplorerController(): BackendExplorerController {
   const [activeTab, setActiveTab] = useState<TabKey>('foods');
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
@@ -61,10 +112,10 @@ export default function useBackendExplorerController() {
   const [recipeIngredients, setRecipeIngredients] = useState<RecipeIngredientItem[]>([]);
   const [recipeInstructions, setRecipeInstructions] = useState<RecipeInstructionItem[]>([]);
 
-  const [createFlow, dispatchCreateFlow] = useReducer(createFlowReducer, initialCreateFlowState);
-  const [updateFlow, dispatchUpdateFlow] = useReducer(updateFlowReducer, initialUpdateFlowState);
-  const { createModal, createError, createSuccess } = createFlow;
-  const { updateNutritionDraft, deleteModal, updateModal } = updateFlow;
+  const [createFlowState, dispatchCreateFlow] = useReducer(createFlowReducer, initialCreateFlowState);
+  const [updateFlowState, dispatchUpdateFlow] = useReducer(updateFlowReducer, initialUpdateFlowState);
+  const { createModal, createError, createSuccess } = createFlowState;
+  const { updateNutritionDraft, deleteModal, updateModal } = updateFlowState;
   const hasLoadedInitiallyRef = useRef(false);
 
   useEffect(() => {
@@ -74,7 +125,7 @@ export default function useBackendExplorerController() {
   }, [loadAll]);
 
   useEffect(() => {
-    setSelectedId('');
+    setSelectedId(getSelectedIdForTabChange());
   }, [activeTab]);
 
   function openCreateModal(type: EntityType) {
@@ -155,17 +206,17 @@ export default function useBackendExplorerController() {
   function addUpdateNutrition() {
     if (!updateNutritionDraft.value) return setError('Nutrition value is required.');
 
-    const nutritionEntry = normalizeNutritionEntry(updateNutritionDraft);
-    if (!nutritionEntry) return setError('Nutrition value must be a valid number.');
-
     setUpdateModal((prev) => {
       const form = prev.form as IngredientUpdateForm;
+      const nextForm = appendUpdateNutritionToForm(form, updateNutritionDraft);
+      if (!nextForm) {
+        setError('Nutrition value must be a valid number.');
+        return prev;
+      }
+
       return {
         ...prev,
-        form: {
-          ...form,
-          nutritionList: [...(form.nutritionList || []), nutritionEntry]
-        }
+        form: nextForm
       };
     });
     setUpdateNutritionDraft((prev) => ({ ...prev, value: '' }));
@@ -188,9 +239,7 @@ export default function useBackendExplorerController() {
   }
 
   async function confirmDelete() {
-    if (!deleteModal.action) return setDeleteModal({ open: false, message: '', action: null });
-    await run(deleteModal.action);
-    setDeleteModal({ open: false, message: '', action: null });
+    await executeDeleteConfirmation({ deleteModal, run, setDeleteModal });
   }
 
   function openIngredientUpdateModal(item: Ingredient) {
@@ -235,16 +284,7 @@ export default function useBackendExplorerController() {
   }
 
   async function confirmUpdate() {
-    if (updateModal.type === 'ingredient') {
-      const form = updateModal.form as IngredientUpdateForm;
-      await run(() => api.updateIngredient(updateModal.itemId, buildUpdateIngredientPayload(form)));
-    }
-
-    if (updateModal.type === 'recipe') {
-      const form = updateModal.form as RecipeUpdateForm;
-      await run(() => api.updateRecipe(updateModal.itemId, buildUpdateRecipePayload(form)));
-    }
-
+    await executeUpdateConfirmation({ updateModal, run });
     setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
   }
 
@@ -270,64 +310,74 @@ export default function useBackendExplorerController() {
   );
 
   return {
-    activeTab,
-    setActiveTab,
-    selectedId,
-    setSelectedId,
-    selectedNutrient,
-    setSelectedNutrient,
-    foods,
-    ingredients,
-    recipes,
-    error,
-    loading,
-    loadAll,
-    createModal,
-    createError,
-    createSuccess,
-    openCreateModal,
-    closeCreateModal,
-    foodForm,
-    setFoodForm,
-    ingredientForm,
-    setIngredientForm,
-    ingredientNutritions,
-    setIngredientNutritions,
-    nutritionDraft,
-    setNutritionDraft,
-    addNutrition,
-    createFood,
-    createIngredient,
-    recipeForm,
-    setRecipeForm,
-    recipeIngredients,
-    setRecipeIngredients,
-    recipeIngredientDraft,
-    setRecipeIngredientDraft,
-    addRecipeIngredient,
-    recipeInstructionDraft,
-    setRecipeInstructionDraft,
-    addRecipeInstruction,
-    recipeInstructions,
-    setRecipeInstructions,
-    createRecipe,
-    deleteModal,
-    setDeleteModal,
-    confirmDelete,
-    updateModal,
-    setUpdateModal,
-    updateNutritionDraft,
-    setUpdateNutritionDraft,
-    addUpdateNutrition,
-    confirmUpdate,
-    selectedFood,
-    selectedIngredient,
-    selectedRecipe,
-    nutrientFilteredIngredients,
-    openIngredientUpdateModal,
-    openRecipeUpdateModal,
-    handleDeleteFood,
-    handleDeleteIngredient,
-    handleDeleteRecipe
+    viewState: {
+      activeTab,
+      setActiveTab,
+      selectedId,
+      setSelectedId,
+      selectedNutrient,
+      setSelectedNutrient,
+      error,
+      loading,
+      loadAll
+    },
+    createFlow: {
+      createModal,
+      createError,
+      createSuccess,
+      openCreateModal,
+      closeCreateModal,
+      createFood,
+      createIngredient,
+      createRecipe,
+      foodForm,
+      setFoodForm,
+      ingredientForm,
+      setIngredientForm,
+      ingredientNutritions,
+      setIngredientNutritions,
+      nutritionDraft,
+      setNutritionDraft,
+      addNutrition,
+      recipeForm,
+      setRecipeForm,
+      recipeIngredients,
+      setRecipeIngredients,
+      recipeIngredientDraft,
+      setRecipeIngredientDraft,
+      addRecipeIngredient,
+      recipeInstructionDraft,
+      setRecipeInstructionDraft,
+      addRecipeInstruction,
+      recipeInstructions,
+      setRecipeInstructions
+    },
+    updateFlow: {
+      updateModal,
+      setUpdateModal,
+      updateNutritionDraft,
+      setUpdateNutritionDraft,
+      addUpdateNutrition,
+      openIngredientUpdateModal,
+      openRecipeUpdateModal,
+      confirmUpdate
+    },
+    deleteFlow: {
+      deleteModal,
+      setDeleteModal,
+      confirmDelete,
+      handleDeleteFood,
+      handleDeleteIngredient,
+      handleDeleteRecipe
+    },
+    entities: {
+      foods,
+      ingredients,
+      recipes,
+      selectedFood,
+      selectedIngredient,
+      selectedRecipe,
+      nutrientFilteredIngredients
+    }
   };
 }

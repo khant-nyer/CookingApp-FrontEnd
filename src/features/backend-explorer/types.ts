@@ -1,4 +1,5 @@
 import type { ChangeEvent, Dispatch, KeyboardEvent, SetStateAction } from 'react';
+import type { FoodDto, IngredientDto, RecipeDto } from '../../services/apiTypes';
 
 export type EntityType = 'food' | 'ingredient' | 'recipe';
 export type TabKey = 'foods' | 'ingredients' | 'recipes' | 'nutrition';
@@ -20,12 +21,7 @@ export interface FoodRecipeRef {
   name?: string;
 }
 
-export interface Food extends Identifiable {
-  name?: string;
-  category?: string;
-  imageUrl?: string;
-  recipes?: FoodRecipeRef[];
-}
+export type Food = FoodDto;
 
 export interface NutritionItem {
   nutrient: string;
@@ -33,15 +29,7 @@ export interface NutritionItem {
   unit: string;
 }
 
-export interface Ingredient extends Identifiable {
-  name?: string;
-  category?: string;
-  description?: string;
-  servingAmount?: number | string;
-  servingUnit?: string;
-  imageUrl?: string;
-  nutritionList?: NutritionItem[];
-}
+export type Ingredient = IngredientDto;
 
 export interface RecipeIngredientItem {
   ingredientId: string | number;
@@ -58,14 +46,7 @@ export interface RecipeInstructionItem {
   tutorialVideoUrl?: string | null;
 }
 
-export interface Recipe extends Identifiable {
-  foodId?: string | number;
-  foodName?: string;
-  version?: string;
-  description?: string;
-  ingredients?: RecipeIngredientItem[];
-  instructions?: RecipeInstructionItem[];
-}
+export type Recipe = RecipeDto;
 
 export interface FoodForm {
   name: string;
@@ -189,3 +170,86 @@ export type UpdateFlowAction =
   | { type: 'set_update_nutrition_draft'; value: Updater<NutritionDraft> }
   | { type: 'set_delete_modal'; value: Updater<DeleteModalState> }
   | { type: 'set_update_modal'; value: Updater<UpdateModalState> };
+
+
+export interface BackendExplorerViewState {
+  activeTab: TabKey;
+  setActiveTab: StateSetter<TabKey>;
+  selectedId: string;
+  setSelectedId: StateSetter<string>;
+  selectedNutrient: string;
+  setSelectedNutrient: StateSetter<string>;
+  error: string;
+  loading: boolean;
+  loadAll: () => Promise<void>;
+}
+
+export interface BackendExplorerCreateFlow {
+  createModal: CreateModalState;
+  createError: string;
+  createSuccess: CreateSuccessState;
+  openCreateModal: (type: EntityType) => void;
+  closeCreateModal: () => void;
+  createFood: () => Promise<void>;
+  createIngredient: () => Promise<void>;
+  createRecipe: () => Promise<void>;
+  foodForm: FoodForm;
+  setFoodForm: StateSetter<FoodForm>;
+  ingredientForm: IngredientForm;
+  setIngredientForm: StateSetter<IngredientForm>;
+  ingredientNutritions: IngredientNutrition[];
+  setIngredientNutritions: StateSetter<IngredientNutrition[]>;
+  nutritionDraft: NutritionDraft;
+  setNutritionDraft: StateSetter<NutritionDraft>;
+  addNutrition: () => void;
+  recipeForm: RecipeForm;
+  setRecipeForm: StateSetter<RecipeForm>;
+  recipeIngredients: RecipeIngredientItem[];
+  setRecipeIngredients: StateSetter<RecipeIngredientItem[]>;
+  recipeIngredientDraft: RecipeIngredientDraft;
+  setRecipeIngredientDraft: StateSetter<RecipeIngredientDraft>;
+  addRecipeIngredient: () => void;
+  recipeInstructionDraft: RecipeInstructionDraft;
+  setRecipeInstructionDraft: StateSetter<RecipeInstructionDraft>;
+  addRecipeInstruction: () => void;
+  recipeInstructions: RecipeInstructionItem[];
+  setRecipeInstructions: StateSetter<RecipeInstructionItem[]>;
+}
+
+export interface BackendExplorerUpdateFlow {
+  updateModal: UpdateModalState;
+  setUpdateModal: (value: Updater<UpdateModalState>) => void;
+  updateNutritionDraft: NutritionDraft;
+  setUpdateNutritionDraft: (value: Updater<NutritionDraft>) => void;
+  addUpdateNutrition: () => void;
+  openIngredientUpdateModal: (item: Ingredient) => void;
+  openRecipeUpdateModal: (item: Recipe) => void;
+  confirmUpdate: () => Promise<void>;
+}
+
+export interface BackendExplorerDeleteFlow {
+  deleteModal: DeleteModalState;
+  setDeleteModal: (value: Updater<DeleteModalState>) => void;
+  confirmDelete: () => Promise<void>;
+  handleDeleteFood: (food: { id?: string | number; _id?: string | number }) => void;
+  handleDeleteIngredient: (ingredient: Ingredient) => void;
+  handleDeleteRecipe: (recipe: Recipe) => void;
+}
+
+export interface BackendExplorerEntities {
+  foods: Food[];
+  ingredients: Ingredient[];
+  recipes: Recipe[];
+  selectedFood: Food | undefined;
+  selectedIngredient: Ingredient | undefined;
+  selectedRecipe: Recipe | undefined;
+  nutrientFilteredIngredients: Ingredient[];
+}
+
+export interface BackendExplorerController {
+  viewState: BackendExplorerViewState;
+  createFlow: BackendExplorerCreateFlow;
+  updateFlow: BackendExplorerUpdateFlow;
+  deleteFlow: BackendExplorerDeleteFlow;
+  entities: BackendExplorerEntities;
+}
