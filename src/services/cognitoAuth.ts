@@ -74,13 +74,14 @@ function parseJwtPayload(token: string) {
 export interface CognitoAuthResult {
   accessToken: string;
   idToken: string;
+  refreshToken?: string;
   email?: string;
   userId?: string;
 }
 
 export async function loginWithCognito(email: string, password: string): Promise<CognitoAuthResult> {
   const data = await cognitoRequest<{
-    AuthenticationResult?: { AccessToken?: string; IdToken?: string };
+    AuthenticationResult?: { AccessToken?: string; IdToken?: string; RefreshToken?: string };
     ChallengeName?: string;
   }>('InitiateAuth', {
     AuthFlow: 'USER_PASSWORD_AUTH',
@@ -97,6 +98,7 @@ export async function loginWithCognito(email: string, password: string): Promise
 
   const accessToken = data.AuthenticationResult?.AccessToken;
   const idToken = data.AuthenticationResult?.IdToken;
+  const refreshToken = data.AuthenticationResult?.RefreshToken;
 
   if (!accessToken || !idToken) {
     throw new Error('Cognito login succeeded but access/id token was not returned.');
@@ -107,8 +109,40 @@ export async function loginWithCognito(email: string, password: string): Promise
   return {
     accessToken,
     idToken,
+    refreshToken,
     email: payload?.email || email,
     userId: payload?.sub
+  };
+}
+
+export interface CognitoRefreshResult {
+  accessToken: string;
+  idToken: string;
+  refreshToken?: string;
+}
+
+export async function refreshSessionWithCognito(refreshToken: string): Promise<CognitoRefreshResult> {
+  const data = await cognitoRequest<{
+    AuthenticationResult?: { AccessToken?: string; IdToken?: string; RefreshToken?: string };
+  }>('InitiateAuth', {
+    AuthFlow: 'REFRESH_TOKEN_AUTH',
+    ClientId: userPoolClientId,
+    AuthParameters: {
+      REFRESH_TOKEN: refreshToken
+    }
+  });
+
+  const accessToken = data.AuthenticationResult?.AccessToken;
+  const idToken = data.AuthenticationResult?.IdToken;
+
+  if (!accessToken || !idToken) {
+    throw new Error('Cognito refresh succeeded but access/id token was not returned.');
+  }
+
+  return {
+    accessToken,
+    idToken,
+    refreshToken: data.AuthenticationResult?.RefreshToken
   };
 }
 

@@ -17,6 +17,7 @@ const BACKEND_TOKEN_USE = import.meta.env.VITE_COGNITO_BACKEND_TOKEN_USE === 'id
 const TOKEN_STORAGE_KEY = 'cooking_app_token';
 const ID_TOKEN_STORAGE_KEY = 'cooking_app_id_token';
 const ACCESS_TOKEN_STORAGE_KEY = 'cooking_app_access_token';
+const REFRESH_TOKEN_STORAGE_KEY = 'cooking_app_refresh_token';
 const USER_STORAGE_KEY = 'cooking_app_user';
 const AUTH_CONFIG_SIGNATURE_KEY = 'cooking_app_auth_config_signature';
 const AUTH_CONFIG_SIGNATURE = [
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       localStorage.removeItem(ID_TOKEN_STORAGE_KEY);
       localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
       localStorage.removeItem(TOKEN_STORAGE_KEY);
+      sessionStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
       return null;
     }
     return localStorage.getItem(ID_TOKEN_STORAGE_KEY);
@@ -69,6 +71,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string | null>(() =>
     resolveBackendToken(localStorage.getItem(ID_TOKEN_STORAGE_KEY), localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY))
   );
+  const [refreshToken, setRefreshToken] = useState<string | null>(() => {
+    const previousSignature = localStorage.getItem(AUTH_CONFIG_SIGNATURE_KEY);
+    if (previousSignature && previousSignature !== AUTH_CONFIG_SIGNATURE) {
+      return null;
+    }
+    return sessionStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+  });
   const [user, setUser] = useState<AuthUser | null>(() => {
     const raw = localStorage.getItem(USER_STORAGE_KEY);
     if (!raw) return null;
@@ -101,13 +110,37 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const clearLocalAuthState = useCallback(() => {
     setIdToken(null);
     setAccessToken(null);
+    setRefreshToken(null);
     setToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(ID_TOKEN_STORAGE_KEY);
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
   }, []);
+
+  const updateSession = useCallback(
+    (nextSession: { idToken: string; accessToken: string; refreshToken?: string | null }, nextUser?: AuthUser | null) => {
+      setIdToken(nextSession.idToken);
+      setAccessToken(nextSession.accessToken);
+      setRefreshToken(nextSession.refreshToken ?? refreshToken);
+
+      localStorage.setItem(ID_TOKEN_STORAGE_KEY, nextSession.idToken);
+      localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, nextSession.accessToken);
+
+      const effectiveRefreshToken = nextSession.refreshToken ?? refreshToken;
+      if (effectiveRefreshToken) {
+        sessionStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, effectiveRefreshToken);
+      }
+
+      if (nextUser) {
+        setUser(nextUser);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
+      }
+    },
+    [refreshToken]
+  );
 
   useEffect(() => {
     const expiryTime = parseTokenExpiry(accessToken);
@@ -132,14 +165,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const data = await loginWithCognito(email, password);
     const nextUser = { email: data.email, userId: data.userId };
 
-    setIdToken(data.idToken);
-    setAccessToken(data.accessToken);
-    setUser(nextUser);
-
-    localStorage.setItem(ID_TOKEN_STORAGE_KEY, data.idToken);
-    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, data.accessToken);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
-  }, []);
+    updateSession(
+      { idToken: data.idToken, accessToken: data.accessToken, refreshToken: data.refreshToken ?? null },
+      nextUser
+    );
+  }, [updateSession]);
 
   const register = useCallback(async (userName: string, email: string, password: string, profileImageUrl?: string) => {
     await api.register({
