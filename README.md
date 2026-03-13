@@ -51,6 +51,22 @@ CI runs the same commands on each PR and on pushes to protected branches.
 - `DELETE /api/recipes/{id}`
 - `POST /api/recipes` (available in API client, optional)
 
+
+## Auth flow
+
+1. Register with email + password.
+2. Verify email using Cognito confirmation code.
+3. Login to receive Cognito ID/access tokens (and refresh token for same-browser session extension).
+4. When token expiry approaches, the app shows a session warning modal with countdown.
+5. Choose **Extend session** to refresh tokens, or **Log out now** to end the session immediately.
+
+### Session warning + extension behavior
+
+- Warning opens at `exp - 5 minutes` based on the access token expiry claim.
+- Countdown shows remaining time in `X:YY`.
+- `Extend session` calls Cognito `REFRESH_TOKEN_AUTH` to mint fresh access/id tokens.
+- If extension fails with unrecoverable auth errors (for example invalid/revoked refresh token), the app clears auth state and requires sign-in again.
+
 ## Environment
 
 ```bash
@@ -73,6 +89,19 @@ CI runs the same commands on each PR and on pushes to protected branches.
 - `IngredientDTO` create requires `name`, `servingAmount`, `servingUnit`.
 - `RecipeDTO` create requires `version`, non-empty `ingredients`, and non-empty `instructions`.
 
+
+
+## Cognito auth troubleshooting matrix
+
+| Cognito code / condition | User-facing message | Typical user action |
+| --- | --- | --- |
+| `UserNotConfirmedException` | Your account is not verified yet. Please verify your email first. | Verify email, then login again. |
+| `CodeMismatchException` | The verification code is invalid. Please check the code and try again. | Re-enter latest code. |
+| `ExpiredCodeException` | The verification code has expired. Please request a new code. | Request a new code and retry. |
+| `TooManyFailedAttemptsException` / `TooManyRequestsException` | Too many attempts/requests right now. Please wait and try again. | Wait briefly, then retry. |
+| `InvalidPasswordException` | Your password does not meet policy requirements. Please use a stronger password. | Use stronger password per policy. |
+| Network failure / timeout | Network issue detected. Check your connection and try again. | Check connectivity and retry. |
+| Unrecoverable extend-session failure (`NotAuthorizedException`, etc.) | Your session can no longer be extended. Please sign in again. | Login again to start a new session. |
 
 ## Troubleshooting
 
