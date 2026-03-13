@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 import { api, setApiTokenProvider } from '../services/api';
 import {
   confirmForgotPassword as confirmForgotPasswordWithCognito,
+  isExpiredSessionError,
   loginWithCognito,
   logoutFromCognito,
   startForgotPassword
@@ -27,6 +28,22 @@ const AUTH_CONFIG_SIGNATURE = [
 
 function resolveBackendToken(idToken: string | null, accessToken: string | null) {
   return BACKEND_TOKEN_USE === 'id' ? idToken : accessToken;
+}
+
+function parseTokenExpiry(token: string | null) {
+  if (!token) return null;
+
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = atob(normalized);
+    const data = JSON.parse(decoded) as { exp?: number };
+    if (!data.exp) return null;
+    return data.exp * 1000;
+  } catch {
+    return null;
+  }
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -79,6 +96,36 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setApiTokenProvider(() => token);
   }, [token]);
 
+  const clearLocalAuthState = useCallback(() => {
+    setIdToken(null);
+    setAccessToken(null);
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem(ID_TOKEN_STORAGE_KEY);
+    localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
+  }, []);
+
+  useEffect(() => {
+    const expiryTime = parseTokenExpiry(accessToken);
+    if (!expiryTime) return;
+
+    const timeLeftMs = expiryTime - Date.now();
+    if (timeLeftMs <= 0) {
+      clearLocalAuthState();
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      clearLocalAuthState();
+    }, timeLeftMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [accessToken, clearLocalAuthState]);
+
   const login = useCallback(async (email: string, password: string) => {
     const data = await loginWithCognito(email, password);
     const nextUser = { email: data.email, userId: data.userId };
@@ -106,17 +153,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const logout = useCallback(async () => {
-    await logoutFromCognito(accessToken);
-    setIdToken(null);
-    setAccessToken(null);
-    setToken(null);
-    setAccessToken(null);
-    setUser(null);
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem(ID_TOKEN_STORAGE_KEY);
-    localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
-    localStorage.removeItem(USER_STORAGE_KEY);
-  }, [accessToken]);
+    try {
+      await logoutFromCognito(accessToken);
+    } catch (error) {
+      if (!isExpiredSessionError(error)) {
+        throw error;
+      }
+    } finally {
+      clearLocalAuthState();
+    }
+  }, [accessToken, clearLocalAuthState]);
 
   const value = useMemo(
     () => ({
