@@ -49,6 +49,12 @@ async function cognitoRequest<T>(target: string, body: Record<string, unknown>) 
   return data as T;
 }
 
+export function isExpiredSessionError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  return message.includes('access token has expired') || message.includes('token has expired');
+}
+
 function parseJwtPayload(token: string) {
   try {
     const payload = token.split('.')[1];
@@ -124,5 +130,21 @@ export async function confirmForgotPassword(email: string, confirmationCode: str
     Username: email,
     ConfirmationCode: confirmationCode,
     Password: newPassword
+  });
+}
+
+
+export async function confirmEmailVerification(email: string, confirmationCode: string) {
+  await cognitoRequest('ConfirmSignUp', {
+    ClientId: userPoolClientId,
+    Username: email,
+    ConfirmationCode: confirmationCode
+  });
+}
+
+export async function resendEmailVerificationCode(email: string) {
+  await cognitoRequest('ResendConfirmationCode', {
+    ClientId: userPoolClientId,
+    Username: email
   });
 }

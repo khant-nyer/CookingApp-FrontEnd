@@ -304,7 +304,7 @@ export const api = {
       skipAuth: true
     });
   },
-  register(payload: { name: string; email: string; password: string }) {
+  register(payload: { email: string; userName: string; password: string; profileImageUrl?: string }) {
     return request('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(payload),
