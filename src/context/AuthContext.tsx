@@ -12,6 +12,8 @@ import {
   startForgotPassword
 } from '../services/cognitoAuth';
 import { getFriendlyAuthErrorMessage, isUnrecoverableSessionExtensionError } from '../services/authErrorMessages';
+import { calculateSecondsToExpiry, calculateSessionTiming } from './authSessionTimers';
+import { executeExtendSession } from './extendSessionFlow';
 import { AuthContext } from './auth-context';
 import type { AuthUser } from './auth-context';
 
@@ -205,7 +207,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
 
     const updateCountdown = () => {
-      const secondsLeft = Math.max(0, Math.ceil((expiryTimeMs - Date.now()) / 1000));
+      const secondsLeft = calculateSecondsToExpiry(expiryTimeMs, Date.now());
       setSecondsToExpiry(secondsLeft);
 
       if (secondsLeft <= 0 && countdownIntervalRef.current !== null) {
@@ -253,21 +255,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const expiryTime = parseTokenExpiry(accessToken);
     if (!accessToken || !expiryTime) return;
 
-    const timeLeftMs = expiryTime - Date.now();
-    if (timeLeftMs <= 0) {
+    const timing = calculateSessionTiming(expiryTime, Date.now(), EXPIRY_WARNING_WINDOW_MS);
+    if (!timing) {
       clearLocalAuthState();
       return;
     }
 
-    const warningDelayMs = Math.max(0, timeLeftMs - EXPIRY_WARNING_WINDOW_MS);
     warningTimeoutRef.current = window.setTimeout(() => {
       setIsExpiryWarningOpen(true);
       startExpiryCountdown(expiryTime);
-    }, warningDelayMs);
+    }, timing.warningDelayMs);
 
     expiryTimeoutRef.current = window.setTimeout(() => {
       clearLocalAuthState();
-    }, timeLeftMs);
+    }, timing.expiryDelayMs);
 
     return () => {
       clearAuthListenerTimers();
@@ -279,29 +280,22 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const extendSession = useCallback(async () => {
-    if (!refreshToken) {
-      throw new Error(getFriendlyAuthErrorMessage(new Error('missing refresh token'), 'extend-session'));
-    }
-
     try {
-      const refreshedSession = await refreshSessionWithCognito(refreshToken);
-      updateSession({
-        idToken: refreshedSession.idToken,
-        accessToken: refreshedSession.accessToken,
-        refreshToken: refreshedSession.refreshToken ?? refreshToken
+      await executeExtendSession({
+        refreshToken,
+        refreshSession: refreshSessionWithCognito,
+        updateSession,
+        onExtended: () => {
+          setIsExpiryWarningOpen(false);
+          setSecondsToExpiry(0);
+        },
+        clearLocalAuthState,
+        toFriendlyMessage: (error) => getFriendlyAuthErrorMessage(error, 'extend-session'),
+        isUnrecoverableError: isUnrecoverableSessionExtensionError
       });
-
-      setIsExpiryWarningOpen(false);
-      setSecondsToExpiry(0);
     } catch (error) {
       console.error('Session extension failed', error);
-      const friendlyMessage = getFriendlyAuthErrorMessage(error, 'extend-session');
-
-      if (isUnrecoverableSessionExtensionError(error)) {
-        clearLocalAuthState();
-      }
-
-      throw new Error(friendlyMessage);
+      throw error;
     }
   }, [refreshToken, updateSession, clearLocalAuthState]);
 

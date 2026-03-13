@@ -1,3 +1,5 @@
+import { formatExpiryCountdown } from './sessionExpiryUtils';
+
 interface SessionExpiryModalProps {
   isOpen: boolean;
   secondsToExpiry: number;
@@ -6,13 +8,6 @@ interface SessionExpiryModalProps {
   onDismiss: () => void;
   onExtendSession: () => Promise<void>;
   onLogoutNow: () => Promise<void>;
-}
-
-function formatExpiryCountdown(totalSeconds: number) {
-  const safeSeconds = Math.max(0, totalSeconds);
-  const minutes = Math.floor(safeSeconds / 60);
-  const seconds = safeSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 export default function SessionExpiryModal({
