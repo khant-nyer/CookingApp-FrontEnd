@@ -13,181 +13,119 @@ import type { TabKey } from '../features/backend-explorer/types';
 const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
 export default function BackendExplorer() {
-  const controller = useBackendExplorerController();
-
-  const {
-    activeTab,
-    setActiveTab,
-    selectedId,
-    setSelectedId,
-    selectedNutrient,
-    setSelectedNutrient,
-    foods,
-    ingredients,
-    recipes,
-    error,
-    loading,
-    loadAll,
-    createModal,
-    createError,
-    createSuccess,
-    openCreateModal,
-    closeCreateModal,
-    createFood,
-    createIngredient,
-    createRecipe,
-    foodForm,
-    setFoodForm,
-    ingredientForm,
-    setIngredientForm,
-    ingredientNutritions,
-    setIngredientNutritions,
-    nutritionDraft,
-    setNutritionDraft,
-    addNutrition,
-    recipeForm,
-    setRecipeForm,
-    recipeIngredients,
-    setRecipeIngredients,
-    recipeIngredientDraft,
-    setRecipeIngredientDraft,
-    addRecipeIngredient,
-    recipeInstructionDraft,
-    setRecipeInstructionDraft,
-    addRecipeInstruction,
-    recipeInstructions,
-    setRecipeInstructions,
-    deleteModal,
-    setDeleteModal,
-    confirmDelete,
-    updateModal,
-    setUpdateModal,
-    updateNutritionDraft,
-    setUpdateNutritionDraft,
-    addUpdateNutrition,
-    confirmUpdate,
-    selectedFood,
-    selectedIngredient,
-    selectedRecipe,
-    nutrientFilteredIngredients,
-    openIngredientUpdateModal,
-    openRecipeUpdateModal,
-    handleDeleteFood,
-    handleDeleteIngredient,
-    handleDeleteRecipe
-  } = controller;
+  const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
 
   return (
     <section>
       <nav className="nav-row">
-        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => setActiveTab(tab)}>{tab}</button>)}
-        <button onClick={loadAll}>{loading ? 'Loading…' : 'Refresh all'}</button>
+        {tabs.map((tab) => <button key={tab} className={tab === viewState.activeTab ? 'tab active' : 'tab'} onClick={() => viewState.setActiveTab(tab)}>{tab}</button>)}
+        <button onClick={viewState.loadAll}>{viewState.loading ? 'Loading…' : 'Refresh all'}</button>
       </nav>
 
-      {error && <p className="error">{error}</p>}
+      {viewState.error && <p className="error">{viewState.error}</p>}
 
-      {activeTab === 'foods' && (
+      {viewState.activeTab === 'foods' && (
         <FoodsTab
-          foods={foods}
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
-          selectedFood={selectedFood}
-          createSuccess={createSuccess}
-          openCreateModal={openCreateModal}
+          foods={entities.foods}
+          selectedId={viewState.selectedId}
+          setSelectedId={viewState.setSelectedId}
+          selectedFood={entities.selectedFood}
+          createSuccess={createFlow.createSuccess}
+          openCreateModal={createFlow.openCreateModal}
           getItemId={getItemId}
-          onDeleteFood={handleDeleteFood}
+          onDeleteFood={deleteFlow.handleDeleteFood}
         />
       )}
 
-      {activeTab === 'ingredients' && (
+      {viewState.activeTab === 'ingredients' && (
         <IngredientsTab
-          ingredients={ingredients}
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
-          selectedIngredient={selectedIngredient}
-          createSuccess={createSuccess}
-          openCreateModal={openCreateModal}
-          openIngredientUpdateModal={openIngredientUpdateModal}
+          ingredients={entities.ingredients}
+          selectedId={viewState.selectedId}
+          setSelectedId={viewState.setSelectedId}
+          selectedIngredient={entities.selectedIngredient}
+          createSuccess={createFlow.createSuccess}
+          openCreateModal={createFlow.openCreateModal}
+          openIngredientUpdateModal={updateFlow.openIngredientUpdateModal}
           getItemId={getItemId}
-          onDeleteIngredient={handleDeleteIngredient}
+          onDeleteIngredient={deleteFlow.handleDeleteIngredient}
         />
       )}
 
-      {activeTab === 'recipes' && (
+      {viewState.activeTab === 'recipes' && (
         <RecipesTab
-          recipes={recipes}
-          foods={foods}
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
-          selectedRecipe={selectedRecipe}
-          createSuccess={createSuccess}
-          openCreateModal={openCreateModal}
-          openRecipeUpdateModal={openRecipeUpdateModal}
-          onDeleteRecipe={handleDeleteRecipe}
+          recipes={entities.recipes}
+          foods={entities.foods}
+          selectedId={viewState.selectedId}
+          setSelectedId={viewState.setSelectedId}
+          selectedRecipe={entities.selectedRecipe}
+          createSuccess={createFlow.createSuccess}
+          openCreateModal={createFlow.openCreateModal}
+          openRecipeUpdateModal={updateFlow.openRecipeUpdateModal}
+          onDeleteRecipe={deleteFlow.handleDeleteRecipe}
         />
       )}
 
-      {activeTab === 'nutrition' && (
+      {viewState.activeTab === 'nutrition' && (
         <NutritionTab
-          selectedNutrient={selectedNutrient}
-          setSelectedNutrient={setSelectedNutrient}
-          nutrientFilteredIngredients={nutrientFilteredIngredients}
-          setActiveTab={setActiveTab}
+          selectedNutrient={viewState.selectedNutrient}
+          setSelectedNutrient={viewState.setSelectedNutrient}
+          nutrientFilteredIngredients={entities.nutrientFilteredIngredients}
+          setActiveTab={viewState.setActiveTab}
           getItemId={getItemId}
         />
       )}
 
       <CreateEntityModal
-        createModal={createModal}
-        createError={createError}
-        closeCreateModal={closeCreateModal}
-        createFood={createFood}
-        createIngredient={createIngredient}
-        createRecipe={createRecipe}
-        foodForm={foodForm}
-        setFoodForm={setFoodForm}
-        ingredientForm={ingredientForm}
-        setIngredientForm={setIngredientForm}
-        ingredientNutritions={ingredientNutritions}
-        setIngredientNutritions={setIngredientNutritions}
-        nutritionDraft={nutritionDraft}
-        setNutritionDraft={setNutritionDraft}
+        createModal={createFlow.createModal}
+        createError={createFlow.createError}
+        closeCreateModal={createFlow.closeCreateModal}
+        createFood={createFlow.createFood}
+        createIngredient={createFlow.createIngredient}
+        createRecipe={createFlow.createRecipe}
+        foodForm={createFlow.foodForm}
+        setFoodForm={createFlow.setFoodForm}
+        ingredientForm={createFlow.ingredientForm}
+        setIngredientForm={createFlow.setIngredientForm}
+        ingredientNutritions={createFlow.ingredientNutritions}
+        setIngredientNutritions={createFlow.setIngredientNutritions}
+        nutritionDraft={createFlow.nutritionDraft}
+        setNutritionDraft={createFlow.setNutritionDraft}
         unitOptions={unitOptions}
-        addNutrition={addNutrition}
-        recipeForm={recipeForm}
-        setRecipeForm={setRecipeForm}
-        foods={foods}
+        addNutrition={createFlow.addNutrition}
+        recipeForm={createFlow.recipeForm}
+        setRecipeForm={createFlow.setRecipeForm}
+        foods={entities.foods}
         getItemId={getItemId}
-        recipeIngredients={recipeIngredients}
-        setRecipeIngredients={setRecipeIngredients}
-        ingredients={ingredients}
-        recipeIngredientDraft={recipeIngredientDraft}
-        setRecipeIngredientDraft={setRecipeIngredientDraft}
-        addRecipeIngredient={addRecipeIngredient}
-        recipeInstructionDraft={recipeInstructionDraft}
-        setRecipeInstructionDraft={setRecipeInstructionDraft}
-        addRecipeInstruction={addRecipeInstruction}
-        recipeInstructions={recipeInstructions}
-        setRecipeInstructions={setRecipeInstructions}
+        recipeIngredients={createFlow.recipeIngredients}
+        setRecipeIngredients={createFlow.setRecipeIngredients}
+        ingredients={entities.ingredients}
+        recipeIngredientDraft={createFlow.recipeIngredientDraft}
+        setRecipeIngredientDraft={createFlow.setRecipeIngredientDraft}
+        addRecipeIngredient={createFlow.addRecipeIngredient}
+        recipeInstructionDraft={createFlow.recipeInstructionDraft}
+        setRecipeInstructionDraft={createFlow.setRecipeInstructionDraft}
+        addRecipeInstruction={createFlow.addRecipeInstruction}
+        recipeInstructions={createFlow.recipeInstructions}
+        setRecipeInstructions={createFlow.setRecipeInstructions}
       />
 
       <DeleteConfirmModal
-        deleteModal={deleteModal}
-        onCancel={() => setDeleteModal({ open: false, message: '', action: null })}
-        onConfirm={confirmDelete}
+        deleteModal={deleteFlow.deleteModal}
+        onCancel={() => deleteFlow.setDeleteModal({ open: false, message: '', action: null })}
+        onConfirm={deleteFlow.confirmDelete}
       />
 
       <UpdateEntityModal
-        updateModal={updateModal}
-        setUpdateModal={setUpdateModal}
+        updateModal={updateFlow.updateModal}
+        setUpdateModal={updateFlow.setUpdateModal}
         unitOptions={unitOptions}
-        foods={foods}
-        ingredients={ingredients}
+        foods={entities.foods}
+        ingredients={entities.ingredients}
         getItemId={getItemId}
-        updateNutritionDraft={updateNutritionDraft}
-        setUpdateNutritionDraft={setUpdateNutritionDraft}
-        addUpdateNutrition={addUpdateNutrition}
-        confirmUpdate={confirmUpdate}
+        updateNutritionDraft={updateFlow.updateNutritionDraft}
+        setUpdateNutritionDraft={updateFlow.setUpdateNutritionDraft}
+        addUpdateNutrition={updateFlow.addUpdateNutrition}
+        confirmUpdate={updateFlow.confirmUpdate}
       />
     </section>
   );

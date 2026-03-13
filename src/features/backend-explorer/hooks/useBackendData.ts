@@ -18,9 +18,9 @@ export default function useBackendData() {
         api.getIngredients(),
         api.getRecipes()
       ]);
-      setFoods(Array.isArray(foodData) ? (foodData as Food[]) : []);
-      setIngredients(Array.isArray(ingredientData) ? (ingredientData as Ingredient[]) : []);
-      setRecipes(Array.isArray(recipeData) ? (recipeData as Recipe[]) : []);
+      setFoods(Array.isArray(foodData) ? foodData : []);
+      setIngredients(Array.isArray(ingredientData) ? ingredientData : []);
+      setRecipes(Array.isArray(recipeData) ? recipeData : []);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Failed to load data.');
     } finally {

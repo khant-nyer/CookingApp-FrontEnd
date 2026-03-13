@@ -1,3 +1,4 @@
+import type { FoodDto, IngredientDto, RecipeDto } from './apiTypes';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 const DEFAULT_TIMEOUT_MS = 10_000;
 const MAX_GET_RETRIES = 1;
@@ -214,8 +215,8 @@ async function request<T = unknown>(path: string, options: RequestOptions = {}):
 
 export const api = {
   // Foods
-  getFoods() {
-    return request('/api/foods');
+  getFoods(): Promise<FoodDto[]> {
+    return request<FoodDto[]>('/api/foods');
   },
   createFood(payload: ApiPayload) {
     return request('/api/foods', {
@@ -237,8 +238,8 @@ export const api = {
   },
 
   // Ingredients
-  getIngredients() {
-    return request('/api/ingredients');
+  getIngredients(): Promise<IngredientDto[]> {
+    return request<IngredientDto[]>('/api/ingredients');
   },
   createIngredient(payload: ApiPayload) {
     return request('/api/ingredients', {
@@ -271,8 +272,8 @@ export const api = {
   },
 
   // Recipes
-  getRecipes() {
-    return request('/api/recipes');
+  getRecipes(): Promise<RecipeDto[]> {
+    return request<RecipeDto[]>('/api/recipes');
   },
   createRecipe(payload: ApiPayload) {
     return request('/api/recipes', {
