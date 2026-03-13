@@ -46,4 +46,22 @@ describe('executeExtendSession', () => {
 
     expect(clearLocalAuthState).toHaveBeenCalledTimes(1);
   });
+
+  it('propagates friendly recoverable error message without clearing auth state', async () => {
+    const clearLocalAuthState = vi.fn();
+
+    await expect(
+      executeExtendSession({
+        refreshToken: 'existing-refresh',
+        refreshSession: vi.fn().mockRejectedValue(new Error('temporary network issue')),
+        updateSession: vi.fn(),
+        onExtended: vi.fn(),
+        clearLocalAuthState,
+        toFriendlyMessage: () => 'Temporary issue. Please try again.',
+        isUnrecoverableError: () => false
+      })
+    ).rejects.toThrow('Temporary issue. Please try again.');
+
+    expect(clearLocalAuthState).not.toHaveBeenCalled();
+  });
 });
