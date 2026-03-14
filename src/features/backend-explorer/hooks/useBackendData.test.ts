@@ -37,6 +37,15 @@ describe('extractCollection', () => {
     expect(extractCollection({ response: { dataRows: [{ id: 31 }] } }, 0, ['ingredients'])).toEqual([{ id: 31 }]);
   });
 
+
+  it('supports JSON-stringified payload envelopes from proxy integrations', () => {
+    expect(extractCollection('{"foods":[{"id":40}]}', 0, ['foods'])).toEqual([{ id: 40 }]);
+    expect(extractCollection({ body: '[{"id":41}]' }, 0, ['ingredients'])).toEqual([{ id: 41 }]);
+    expect(
+      extractCollection({ body: '"[{\\"id\\":42}]"' }, 0, ['recipes'])
+    ).toEqual([{ id: 42 }]);
+  });
+
   it('returns empty list for unsupported payload shapes', () => {
     expect(extractCollection({})).toEqual([]);
     expect(extractCollection({ wrapped: ['row'] })).toEqual([]);
