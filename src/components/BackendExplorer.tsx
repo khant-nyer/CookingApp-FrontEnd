@@ -67,7 +67,7 @@ export default function BackendExplorer() {
     <section>
       <nav className="nav-row">
         {tabs.map((tab) => <button key={tab} className={tab === viewState.activeTab ? 'tab active' : 'tab'} onClick={() => viewState.setActiveTab(tab)}>{tab}</button>)}
-        <button onClick={viewState.loadAll}>{viewState.loading ? 'Loading…' : 'Refresh all'}</button>
+        <button onClick={() => viewState.loadTabData(viewState.activeTab)}>{viewState.loading ? 'Loading…' : 'Refresh tab'}</button>
       </nav>
 
       {viewState.error && <p className="error">{viewState.error}</p>}
