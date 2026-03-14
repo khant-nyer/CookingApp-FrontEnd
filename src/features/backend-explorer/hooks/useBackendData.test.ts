@@ -13,9 +13,22 @@ describe('extractCollection', () => {
     expect(extractCollection({ content: [{ id: 3 }] })).toEqual([{ id: 3 }]);
   });
 
+
+  it('supports nested wrapped list payloads', () => {
+    expect(extractCollection({ data: { content: [{ id: 4 }] } })).toEqual([{ id: 4 }]);
+    expect(extractCollection({ payload: { result: [{ id: 5 }] } })).toEqual([{ id: 5 }]);
+  });
+
+
+  it('supports entity-specific keys inside nested wrappers', () => {
+    expect(extractCollection({ data: { foods: [{ id: 10 }] } }, 0, ['foods'])).toEqual([{ id: 10 }]);
+    expect(extractCollection({ payload: { ingredients: [{ id: 11 }] } }, 0, ['ingredients'])).toEqual([{ id: 11 }]);
+    expect(extractCollection({ result: { recipes: [{ id: 12 }] } }, 0, ['recipes'])).toEqual([{ id: 12 }]);
+  });
+
   it('returns empty list for unsupported payload shapes', () => {
     expect(extractCollection({})).toEqual([]);
-    expect(extractCollection({ result: [{ id: 1 }] })).toEqual([]);
+    expect(extractCollection({ wrapped: [{ id: 1 }] })).toEqual([]);
     expect(extractCollection(null)).toEqual([]);
   });
 });

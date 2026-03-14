@@ -5,24 +5,40 @@ import type { Food, Ingredient, Recipe, TabKey } from '../types';
 type LoaderResult<T> = { data: T[]; error?: string };
 
 interface ListEnvelope<T> {
-  data?: T[];
-  items?: T[];
-  content?: T[];
+  data?: T[] | unknown;
+  items?: T[] | unknown;
+  content?: T[] | unknown;
+  result?: T[] | unknown;
+  payload?: T[] | unknown;
 }
 
-export function extractCollection<T>(payload: unknown): T[] {
-  if (Array.isArray(payload)) return payload as T[];
-  if (!payload || typeof payload !== 'object') return [];
+const COLLECTION_KEYS = ['data', 'items', 'content', 'result', 'payload'] as const;
+const MAX_COLLECTION_SEARCH_DEPTH = 3;
 
-  const candidate = payload as ListEnvelope<T>;
-  if (Array.isArray(candidate.data)) return candidate.data;
-  if (Array.isArray(candidate.items)) return candidate.items;
-  if (Array.isArray(candidate.content)) return candidate.content;
+export function extractCollection<T>(
+  payload: unknown,
+  depth = 0,
+  preferredKeys: string[] = []
+): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (!payload || typeof payload !== 'object' || depth > MAX_COLLECTION_SEARCH_DEPTH) return [];
+
+  const candidate = payload as ListEnvelope<T> & Record<string, unknown>;
+
+  for (const preferredKey of preferredKeys) {
+    const value = candidate[preferredKey];
+    if (Array.isArray(value)) return value as T[];
+  }
+
+  for (const key of COLLECTION_KEYS) {
+    const value = candidate[key];
+    if (Array.isArray(value)) return value as T[];
+    const nested = extractCollection<T>(value, depth + 1, preferredKeys);
+    if (nested.length > 0) return nested;
+  }
 
   return [];
 }
-
-type LoaderResult<T> = { data: T[]; error?: string };
 
 export default function useBackendData() {
   const [foods, setFoods] = useState<Food[]>([]);
@@ -41,7 +57,7 @@ export default function useBackendData() {
   const loadFoods = useCallback(async (): Promise<LoaderResult<Food>> => {
     try {
       const foodData = await api.getFoods();
-      return { data: extractCollection<Food>(foodData) };
+      return { data: extractCollection<Food>(foodData, 0, ['foods']) };
     } catch (loadError) {
       return {
         data: [],
@@ -53,7 +69,7 @@ export default function useBackendData() {
   const loadIngredients = useCallback(async (): Promise<LoaderResult<Ingredient>> => {
     try {
       const ingredientData = await api.getIngredients();
-      return { data: extractCollection<Ingredient>(ingredientData) };
+      return { data: extractCollection<Ingredient>(ingredientData, 0, ['ingredients']) };
     } catch (loadError) {
       return {
         data: [],
@@ -65,7 +81,7 @@ export default function useBackendData() {
   const loadRecipes = useCallback(async (): Promise<LoaderResult<Recipe>> => {
     try {
       const recipeData = await api.getRecipes();
-      return { data: extractCollection<Recipe>(recipeData) };
+      return { data: extractCollection<Recipe>(recipeData, 0, ['recipes']) };
     } catch (loadError) {
       return {
         data: [],
