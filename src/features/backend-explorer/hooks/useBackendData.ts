@@ -100,7 +100,6 @@ export default function useBackendData() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const latestRequestIdRef = useRef(0);
-  const tabRequestIdRef = useRef<Partial<Record<TabKey, number>>>({});
   const isMountedRef = useRef(true);
   const tabRequestRef = useRef<Partial<Record<TabKey, Promise<void>>>>({});
 
@@ -179,43 +178,28 @@ export default function useBackendData() {
     const inFlightRequest = tabRequestRef.current[tab];
     if (inFlightRequest) return inFlightRequest;
 
-    const requestId = (tabRequestIdRef.current[tab] || 0) + 1;
-    tabRequestIdRef.current[tab] = requestId;
     setLoading(true);
     setError('');
-
-    const applyResult = <T,>(result: LoaderResult<T>, setter: (value: T[]) => void) => {
-      setter(result.data);
-      if (result.error) setError(result.error);
-    };
 
     const requestPromise = (async () => {
       try {
         if (tab === 'foods') {
           const result = await loadFoods();
-          const currentTabRequestId = tabRequestIdRef.current[tab];
-          if (!isMountedRef.current || requestId !== currentTabRequestId) return;
-          applyResult(result, setFoods);
-        }
-
-        if (tab === 'ingredients' || tab === 'nutrition') {
+          setFoods(result.data);
+          if (result.error) setError(result.error);
+        } else if (tab === 'ingredients' || tab === 'nutrition') {
           const result = await loadIngredients();
-          const currentTabRequestId = tabRequestIdRef.current[tab];
-          if (!isMountedRef.current || requestId !== currentTabRequestId) return;
-          applyResult(result, setIngredients);
-        }
-
-        if (tab === 'recipes') {
+          setIngredients(result.data);
+          if (result.error) setError(result.error);
+        } else if (tab === 'recipes') {
           const result = await loadRecipes();
-          const currentTabRequestId = tabRequestIdRef.current[tab];
-          if (!isMountedRef.current || requestId !== currentTabRequestId) return;
-          applyResult(result, setRecipes);
+          setRecipes(result.data);
+          if (result.error) setError(result.error);
         }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load data.');
       } finally {
-        const activeRequestId = tabRequestIdRef.current[tab];
-        if (isMountedRef.current && requestId === activeRequestId) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     })();
 

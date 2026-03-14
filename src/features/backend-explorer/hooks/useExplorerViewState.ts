@@ -11,6 +11,8 @@ export default function useExplorerViewState() {
   const backendData = useBackendData();
   const { loadTabData } = backendData;
 
+
+
   useEffect(() => {
     void loadTabData(activeTab);
   }, [activeTab, loadTabData, token]);
