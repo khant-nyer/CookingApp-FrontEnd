@@ -3,14 +3,10 @@ import { api } from '../../../services/api';
 import {
   appendUpdateNutritionToForm,
   executeDeleteConfirmation,
-  executeUpdateConfirmation,
-  getSelectedIdForTabChange
+  executeUpdateConfirmation
 } from './useBackendExplorerController';
 
 describe('useBackendExplorerController helpers', () => {
-  it('returns empty selected id on tab change', () => {
-    expect(getSelectedIdForTabChange()).toBe('');
-  });
 
   it('appends normalized nutrition entry for update form', () => {
     const next = appendUpdateNutritionToForm(
