@@ -15,24 +15,49 @@ interface ListEnvelope<T> {
 const COLLECTION_KEYS = ['data', 'items', 'content', 'result', 'payload'] as const;
 const MAX_COLLECTION_SEARCH_DEPTH = 3;
 
+function looksLikeEntityCollection(value: unknown) {
+  if (!Array.isArray(value)) return false;
+  const firstDefinedItem = value.find((item) => item != null);
+  if (firstDefinedItem == null) return true;
+  return typeof firstDefinedItem === 'object';
+}
+
+function findCaseInsensitiveArray<T>(candidate: Record<string, unknown>, keys: string[]) {
+  if (!keys.length) return null;
+
+  const entries = Object.entries(candidate);
+  for (const key of keys) {
+    const matched = entries.find(([entryKey]) => entryKey.toLowerCase() === key.toLowerCase());
+    if (matched && Array.isArray(matched[1])) return matched[1] as T[];
+  }
+
+  return null;
+}
+
 export function extractCollection<T>(
   payload: unknown,
   depth = 0,
   preferredKeys: string[] = []
 ): T[] {
-  if (Array.isArray(payload)) return payload as T[];
+  if (looksLikeEntityCollection(payload)) return payload as T[];
+  if (Array.isArray(payload)) return [];
   if (!payload || typeof payload !== 'object' || depth > MAX_COLLECTION_SEARCH_DEPTH) return [];
 
   const candidate = payload as ListEnvelope<T> & Record<string, unknown>;
 
-  for (const preferredKey of preferredKeys) {
-    const value = candidate[preferredKey];
-    if (Array.isArray(value)) return value as T[];
-  }
+  const preferredMatch = findCaseInsensitiveArray<T>(candidate, preferredKeys);
+  if (preferredMatch) return preferredMatch;
 
   for (const key of COLLECTION_KEYS) {
     const value = candidate[key];
-    if (Array.isArray(value)) return value as T[];
+    if (looksLikeEntityCollection(value)) return value as T[];
+    const nested = extractCollection<T>(value, depth + 1, preferredKeys);
+    if (nested.length > 0) return nested;
+  }
+
+  for (const value of Object.values(candidate)) {
+    if (looksLikeEntityCollection(value)) return value as T[];
+    if (!value || typeof value !== 'object') continue;
     const nested = extractCollection<T>(value, depth + 1, preferredKeys);
     if (nested.length > 0) return nested;
   }

@@ -26,9 +26,20 @@ describe('extractCollection', () => {
     expect(extractCollection({ result: { recipes: [{ id: 12 }] } }, 0, ['recipes'])).toEqual([{ id: 12 }]);
   });
 
+  it('supports case-insensitive entity keys and unknown wrapper names', () => {
+    expect(extractCollection({ data: { Foods: [{ id: 20 }] } }, 0, ['foods'])).toEqual([{ id: 20 }]);
+    expect(extractCollection({ response: { ingredients: [{ id: 21 }] } }, 0, ['ingredients'])).toEqual([{ id: 21 }]);
+    expect(extractCollection({ body: { payload: { Recipes: [{ id: 22 }] } } }, 0, ['recipes'])).toEqual([{ id: 22 }]);
+  });
+
+  it('supports unknown collection key names that directly contain entity arrays', () => {
+    expect(extractCollection({ foodsList: [{ id: 30 }] }, 0, ['foods'])).toEqual([{ id: 30 }]);
+    expect(extractCollection({ response: { dataRows: [{ id: 31 }] } }, 0, ['ingredients'])).toEqual([{ id: 31 }]);
+  });
+
   it('returns empty list for unsupported payload shapes', () => {
     expect(extractCollection({})).toEqual([]);
-    expect(extractCollection({ wrapped: [{ id: 1 }] })).toEqual([]);
+    expect(extractCollection({ wrapped: ['row'] })).toEqual([]);
     expect(extractCollection(null)).toEqual([]);
   });
 });
