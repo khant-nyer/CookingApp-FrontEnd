@@ -100,6 +100,7 @@ export default function useBackendData() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const latestRequestIdRef = useRef(0);
+  const tabRequestIdRef = useRef<Partial<Record<TabKey, number>>>({});
   const isMountedRef = useRef(true);
   const tabRequestRef = useRef<Partial<Record<TabKey, Promise<void>>>>({});
 
@@ -178,8 +179,8 @@ export default function useBackendData() {
     const inFlightRequest = tabRequestRef.current[tab];
     if (inFlightRequest) return inFlightRequest;
 
-    const requestId = latestRequestIdRef.current + 1;
-    latestRequestIdRef.current = requestId;
+    const requestId = (tabRequestIdRef.current[tab] || 0) + 1;
+    tabRequestIdRef.current[tab] = requestId;
     setLoading(true);
     setError('');
 
@@ -192,23 +193,27 @@ export default function useBackendData() {
       try {
         if (tab === 'foods') {
           const result = await loadFoods();
-          if (!isMountedRef.current || requestId !== latestRequestIdRef.current) return;
+          const currentTabRequestId = tabRequestIdRef.current[tab];
+          if (!isMountedRef.current || requestId !== currentTabRequestId) return;
           applyResult(result, setFoods);
         }
 
         if (tab === 'ingredients' || tab === 'nutrition') {
           const result = await loadIngredients();
-          if (!isMountedRef.current || requestId !== latestRequestIdRef.current) return;
+          const currentTabRequestId = tabRequestIdRef.current[tab];
+          if (!isMountedRef.current || requestId !== currentTabRequestId) return;
           applyResult(result, setIngredients);
         }
 
         if (tab === 'recipes') {
           const result = await loadRecipes();
-          if (!isMountedRef.current || requestId !== latestRequestIdRef.current) return;
+          const currentTabRequestId = tabRequestIdRef.current[tab];
+          if (!isMountedRef.current || requestId !== currentTabRequestId) return;
           applyResult(result, setRecipes);
         }
       } finally {
-        if (isMountedRef.current && requestId === latestRequestIdRef.current) {
+        const activeRequestId = tabRequestIdRef.current[tab];
+        if (isMountedRef.current && requestId === activeRequestId) {
           setLoading(false);
         }
       }
