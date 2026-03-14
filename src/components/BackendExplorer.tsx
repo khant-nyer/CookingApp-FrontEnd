@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
@@ -15,6 +16,53 @@ const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 export default function BackendExplorer() {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
 
+  const handleDeleteCancel = useCallback(() => {
+    deleteFlow.setDeleteModal({ open: false, message: '', action: null });
+  }, [deleteFlow]);
+
+  const foodsTabProps = useMemo(() => ({
+    foods: entities.foods,
+    selectedId: viewState.selectedId,
+    setSelectedId: viewState.setSelectedId,
+    selectedFood: entities.selectedFood,
+    createSuccess: createFlow.createSuccess,
+    openCreateModal: createFlow.openCreateModal,
+    getItemId,
+    onDeleteFood: deleteFlow.handleDeleteFood
+  }), [entities.foods, viewState.selectedId, viewState.setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, deleteFlow.handleDeleteFood]);
+
+  const ingredientsTabProps = useMemo(() => ({
+    ingredients: entities.ingredients,
+    selectedId: viewState.selectedId,
+    setSelectedId: viewState.setSelectedId,
+    selectedIngredient: entities.selectedIngredient,
+    createSuccess: createFlow.createSuccess,
+    openCreateModal: createFlow.openCreateModal,
+    openIngredientUpdateModal: updateFlow.openIngredientUpdateModal,
+    getItemId,
+    onDeleteIngredient: deleteFlow.handleDeleteIngredient
+  }), [entities.ingredients, viewState.selectedId, viewState.setSelectedId, entities.selectedIngredient, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, deleteFlow.handleDeleteIngredient]);
+
+  const recipesTabProps = useMemo(() => ({
+    recipes: entities.recipes,
+    foods: entities.foods,
+    selectedId: viewState.selectedId,
+    setSelectedId: viewState.setSelectedId,
+    selectedRecipe: entities.selectedRecipe,
+    createSuccess: createFlow.createSuccess,
+    openCreateModal: createFlow.openCreateModal,
+    openRecipeUpdateModal: updateFlow.openRecipeUpdateModal,
+    onDeleteRecipe: deleteFlow.handleDeleteRecipe
+  }), [entities.recipes, entities.foods, viewState.selectedId, viewState.setSelectedId, entities.selectedRecipe, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openRecipeUpdateModal, deleteFlow.handleDeleteRecipe]);
+
+  const nutritionTabProps = useMemo(() => ({
+    selectedNutrient: viewState.selectedNutrient,
+    setSelectedNutrient: viewState.setSelectedNutrient,
+    nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
+    setActiveTab: viewState.setActiveTab,
+    getItemId
+  }), [viewState.selectedNutrient, viewState.setSelectedNutrient, entities.nutrientFilteredIngredients, viewState.setActiveTab]);
+
   return (
     <section>
       <nav className="nav-row">
@@ -24,56 +72,13 @@ export default function BackendExplorer() {
 
       {viewState.error && <p className="error">{viewState.error}</p>}
 
-      {viewState.activeTab === 'foods' && (
-        <FoodsTab
-          foods={entities.foods}
-          selectedId={viewState.selectedId}
-          setSelectedId={viewState.setSelectedId}
-          selectedFood={entities.selectedFood}
-          createSuccess={createFlow.createSuccess}
-          openCreateModal={createFlow.openCreateModal}
-          getItemId={getItemId}
-          onDeleteFood={deleteFlow.handleDeleteFood}
-        />
-      )}
+      {viewState.activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
 
-      {viewState.activeTab === 'ingredients' && (
-        <IngredientsTab
-          ingredients={entities.ingredients}
-          selectedId={viewState.selectedId}
-          setSelectedId={viewState.setSelectedId}
-          selectedIngredient={entities.selectedIngredient}
-          createSuccess={createFlow.createSuccess}
-          openCreateModal={createFlow.openCreateModal}
-          openIngredientUpdateModal={updateFlow.openIngredientUpdateModal}
-          getItemId={getItemId}
-          onDeleteIngredient={deleteFlow.handleDeleteIngredient}
-        />
-      )}
+      {viewState.activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
 
-      {viewState.activeTab === 'recipes' && (
-        <RecipesTab
-          recipes={entities.recipes}
-          foods={entities.foods}
-          selectedId={viewState.selectedId}
-          setSelectedId={viewState.setSelectedId}
-          selectedRecipe={entities.selectedRecipe}
-          createSuccess={createFlow.createSuccess}
-          openCreateModal={createFlow.openCreateModal}
-          openRecipeUpdateModal={updateFlow.openRecipeUpdateModal}
-          onDeleteRecipe={deleteFlow.handleDeleteRecipe}
-        />
-      )}
+      {viewState.activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
 
-      {viewState.activeTab === 'nutrition' && (
-        <NutritionTab
-          selectedNutrient={viewState.selectedNutrient}
-          setSelectedNutrient={viewState.setSelectedNutrient}
-          nutrientFilteredIngredients={entities.nutrientFilteredIngredients}
-          setActiveTab={viewState.setActiveTab}
-          getItemId={getItemId}
-        />
-      )}
+      {viewState.activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
 
       <CreateEntityModal
         createModal={createFlow.createModal}
@@ -111,7 +116,7 @@ export default function BackendExplorer() {
 
       <DeleteConfirmModal
         deleteModal={deleteFlow.deleteModal}
-        onCancel={() => deleteFlow.setDeleteModal({ open: false, message: '', action: null })}
+        onCancel={handleDeleteCancel}
         onConfirm={deleteFlow.confirmDelete}
       />
 

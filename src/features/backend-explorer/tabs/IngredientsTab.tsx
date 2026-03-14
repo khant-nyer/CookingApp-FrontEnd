@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { CreateSuccessState, EntityType, Ingredient } from '../types';
 import { GalleryTile, TextDetail } from '../shared/ExplorerShared';
 
@@ -13,7 +14,7 @@ interface IngredientsTabProps {
   onDeleteIngredient: (ingredient: Ingredient) => void;
 }
 
-export default function IngredientsTab({
+function IngredientsTab({
   ingredients,
   selectedId,
   setSelectedId,
@@ -55,3 +56,5 @@ export default function IngredientsTab({
     </div>
   );
 }
+
+export default memo(IngredientsTab);

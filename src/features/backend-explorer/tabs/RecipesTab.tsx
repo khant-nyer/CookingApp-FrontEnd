@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { CreateSuccessState, EntityType, Food, Recipe } from '../types';
 import { getRecipeTileId } from '../utils/ids';
 import { GalleryTile, TextDetail } from '../shared/ExplorerShared';
@@ -14,7 +15,7 @@ interface RecipesTabProps {
   onDeleteRecipe: (recipe: Recipe) => void;
 }
 
-export default function RecipesTab({
+function RecipesTab({
   recipes,
   foods,
   selectedId,
@@ -55,3 +56,5 @@ export default function RecipesTab({
     </div>
   );
 }
+
+export default memo(RecipesTab);

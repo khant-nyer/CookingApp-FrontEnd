@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { getItemId, getRecipeTileId } from '../utils/ids';
 import useExplorerCreateFlow from './useExplorerCreateFlow';
 import useExplorerDeleteFlow from './useExplorerDeleteFlow';
@@ -15,9 +15,11 @@ export {
 export default function useBackendExplorerController(): BackendExplorerController {
   const viewStateCore = useExplorerViewState();
 
-  async function run(action: () => Promise<unknown> | unknown) {
-    await viewStateCore.runWithRefresh(action);
-  }
+  const { runWithRefresh } = viewStateCore;
+
+  const run = useCallback(async (action: () => Promise<unknown> | unknown) => {
+    await runWithRefresh(action);
+  }, [runWithRefresh]);
 
   const createFlow = useExplorerCreateFlow({
     ingredients: viewStateCore.ingredients,
@@ -53,29 +55,51 @@ export default function useBackendExplorerController(): BackendExplorerControlle
     [viewStateCore.ingredients, viewStateCore.selectedNutrient]
   );
 
+  const viewState = useMemo(() => ({
+    activeTab: viewStateCore.activeTab,
+    setActiveTab: viewStateCore.setActiveTab,
+    selectedId: viewStateCore.selectedId,
+    setSelectedId: viewStateCore.setSelectedId,
+    selectedNutrient: viewStateCore.selectedNutrient,
+    setSelectedNutrient: viewStateCore.setSelectedNutrient,
+    error: viewStateCore.error,
+    loading: viewStateCore.loading,
+    loadAll: viewStateCore.loadAll
+  }), [
+    viewStateCore.activeTab,
+    viewStateCore.setActiveTab,
+    viewStateCore.selectedId,
+    viewStateCore.setSelectedId,
+    viewStateCore.selectedNutrient,
+    viewStateCore.setSelectedNutrient,
+    viewStateCore.error,
+    viewStateCore.loading,
+    viewStateCore.loadAll
+  ]);
+
+  const entities = useMemo(() => ({
+    foods: viewStateCore.foods,
+    ingredients: viewStateCore.ingredients,
+    recipes: viewStateCore.recipes,
+    selectedFood,
+    selectedIngredient,
+    selectedRecipe,
+    nutrientFilteredIngredients
+  }), [
+    viewStateCore.foods,
+    viewStateCore.ingredients,
+    viewStateCore.recipes,
+    selectedFood,
+    selectedIngredient,
+    selectedRecipe,
+    nutrientFilteredIngredients
+  ]);
+
   return {
-    viewState: {
-      activeTab: viewStateCore.activeTab,
-      setActiveTab: viewStateCore.setActiveTab,
-      selectedId: viewStateCore.selectedId,
-      setSelectedId: viewStateCore.setSelectedId,
-      selectedNutrient: viewStateCore.selectedNutrient,
-      setSelectedNutrient: viewStateCore.setSelectedNutrient,
-      error: viewStateCore.error,
-      loading: viewStateCore.loading,
-      loadAll: viewStateCore.loadAll
-    },
+    viewState,
     createFlow,
     updateFlow,
     deleteFlow,
-    entities: {
-      foods: viewStateCore.foods,
-      ingredients: viewStateCore.ingredients,
-      recipes: viewStateCore.recipes,
-      selectedFood,
-      selectedIngredient,
-      selectedRecipe,
-      nutrientFilteredIngredients
-    }
+    entities
   };
 }

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { nutrientOptions } from '../constants/nutrients';
 import type { Ingredient, TabKey } from '../types';
 import { GalleryTile, NutritionIcon } from '../shared/ExplorerShared';
@@ -10,7 +11,7 @@ interface NutritionTabProps {
   getItemId: (item: Ingredient) => string | number | undefined;
 }
 
-export default function NutritionTab({
+function NutritionTab({
   selectedNutrient,
   setSelectedNutrient,
   nutrientFilteredIngredients,
@@ -42,3 +43,5 @@ export default function NutritionTab({
     </div>
   );
 }
+
+export default memo(NutritionTab);
