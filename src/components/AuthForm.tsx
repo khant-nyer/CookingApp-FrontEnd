@@ -1,18 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
-
-type AuthMode = 'login' | 'register' | 'verify-email' | 'forgot-password' | 'reset-password';
-
-interface AuthFormState {
-  userName: string;
-  profileImageUrl: string;
-  email: string;
-  password: string;
-  code: string;
-  newPassword: string;
-}
+import { createSubmitHandlers, modeErrorContext, modeHeading, modeSubmitLabel } from './authFormLogic';
+import type { AuthMode, AuthFormState } from './authFormLogic';
 
 export default function AuthForm() {
   const { login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword } = useAuth();
@@ -34,6 +25,14 @@ export default function AuthForm() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  const submitHandlers = useMemo(() => createSubmitHandlers({
+    form,
+    actions: { login, register, verifyEmail, forgotPassword, confirmForgotPassword },
+    setSuccess,
+    setMode,
+    setForm
+  }), [confirmForgotPassword, forgotPassword, form, login, register, verifyEmail]);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -41,38 +40,10 @@ export default function AuthForm() {
     setSuccess('');
 
     try {
-      if (mode === 'login') {
-        await login(form.email, form.password);
-      } else if (mode === 'register') {
-        await register(form.userName, form.email, form.password, form.profileImageUrl || undefined);
-        setSuccess('Registration successful. Please verify your email with the code sent by Cognito.');
-        setMode('verify-email');
-      } else if (mode === 'verify-email') {
-        await verifyEmail(form.email, form.code, form.password);
-      } else if (mode === 'forgot-password') {
-        await forgotPassword(form.email);
-        setSuccess('Verification code sent. Check your email.');
-        setMode('reset-password');
-      } else {
-        await confirmForgotPassword(form.email, form.code, form.newPassword);
-        setSuccess('Password reset successful. Please login.');
-        setMode('login');
-        setForm((prev) => ({ ...prev, password: '', newPassword: '', code: '' }));
-      }
+      await submitHandlers[mode]();
     } catch (submitError) {
       console.error('Auth form submission failed', submitError);
-      setError(
-        getFriendlyAuthErrorMessage(
-          submitError,
-          mode === 'verify-email'
-            ? 'verify-email'
-            : mode === 'forgot-password'
-              ? 'forgot-password'
-              : mode === 'reset-password'
-                ? 'reset-password'
-                : mode
-        )
-      );
+      setError(getFriendlyAuthErrorMessage(submitError, modeErrorContext[mode]));
     } finally {
       setLoading(false);
     }
@@ -93,17 +64,7 @@ export default function AuthForm() {
 
   return (
     <section className="card">
-      <h2>
-        {mode === 'login'
-          ? 'Login'
-          : mode === 'register'
-            ? 'Create account'
-            : mode === 'verify-email'
-              ? 'Verify email'
-              : mode === 'forgot-password'
-              ? 'Forgot password'
-              : 'Reset password'}
-      </h2>
+      <h2>{modeHeading[mode]}</h2>
       <form onSubmit={onSubmit} className="form">
         {(mode === 'register' || mode === 'verify-email') && (
           <label>
@@ -116,7 +77,6 @@ export default function AuthForm() {
           Email
           <input name="email" value={form.email} onChange={onChange} type="email" required disabled={mode === 'verify-email'} />
         </label>
-
 
         {(mode === 'register' || mode === 'verify-email') && (
           <label>
@@ -146,7 +106,6 @@ export default function AuthForm() {
             />
           </label>
         )}
-
 
         {mode === 'verify-email' && (
           <>
@@ -184,17 +143,7 @@ export default function AuthForm() {
         {success && <p className="success">{success}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading
-            ? 'Please wait…'
-            : mode === 'login'
-              ? 'Login'
-              : mode === 'register'
-                ? 'Register'
-                : mode === 'verify-email'
-                  ? 'Verify email'
-                  : mode === 'forgot-password'
-                  ? 'Send code'
-                  : 'Reset password'}
+          {loading ? 'Please wait…' : modeSubmitLabel[mode]}
         </button>
       </form>
 

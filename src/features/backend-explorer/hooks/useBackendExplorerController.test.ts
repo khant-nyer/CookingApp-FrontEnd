@@ -3,14 +3,10 @@ import { api } from '../../../services/api';
 import {
   appendUpdateNutritionToForm,
   executeDeleteConfirmation,
-  executeUpdateConfirmation,
-  getSelectedIdForTabChange
+  executeUpdateConfirmation
 } from './useBackendExplorerController';
 
 describe('useBackendExplorerController helpers', () => {
-  it('returns empty selected id on tab change', () => {
-    expect(getSelectedIdForTabChange()).toBe('');
-  });
 
   it('appends normalized nutrition entry for update form', () => {
     const next = appendUpdateNutritionToForm(
@@ -59,6 +55,36 @@ describe('useBackendExplorerController helpers', () => {
 
     expect(action).toHaveBeenCalledTimes(1);
     expect(setDeleteModal).toHaveBeenCalledWith({ open: false, message: '', action: null });
+  });
+
+
+  it('closes delete modal safely when no action is provided', async () => {
+    const run = vi.fn();
+    const setDeleteModal = vi.fn();
+
+    await executeDeleteConfirmation({
+      deleteModal: { open: true, message: 'Delete?', action: null },
+      run,
+      setDeleteModal
+    });
+
+    expect(run).not.toHaveBeenCalled();
+    expect(setDeleteModal).toHaveBeenCalledWith({ open: false, message: '', action: null });
+  });
+
+  it('does not call update APIs for empty update modal type', async () => {
+    const run = vi.fn(async (fn: () => Promise<unknown> | unknown) => { await fn(); });
+    const updateIngredientSpy = vi.spyOn(api, 'updateIngredient').mockResolvedValue({ ok: true } as never);
+    const updateRecipeSpy = vi.spyOn(api, 'updateRecipe').mockResolvedValue({ ok: true } as never);
+
+    await executeUpdateConfirmation({
+      updateModal: { open: false, type: '', title: '', itemId: null, form: null },
+      run
+    });
+
+    expect(run).not.toHaveBeenCalled();
+    expect(updateIngredientSpy).not.toHaveBeenCalled();
+    expect(updateRecipeSpy).not.toHaveBeenCalled();
   });
 
   it('dispatches correct API update method by modal type', async () => {

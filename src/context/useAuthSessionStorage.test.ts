@@ -6,7 +6,9 @@ import {
   REFRESH_TOKEN_STORAGE_KEY,
   USER_STORAGE_KEY,
   bootstrapAuthSession,
-  clearAuthSessionStorage
+  clearAuthSessionStorage,
+  persistTokens,
+  resolveBackendToken
 } from './useAuthSessionStorage';
 
 function base64UrlEncode(value: string) {
@@ -81,6 +83,34 @@ describe('useAuthSessionStorage', () => {
     const result = bootstrapAuthSession(config);
     expect(result.user).toBeNull();
     expect(result.accessToken).toBe(accessToken);
+  });
+
+
+  it('persists backend token according to backendTokenUse', () => {
+    persistTokens({
+      idToken: 'id-token-value',
+      accessToken: 'access-token-value',
+      backendTokenUse: 'access'
+    });
+
+    expect(sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)).toBe('access-token-value');
+    expect(sessionStorage.getItem(ID_TOKEN_STORAGE_KEY)).toBe('id-token-value');
+    expect(sessionStorage.getItem('cooking_app_token')).toBe('access-token-value');
+
+    clearAuthSessionStorage();
+
+    persistTokens({
+      idToken: 'id-token-value',
+      accessToken: 'access-token-value',
+      backendTokenUse: 'id'
+    });
+
+    expect(sessionStorage.getItem('cooking_app_token')).toBe('id-token-value');
+  });
+
+  it('resolves backend token from configured token type', () => {
+    expect(resolveBackendToken('id-1', 'access-1', 'id')).toBe('id-1');
+    expect(resolveBackendToken('id-1', 'access-1', 'access')).toBe('access-1');
   });
 
   it('returns null bootstrap object when tokens are missing', () => {
