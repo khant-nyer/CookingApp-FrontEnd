@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
-import { createSubmitHandlers, modeErrorContext, modeHeading, modeSubmitLabel } from './authFormLogic';
+import { createSubmitHandlers} from './authFormLogic';
 import type { AuthMode, AuthFormState } from './authFormLogic';
 
 const modeHeading: Record<AuthMode, string> = {
