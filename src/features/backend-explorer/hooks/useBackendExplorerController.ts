@@ -64,7 +64,8 @@ export default function useBackendExplorerController(): BackendExplorerControlle
     setSelectedNutrient: viewStateCore.setSelectedNutrient,
     error: viewStateCore.error,
     loading: viewStateCore.loading,
-    loadAll: viewStateCore.loadAll
+    loadAll: viewStateCore.loadAll,
+    loadTabData: viewStateCore.loadTabData
   }), [
     viewStateCore.activeTab,
     viewStateCore.setActiveTab,
@@ -74,7 +75,8 @@ export default function useBackendExplorerController(): BackendExplorerControlle
     viewStateCore.setSelectedNutrient,
     viewStateCore.error,
     viewStateCore.loading,
-    viewStateCore.loadAll
+    viewStateCore.loadAll,
+    viewStateCore.loadTabData
   ]);
 
   const entities = useMemo(() => ({

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import useBackendData from './useBackendData';
 import type { TabKey } from '../types';
 
@@ -6,16 +6,12 @@ export default function useExplorerViewState() {
   const [activeTab, setActiveTab] = useState<TabKey>('foods');
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
-  const hasLoadedInitiallyRef = useRef(false);
-
   const backendData = useBackendData();
-  const { loadAll } = backendData;
+  const { loadTabData } = backendData;
 
   useEffect(() => {
-    if (hasLoadedInitiallyRef.current) return;
-    hasLoadedInitiallyRef.current = true;
-    void loadAll();
-  }, [loadAll]);
+    void loadTabData(activeTab);
+  }, [activeTab, loadTabData]);
 
   useEffect(() => {
     setSelectedId('');
