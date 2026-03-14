@@ -19,6 +19,13 @@ type TokenProvider = () => string | null;
 
 function readStoredToken() {
   try {
+    const sessionToken = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    if (sessionToken) return sessionToken;
+  } catch {
+    // Ignore storage access errors and continue fallback chain.
+  }
+
+  try {
     return localStorage.getItem(TOKEN_STORAGE_KEY);
   } catch {
     return null;
