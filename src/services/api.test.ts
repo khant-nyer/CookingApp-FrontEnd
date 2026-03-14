@@ -1,9 +1,37 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, api, setApiTokenProvider } from './api';
 
+function createStorageMock() {
+  const state = new Map<string, string>();
+
+  return {
+    getItem(key: string) {
+      return state.has(key) ? state.get(key)! : null;
+    },
+    setItem(key: string, value: string) {
+      state.set(key, String(value));
+    },
+    removeItem(key: string) {
+      state.delete(key);
+    },
+    clear() {
+      state.clear();
+    }
+  };
+}
+
 describe('api hardening behavior', () => {
+  const localStorageMock = createStorageMock();
+  const sessionStorageMock = createStorageMock();
+
+  beforeEach(() => {
+    vi.stubGlobal('localStorage', localStorageMock);
+    vi.stubGlobal('sessionStorage', sessionStorageMock);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     setApiTokenProvider(() => null);
   });
 
@@ -20,6 +48,23 @@ describe('api hardening behavior', () => {
     const requestInit = fetchSpy.mock.calls[0]?.[1] as RequestInit;
     const headers = requestInit.headers as Record<string, string>;
     expect(headers.Authorization).toBe('Bearer token-123');
+  });
+
+  it('uses sessionStorage token before localStorage fallback when provider is empty', async () => {
+    setApiTokenProvider(() => null);
+    sessionStorage.setItem('cooking_app_token', 'session-token');
+    localStorage.setItem('cooking_app_token', 'local-token');
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify([]), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+
+    await api.getFoods();
+
+    const requestInit = fetchSpy.mock.calls[0]?.[1] as RequestInit;
+    const headers = requestInit.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer session-token');
   });
 
   it('normalizes error envelope and throws ApiError with status/code', async () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
@@ -13,6 +13,30 @@ interface AuthFormState {
   code: string;
   newPassword: string;
 }
+
+const modeHeading: Record<AuthMode, string> = {
+  login: 'Login',
+  register: 'Create account',
+  'verify-email': 'Verify email',
+  'forgot-password': 'Forgot password',
+  'reset-password': 'Reset password'
+};
+
+const modeSubmitLabel: Record<AuthMode, string> = {
+  login: 'Login',
+  register: 'Register',
+  'verify-email': 'Verify email',
+  'forgot-password': 'Send code',
+  'reset-password': 'Reset password'
+};
+
+const modeErrorContext: Record<AuthMode, 'login' | 'register' | 'verify-email' | 'forgot-password' | 'reset-password'> = {
+  login: 'login',
+  register: 'register',
+  'verify-email': 'verify-email',
+  'forgot-password': 'forgot-password',
+  'reset-password': 'reset-password'
+};
 
 export default function AuthForm() {
   const { login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword } = useAuth();
@@ -34,6 +58,31 @@ export default function AuthForm() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  const submitHandlers = useMemo(() => ({
+    login: async () => {
+      await login(form.email, form.password);
+    },
+    register: async () => {
+      await register(form.userName, form.email, form.password, form.profileImageUrl || undefined);
+      setSuccess('Registration successful. Please verify your email with the code sent by Cognito.');
+      setMode('verify-email');
+    },
+    'verify-email': async () => {
+      await verifyEmail(form.email, form.code, form.password);
+    },
+    'forgot-password': async () => {
+      await forgotPassword(form.email);
+      setSuccess('Verification code sent. Check your email.');
+      setMode('reset-password');
+    },
+    'reset-password': async () => {
+      await confirmForgotPassword(form.email, form.code, form.newPassword);
+      setSuccess('Password reset successful. Please login.');
+      setMode('login');
+      setForm((prev) => ({ ...prev, password: '', newPassword: '', code: '' }));
+    }
+  }), [confirmForgotPassword, forgotPassword, form.code, form.email, form.newPassword, form.password, form.profileImageUrl, form.userName, login, register, verifyEmail]);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -41,38 +90,10 @@ export default function AuthForm() {
     setSuccess('');
 
     try {
-      if (mode === 'login') {
-        await login(form.email, form.password);
-      } else if (mode === 'register') {
-        await register(form.userName, form.email, form.password, form.profileImageUrl || undefined);
-        setSuccess('Registration successful. Please verify your email with the code sent by Cognito.');
-        setMode('verify-email');
-      } else if (mode === 'verify-email') {
-        await verifyEmail(form.email, form.code, form.password);
-      } else if (mode === 'forgot-password') {
-        await forgotPassword(form.email);
-        setSuccess('Verification code sent. Check your email.');
-        setMode('reset-password');
-      } else {
-        await confirmForgotPassword(form.email, form.code, form.newPassword);
-        setSuccess('Password reset successful. Please login.');
-        setMode('login');
-        setForm((prev) => ({ ...prev, password: '', newPassword: '', code: '' }));
-      }
+      await submitHandlers[mode]();
     } catch (submitError) {
       console.error('Auth form submission failed', submitError);
-      setError(
-        getFriendlyAuthErrorMessage(
-          submitError,
-          mode === 'verify-email'
-            ? 'verify-email'
-            : mode === 'forgot-password'
-              ? 'forgot-password'
-              : mode === 'reset-password'
-                ? 'reset-password'
-                : mode
-        )
-      );
+      setError(getFriendlyAuthErrorMessage(submitError, modeErrorContext[mode]));
     } finally {
       setLoading(false);
     }
@@ -93,17 +114,7 @@ export default function AuthForm() {
 
   return (
     <section className="card">
-      <h2>
-        {mode === 'login'
-          ? 'Login'
-          : mode === 'register'
-            ? 'Create account'
-            : mode === 'verify-email'
-              ? 'Verify email'
-              : mode === 'forgot-password'
-              ? 'Forgot password'
-              : 'Reset password'}
-      </h2>
+      <h2>{modeHeading[mode]}</h2>
       <form onSubmit={onSubmit} className="form">
         {(mode === 'register' || mode === 'verify-email') && (
           <label>
@@ -116,7 +127,6 @@ export default function AuthForm() {
           Email
           <input name="email" value={form.email} onChange={onChange} type="email" required disabled={mode === 'verify-email'} />
         </label>
-
 
         {(mode === 'register' || mode === 'verify-email') && (
           <label>
@@ -146,7 +156,6 @@ export default function AuthForm() {
             />
           </label>
         )}
-
 
         {mode === 'verify-email' && (
           <>
@@ -184,17 +193,7 @@ export default function AuthForm() {
         {success && <p className="success">{success}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading
-            ? 'Please wait…'
-            : mode === 'login'
-              ? 'Login'
-              : mode === 'register'
-                ? 'Register'
-                : mode === 'verify-email'
-                  ? 'Verify email'
-                  : mode === 'forgot-password'
-                  ? 'Send code'
-                  : 'Reset password'}
+          {loading ? 'Please wait…' : modeSubmitLabel[mode]}
         </button>
       </form>
 
