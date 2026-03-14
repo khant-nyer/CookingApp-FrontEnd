@@ -22,8 +22,6 @@ export function extractCollection<T>(payload: unknown): T[] {
   return [];
 }
 
-type LoaderResult<T> = { data: T[]; error?: string };
-
 export default function useBackendData() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
