@@ -182,6 +182,7 @@ export interface BackendExplorerViewState {
   error: string;
   loading: boolean;
   loadAll: () => Promise<void>;
+  loadTabData: (tab: TabKey) => Promise<void>;
 }
 
 export interface BackendExplorerCreateFlow {
