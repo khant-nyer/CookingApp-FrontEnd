@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../../context/useAuth';
 import useBackendData from './useBackendData';
 import type { TabKey } from '../types';
 
 export default function useExplorerViewState() {
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKey>('foods');
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
@@ -10,8 +12,9 @@ export default function useExplorerViewState() {
   const { loadTabData } = backendData;
 
   useEffect(() => {
+    if (!token) return;
     void loadTabData(activeTab);
-  }, [activeTab, loadTabData]);
+  }, [activeTab, loadTabData, token]);
 
   useEffect(() => {
     setSelectedId('');
