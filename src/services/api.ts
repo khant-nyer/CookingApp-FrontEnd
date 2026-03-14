@@ -68,6 +68,8 @@ interface RequestOptions extends RequestInit {
 
 let tokenProvider: TokenProvider = readStoredToken;
 
+const inFlightGetRequests = new Map<string, Promise<unknown>>();
+
 export function setApiTokenProvider(provider: TokenProvider) {
   tokenProvider = provider;
 }
@@ -97,6 +99,17 @@ function normalizeIngredientPayload(payload: ApiPayload = {}) {
 
 function buildUrl(path: string) {
   return `${API_BASE_URL}${path}`;
+}
+
+function getHeaderValue(headers: HeadersInit, name: string): string {
+  if (headers instanceof Headers) return headers.get(name) || "";
+  if (Array.isArray(headers)) {
+    const entry = headers.find(([headerName]) => headerName.toLowerCase() === name.toLowerCase());
+    return entry?.[1] || "";
+  }
+
+  const record = headers as Record<string, string>;
+  return record[name] || record[name.toLowerCase()] || "";
 }
 
 function getHeaders(options: { skipAuth?: boolean } = {}): HeadersInit {
@@ -197,27 +210,44 @@ async function request<T = unknown>(path: string, options: RequestOptions = {}):
   const method = (rawMethod || 'GET').toUpperCase();
   const mergedHeaders = { ...getHeaders({ skipAuth }), ...(headers || {}) };
 
-  for (let attempt = 0; attempt <= MAX_GET_RETRIES; attempt += 1) {
-    try {
-      const response = await fetchWithTimeout(url, { ...rest, method, headers: mergedHeaders }, timeoutMs);
+  const executeRequest = async () => {
+    for (let attempt = 0; attempt <= MAX_GET_RETRIES; attempt += 1) {
+      try {
+        const response = await fetchWithTimeout(url, { ...rest, method, headers: mergedHeaders }, timeoutMs);
 
-      if (!response.ok) {
-        throw await parseErrorEnvelope(response);
+        if (!response.ok) {
+          throw await parseErrorEnvelope(response);
+        }
+
+        if (response.status === 204) return null as T;
+        return response.json() as Promise<T>;
+      } catch (error) {
+        const apiError = error instanceof ApiError
+          ? error
+          : new ApiError('Unexpected request failure', { code: 'UNEXPECTED_ERROR', details: error });
+
+        if (!shouldRetry(method, apiError, attempt)) throw apiError;
+        await wait((attempt + 1) * 250);
       }
-
-      if (response.status === 204) return null as T;
-      return response.json() as Promise<T>;
-    } catch (error) {
-      const apiError = error instanceof ApiError
-        ? error
-        : new ApiError('Unexpected request failure', { code: 'UNEXPECTED_ERROR', details: error });
-
-      if (!shouldRetry(method, apiError, attempt)) throw apiError;
-      await wait((attempt + 1) * 250);
     }
-  }
 
-  throw new ApiError('Request failed after retries', { code: 'RETRY_EXHAUSTED', retryable: false });
+    throw new ApiError('Request failed after retries', { code: 'RETRY_EXHAUSTED', retryable: false });
+  };
+
+  if (method !== 'GET') return executeRequest();
+
+  const authHeader = getHeaderValue(mergedHeaders, 'Authorization');
+  const requestKey = `${method}:${url}:${authHeader}`;
+  const existingRequest = inFlightGetRequests.get(requestKey);
+  if (existingRequest) return existingRequest as Promise<T>;
+
+  const nextRequest = executeRequest().finally(() => {
+    if (inFlightGetRequests.get(requestKey) === nextRequest) {
+      inFlightGetRequests.delete(requestKey);
+    }
+  });
+  inFlightGetRequests.set(requestKey, nextRequest);
+  return nextRequest as Promise<T>;
 }
 
 export const api = {
