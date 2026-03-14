@@ -1,379 +1,77 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { api } from '../../../services/api';
+import { useMemo } from 'react';
 import { getItemId, getRecipeTileId } from '../utils/ids';
-import { normalizeNutrientKey, normalizeNutritionEntry } from '../utils/nutrients';
-import {
-  buildUpdateIngredientPayload,
-  buildUpdateRecipePayload
-} from '../utils/payloadMappers';
-import useBackendData from './useBackendData';
-import useFoodActions from './useFoodActions';
-import useIngredientActions from './useIngredientActions';
-import useRecipeActions from './useRecipeActions';
-import { createFlowReducer, initialCreateFlowState } from '../reducers/createFlowReducer';
-import { initialUpdateFlowState, updateFlowReducer } from '../reducers/updateFlowReducer';
-import type {
-  BackendExplorerController,
-  DeleteModalState,
-  EntityType,
-  FoodForm,
-  Ingredient,
-  IngredientForm,
-  IngredientNutrition,
-  IngredientUpdateForm,
-  NutritionDraft,
-  Recipe,
-  RecipeForm,
-  RecipeIngredientDraft,
-  RecipeIngredientItem,
-  RecipeInstructionDraft,
-  RecipeInstructionItem,
-  RecipeUpdateForm,
-  TabKey,
-  UpdateModalState,
-  Updater
-} from '../types';
+import useExplorerCreateFlow from './useExplorerCreateFlow';
+import useExplorerDeleteFlow from './useExplorerDeleteFlow';
+import useExplorerUpdateFlow from './useExplorerUpdateFlow';
+import useExplorerViewState from './useExplorerViewState';
+import type { BackendExplorerController } from '../types';
 
-export function getSelectedIdForTabChange() {
-  return '';
-}
-
-export function appendUpdateNutritionToForm(form: IngredientUpdateForm, draft: NutritionDraft) {
-  const nutritionEntry = normalizeNutritionEntry(draft);
-  if (!nutritionEntry) return null;
-
-  return {
-    ...form,
-    nutritionList: [...(form.nutritionList || []), nutritionEntry]
-  };
-}
-
-export async function executeDeleteConfirmation({
-  deleteModal,
-  run,
-  setDeleteModal
-}: {
-  deleteModal: DeleteModalState;
-  run: (action: () => Promise<unknown> | unknown) => Promise<void>;
-  setDeleteModal: (value: Updater<DeleteModalState>) => void;
-}) {
-  if (!deleteModal.action) {
-    setDeleteModal({ open: false, message: '', action: null });
-    return;
-  }
-
-  await run(deleteModal.action);
-  setDeleteModal({ open: false, message: '', action: null });
-}
-
-export async function executeUpdateConfirmation({
-  updateModal,
-  run
-}: {
-  updateModal: UpdateModalState;
-  run: (action: () => Promise<unknown> | unknown) => Promise<void>;
-}) {
-  if (updateModal.type === 'ingredient') {
-    const form = updateModal.form as IngredientUpdateForm;
-    await run(() => api.updateIngredient(updateModal.itemId, buildUpdateIngredientPayload(form)));
-  }
-
-  if (updateModal.type === 'recipe') {
-    const form = updateModal.form as RecipeUpdateForm;
-    await run(() => api.updateRecipe(updateModal.itemId, buildUpdateRecipePayload(form)));
-  }
-}
+export {
+  appendUpdateNutritionToForm,
+  executeDeleteConfirmation,
+  executeUpdateConfirmation
+} from './backendExplorerFlowHelpers';
 
 export default function useBackendExplorerController(): BackendExplorerController {
-  const [activeTab, setActiveTab] = useState<TabKey>('foods');
-  const [selectedId, setSelectedId] = useState('');
-  const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
-
-  const {
-    foods,
-    ingredients,
-    recipes,
-    error,
-    loading,
-    setLoading,
-    setError,
-    loadAll,
-    runWithRefresh
-  } = useBackendData();
-
-  const [foodForm, setFoodForm] = useState<FoodForm>({ name: '', category: '', imageUrl: '' });
-  const [ingredientForm, setIngredientForm] = useState<IngredientForm>({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
-  const [nutritionDraft, setNutritionDraft] = useState<NutritionDraft>({ nutrient: 'CALORIES', value: '', unit: 'G' });
-  const [ingredientNutritions, setIngredientNutritions] = useState<IngredientNutrition[]>([]);
-
-  const [recipeForm, setRecipeForm] = useState<RecipeForm>({ foodId: '', version: 'v1', description: '' });
-  const [recipeIngredientDraft, setRecipeIngredientDraft] = useState<RecipeIngredientDraft>({ ingredientId: '', quantity: '', unit: 'G', note: '' });
-  const [recipeInstructionDraft, setRecipeInstructionDraft] = useState<RecipeInstructionDraft>({ description: '', tutorialVideoUrl: '' });
-  const [recipeIngredients, setRecipeIngredients] = useState<RecipeIngredientItem[]>([]);
-  const [recipeInstructions, setRecipeInstructions] = useState<RecipeInstructionItem[]>([]);
-
-  const [createFlowState, dispatchCreateFlow] = useReducer(createFlowReducer, initialCreateFlowState);
-  const [updateFlowState, dispatchUpdateFlow] = useReducer(updateFlowReducer, initialUpdateFlowState);
-  const { createModal, createError, createSuccess } = createFlowState;
-  const { updateNutritionDraft, deleteModal, updateModal } = updateFlowState;
-  const hasLoadedInitiallyRef = useRef(false);
-
-  useEffect(() => {
-    if (hasLoadedInitiallyRef.current) return;
-    hasLoadedInitiallyRef.current = true;
-    loadAll();
-  }, [loadAll]);
-
-  useEffect(() => {
-    setSelectedId(getSelectedIdForTabChange());
-  }, [activeTab]);
-
-  function openCreateModal(type: EntityType) {
-    dispatchCreateFlow({ type: 'open_create_modal', entityType: type });
-  }
-
-  function closeCreateModal() {
-    dispatchCreateFlow({ type: 'close_create_modal' });
-  }
-
-  function setCreateSuccessByType(type: EntityType, message: string) {
-    dispatchCreateFlow({ type: 'set_create_success', entityType: type, message });
-  }
+  const viewStateCore = useExplorerViewState();
 
   async function run(action: () => Promise<unknown> | unknown) {
-    await runWithRefresh(action);
+    await viewStateCore.runWithRefresh(action);
   }
 
-  function setCreateError(message: string) {
-    dispatchCreateFlow({ type: 'set_create_error', message });
-  }
-
-  function setUpdateModal(value: Updater<UpdateModalState>) {
-    dispatchUpdateFlow({ type: 'set_update_modal', value });
-  }
-
-  function setDeleteModal(value: Updater<DeleteModalState>) {
-    dispatchUpdateFlow({ type: 'set_delete_modal', value });
-  }
-
-  function setUpdateNutritionDraft(value: Updater<NutritionDraft>) {
-    dispatchUpdateFlow({ type: 'set_update_nutrition_draft', value });
-  }
-
-  const { createFood } = useFoodActions({
-    foodForm,
-    setFoodForm,
-    setCreateError,
-    setCreateSuccessByType,
-    closeCreateModal,
-    setLoading,
-    loadAll
+  const createFlow = useExplorerCreateFlow({
+    ingredients: viewStateCore.ingredients,
+    setLoading: viewStateCore.setLoading,
+    loadAll: viewStateCore.loadAll
   });
 
-  const { addNutrition, createIngredient } = useIngredientActions({
-    ingredientForm,
-    setIngredientForm,
-    nutritionDraft,
-    setNutritionDraft,
-    ingredientNutritions,
-    setIngredientNutritions,
-    setCreateError,
-    setCreateSuccessByType,
-    closeCreateModal,
-    setLoading,
-    loadAll
+  const updateFlow = useExplorerUpdateFlow({
+    run,
+    setError: viewStateCore.setError
   });
 
-  const { addRecipeIngredient, addRecipeInstruction, createRecipe } = useRecipeActions({
-    ingredients,
-    recipeForm,
-    setRecipeForm,
-    recipeIngredientDraft,
-    setRecipeIngredientDraft,
-    recipeInstructionDraft,
-    setRecipeInstructionDraft,
-    recipeIngredients,
-    setRecipeIngredients,
-    recipeInstructions,
-    setRecipeInstructions,
-    setCreateError,
-    setCreateSuccessByType,
-    closeCreateModal,
-    setLoading,
-    loadAll
-  });
-
-  function addUpdateNutrition() {
-    if (!updateNutritionDraft.value) return setError('Nutrition value is required.');
-
-    setUpdateModal((prev) => {
-      const form = prev.form as IngredientUpdateForm;
-      const nextForm = appendUpdateNutritionToForm(form, updateNutritionDraft);
-      if (!nextForm) {
-        setError('Nutrition value must be a valid number.');
-        return prev;
-      }
-
-      return {
-        ...prev,
-        form: nextForm
-      };
-    });
-    setUpdateNutritionDraft((prev) => ({ ...prev, value: '' }));
-  }
-
-  function requestDelete(message: string, action: () => Promise<unknown> | unknown) {
-    setDeleteModal({ open: true, message, action });
-  }
-
-  function handleDeleteFood(food: { id?: string | number; _id?: string | number }) {
-    requestDelete('Delete this food?', () => api.deleteFood(getItemId(food)));
-  }
-
-  function handleDeleteIngredient(ingredient: Ingredient) {
-    requestDelete('Delete this ingredient?', () => api.deleteIngredient(getItemId(ingredient)));
-  }
-
-  function handleDeleteRecipe(recipe: Recipe) {
-    requestDelete('Delete this recipe?', () => api.deleteRecipe(getItemId(recipe)));
-  }
-
-  async function confirmDelete() {
-    await executeDeleteConfirmation({ deleteModal, run, setDeleteModal });
-  }
-
-  function openIngredientUpdateModal(item: Ingredient) {
-    setUpdateNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
-    setUpdateModal({
-      open: true,
-      type: 'ingredient',
-      itemId: getItemId(item) || null,
-      title: `Update ${item?.name || 'Ingredient'}`,
-      form: {
-        name: item?.name || '',
-        category: item?.category || '',
-        description: item?.description || '',
-        servingAmount: String(item?.servingAmount ?? ''),
-        servingUnit: item?.servingUnit || 'G',
-        imageUrl: item?.imageUrl || '',
-        nutritionList: Array.isArray(item?.nutritionList)
-          ? item.nutritionList.map((n) => ({ nutrient: normalizeNutrientKey(n.nutrient), value: n.value ?? '', unit: n.unit || 'G' }))
-          : []
-      }
-    });
-  }
-
-  function openRecipeUpdateModal(item: Recipe) {
-    setUpdateModal({
-      open: true,
-      type: 'recipe',
-      itemId: getItemId(item) || null,
-      title: `Update ${item?.foodName || 'Recipe'} ${item?.version ? `(${item.version})` : ''}`,
-      form: {
-        foodId: String(item?.foodId ?? ''),
-        version: item?.version || '',
-        description: item?.description || '',
-        ingredients: Array.isArray(item?.ingredients)
-          ? item.ingredients.map((ri) => ({ ingredientId: String(ri.ingredientId ?? ''), quantity: String(ri.quantity ?? ''), unit: ri.unit || 'G', note: ri.note || '' }))
-          : [],
-        instructions: Array.isArray(item?.instructions)
-          ? item.instructions.map((inst) => ({ description: inst.description || '', tutorialVideoUrl: inst.tutorialVideoUrl || '' }))
-          : []
-      }
-    });
-  }
-
-  async function confirmUpdate() {
-    await executeUpdateConfirmation({ updateModal, run });
-    setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
-  }
+  const deleteFlow = useExplorerDeleteFlow({ run });
 
   const selectedFood = useMemo(
-    () => foods.find((item) => String(getItemId(item)) === String(selectedId)),
-    [foods, selectedId]
+    () => viewStateCore.foods.find((item) => String(getItemId(item)) === String(viewStateCore.selectedId)),
+    [viewStateCore.foods, viewStateCore.selectedId]
   );
 
   const selectedIngredient = useMemo(
-    () => ingredients.find((item) => String(getItemId(item)) === String(selectedId)),
-    [ingredients, selectedId]
+    () => viewStateCore.ingredients.find((item) => String(getItemId(item)) === String(viewStateCore.selectedId)),
+    [viewStateCore.ingredients, viewStateCore.selectedId]
   );
 
   const selectedRecipe = useMemo(
-    () => recipes.find((item, index) => String(getRecipeTileId(item, index)) === String(selectedId)),
-    [recipes, selectedId]
+    () => viewStateCore.recipes.find((item, index) => String(getRecipeTileId(item, index)) === String(viewStateCore.selectedId)),
+    [viewStateCore.recipes, viewStateCore.selectedId]
   );
 
   const nutrientFilteredIngredients = useMemo(
-    () => ingredients.filter((ingredient) => Array.isArray(ingredient?.nutritionList)
-      && ingredient.nutritionList.some((nutrition) => nutrition?.nutrient === selectedNutrient)),
-    [ingredients, selectedNutrient]
+    () => viewStateCore.ingredients.filter((ingredient) => Array.isArray(ingredient?.nutritionList)
+      && ingredient.nutritionList.some((nutrition) => nutrition?.nutrient === viewStateCore.selectedNutrient)),
+    [viewStateCore.ingredients, viewStateCore.selectedNutrient]
   );
 
   return {
     viewState: {
-      activeTab,
-      setActiveTab,
-      selectedId,
-      setSelectedId,
-      selectedNutrient,
-      setSelectedNutrient,
-      error,
-      loading,
-      loadAll
+      activeTab: viewStateCore.activeTab,
+      setActiveTab: viewStateCore.setActiveTab,
+      selectedId: viewStateCore.selectedId,
+      setSelectedId: viewStateCore.setSelectedId,
+      selectedNutrient: viewStateCore.selectedNutrient,
+      setSelectedNutrient: viewStateCore.setSelectedNutrient,
+      error: viewStateCore.error,
+      loading: viewStateCore.loading,
+      loadAll: viewStateCore.loadAll
     },
-    createFlow: {
-      createModal,
-      createError,
-      createSuccess,
-      openCreateModal,
-      closeCreateModal,
-      createFood,
-      createIngredient,
-      createRecipe,
-      foodForm,
-      setFoodForm,
-      ingredientForm,
-      setIngredientForm,
-      ingredientNutritions,
-      setIngredientNutritions,
-      nutritionDraft,
-      setNutritionDraft,
-      addNutrition,
-      recipeForm,
-      setRecipeForm,
-      recipeIngredients,
-      setRecipeIngredients,
-      recipeIngredientDraft,
-      setRecipeIngredientDraft,
-      addRecipeIngredient,
-      recipeInstructionDraft,
-      setRecipeInstructionDraft,
-      addRecipeInstruction,
-      recipeInstructions,
-      setRecipeInstructions
-    },
-    updateFlow: {
-      updateModal,
-      setUpdateModal,
-      updateNutritionDraft,
-      setUpdateNutritionDraft,
-      addUpdateNutrition,
-      openIngredientUpdateModal,
-      openRecipeUpdateModal,
-      confirmUpdate
-    },
-    deleteFlow: {
-      deleteModal,
-      setDeleteModal,
-      confirmDelete,
-      handleDeleteFood,
-      handleDeleteIngredient,
-      handleDeleteRecipe
-    },
+    createFlow,
+    updateFlow,
+    deleteFlow,
     entities: {
-      foods,
-      ingredients,
-      recipes,
+      foods: viewStateCore.foods,
+      ingredients: viewStateCore.ingredients,
+      recipes: viewStateCore.recipes,
       selectedFood,
       selectedIngredient,
       selectedRecipe,
