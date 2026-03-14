@@ -14,6 +14,24 @@ interface ListEnvelope<T> {
 
 const COLLECTION_KEYS = ['data', 'items', 'content', 'result', 'payload'] as const;
 const MAX_COLLECTION_SEARCH_DEPTH = 3;
+const MAX_JSON_PARSE_DEPTH = 2;
+
+function parseJsonStringCandidate(payload: unknown, parseDepth = 0): unknown {
+  if (typeof payload !== 'string' || parseDepth >= MAX_JSON_PARSE_DEPTH) return payload;
+
+  const trimmed = payload.trim();
+  if (!trimmed) return payload;
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (typeof parsed === 'string') {
+      return parseJsonStringCandidate(parsed, parseDepth + 1);
+    }
+    return parsed;
+  } catch {
+    return payload;
+  }
+}
 
 function looksLikeEntityCollection(value: unknown) {
   if (!Array.isArray(value)) return false;
@@ -39,30 +57,34 @@ export function extractCollection<T>(
   depth = 0,
   preferredKeys: string[] = []
 ): T[] {
-  if (looksLikeEntityCollection(payload)) return payload as T[];
-  if (Array.isArray(payload)) return [];
-  if (!payload || typeof payload !== 'object' || depth > MAX_COLLECTION_SEARCH_DEPTH) return [];
+  const normalizedPayload = parseJsonStringCandidate(payload);
 
-  const candidate = payload as ListEnvelope<T> & Record<string, unknown>;
+  if (looksLikeEntityCollection(normalizedPayload)) return normalizedPayload as T[];
+  if (Array.isArray(normalizedPayload)) return [];
+  if (!normalizedPayload || typeof normalizedPayload !== 'object' || depth > MAX_COLLECTION_SEARCH_DEPTH) return [];
+
+  const candidate = normalizedPayload as ListEnvelope<T> & Record<string, unknown>;
 
   const preferredMatch = findCaseInsensitiveArray<T>(candidate, preferredKeys);
   if (preferredMatch) return preferredMatch;
 
   for (const key of COLLECTION_KEYS) {
-    const value = candidate[key];
+    const value = parseJsonStringCandidate(candidate[key]);
     if (looksLikeEntityCollection(value)) return value as T[];
     const nested = extractCollection<T>(value, depth + 1, preferredKeys);
     if (nested.length > 0) return nested;
   }
 
-  for (const value of Object.values(candidate)) {
+  for (const rawValue of Object.values(candidate)) {
+    const value = parseJsonStringCandidate(rawValue);
     if (looksLikeEntityCollection(value)) return value as T[];
     if (!value || typeof value !== 'object') continue;
     const nested = extractCollection<T>(value, depth + 1, preferredKeys);
     if (nested.length > 0) return nested;
   }
 
-  for (const value of Object.values(candidate)) {
+  for (const rawValue of Object.values(candidate)) {
+    const value = parseJsonStringCandidate(rawValue);
     if (!value || Array.isArray(value) || typeof value !== 'object') continue;
     const nested = extractCollection<T>(value, depth + 1, preferredKeys);
     if (nested.length > 0) return nested;
