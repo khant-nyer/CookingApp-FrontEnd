@@ -15,6 +15,18 @@ interface ListEnvelope<T> {
 const COLLECTION_KEYS = ['data', 'items', 'content', 'result', 'payload'] as const;
 const MAX_COLLECTION_SEARCH_DEPTH = 3;
 
+function findCaseInsensitiveArray<T>(candidate: Record<string, unknown>, keys: string[]) {
+  if (!keys.length) return null;
+
+  const entries = Object.entries(candidate);
+  for (const key of keys) {
+    const matched = entries.find(([entryKey]) => entryKey.toLowerCase() === key.toLowerCase());
+    if (matched && Array.isArray(matched[1])) return matched[1] as T[];
+  }
+
+  return null;
+}
+
 export function extractCollection<T>(
   payload: unknown,
   depth = 0,
@@ -25,14 +37,18 @@ export function extractCollection<T>(
 
   const candidate = payload as ListEnvelope<T> & Record<string, unknown>;
 
-  for (const preferredKey of preferredKeys) {
-    const value = candidate[preferredKey];
-    if (Array.isArray(value)) return value as T[];
-  }
+  const preferredMatch = findCaseInsensitiveArray<T>(candidate, preferredKeys);
+  if (preferredMatch) return preferredMatch;
 
   for (const key of COLLECTION_KEYS) {
     const value = candidate[key];
     if (Array.isArray(value)) return value as T[];
+    const nested = extractCollection<T>(value, depth + 1, preferredKeys);
+    if (nested.length > 0) return nested;
+  }
+
+  for (const value of Object.values(candidate)) {
+    if (!value || Array.isArray(value) || typeof value !== 'object') continue;
     const nested = extractCollection<T>(value, depth + 1, preferredKeys);
     if (nested.length > 0) return nested;
   }
