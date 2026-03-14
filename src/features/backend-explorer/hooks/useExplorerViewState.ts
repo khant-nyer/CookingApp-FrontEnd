@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../../context/useAuth';
 import useBackendData from './useBackendData';
 import type { TabKey } from '../types';
 
@@ -12,7 +13,7 @@ export default function useExplorerViewState() {
 
   useEffect(() => {
     void loadTabData(activeTab);
-  }, [activeTab, loadTabData]);
+  }, [activeTab, loadTabData, token]);
 
   useEffect(() => {
     setSelectedId('');
