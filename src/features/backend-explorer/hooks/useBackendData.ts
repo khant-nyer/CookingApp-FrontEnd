@@ -62,6 +62,12 @@ export function extractCollection<T>(
     if (nested.length > 0) return nested;
   }
 
+  for (const value of Object.values(candidate)) {
+    if (!value || Array.isArray(value) || typeof value !== 'object') continue;
+    const nested = extractCollection<T>(value, depth + 1, preferredKeys);
+    if (nested.length > 0) return nested;
+  }
+
   return [];
 }
 
