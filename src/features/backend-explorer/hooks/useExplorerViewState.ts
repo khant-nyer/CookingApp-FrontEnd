@@ -3,6 +3,7 @@ import useBackendData from './useBackendData';
 import type { TabKey } from '../types';
 
 export default function useExplorerViewState() {
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKey>('foods');
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
