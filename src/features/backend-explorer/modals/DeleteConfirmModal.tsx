@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { DeleteModalState } from '../types';
 
 interface DeleteConfirmModalProps {
@@ -6,7 +7,7 @@ interface DeleteConfirmModalProps {
   onConfirm: () => void;
 }
 
-export default function DeleteConfirmModal({ deleteModal, onCancel, onConfirm }: DeleteConfirmModalProps) {
+function DeleteConfirmModal({ deleteModal, onCancel, onConfirm }: DeleteConfirmModalProps) {
   if (!deleteModal.open) return null;
 
   return (
@@ -22,3 +23,5 @@ export default function DeleteConfirmModal({ deleteModal, onCancel, onConfirm }:
     </div>
   );
 }
+
+export default memo(DeleteConfirmModal);
