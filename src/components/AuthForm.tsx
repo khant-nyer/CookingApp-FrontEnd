@@ -2,17 +2,8 @@ import { useMemo, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
-
-type AuthMode = 'login' | 'register' | 'verify-email' | 'forgot-password' | 'reset-password';
-
-interface AuthFormState {
-  userName: string;
-  profileImageUrl: string;
-  email: string;
-  password: string;
-  code: string;
-  newPassword: string;
-}
+import { createSubmitHandlers, modeErrorContext, modeHeading, modeSubmitLabel } from './authFormLogic';
+import type { AuthMode, AuthFormState } from './authFormLogic';
 
 const modeHeading: Record<AuthMode, string> = {
   login: 'Login',
@@ -58,30 +49,13 @@ export default function AuthForm() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  const submitHandlers = useMemo(() => ({
-    login: async () => {
-      await login(form.email, form.password);
-    },
-    register: async () => {
-      await register(form.userName, form.email, form.password, form.profileImageUrl || undefined);
-      setSuccess('Registration successful. Please verify your email with the code sent by Cognito.');
-      setMode('verify-email');
-    },
-    'verify-email': async () => {
-      await verifyEmail(form.email, form.code, form.password);
-    },
-    'forgot-password': async () => {
-      await forgotPassword(form.email);
-      setSuccess('Verification code sent. Check your email.');
-      setMode('reset-password');
-    },
-    'reset-password': async () => {
-      await confirmForgotPassword(form.email, form.code, form.newPassword);
-      setSuccess('Password reset successful. Please login.');
-      setMode('login');
-      setForm((prev) => ({ ...prev, password: '', newPassword: '', code: '' }));
-    }
-  }), [confirmForgotPassword, forgotPassword, form.code, form.email, form.newPassword, form.password, form.profileImageUrl, form.userName, login, register, verifyEmail]);
+  const submitHandlers = useMemo(() => createSubmitHandlers({
+    form,
+    actions: { login, register, verifyEmail, forgotPassword, confirmForgotPassword },
+    setSuccess,
+    setMode,
+    setForm
+  }), [confirmForgotPassword, forgotPassword, form, login, register, verifyEmail]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
