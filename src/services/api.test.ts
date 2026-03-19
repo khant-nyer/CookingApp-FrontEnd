@@ -144,6 +144,20 @@ describe('api hardening behavior', () => {
     expect(fetchSpy.mock.calls[1]?.[0]).toContain('/api/ingredients?page=1');
   });
 
+  it('returns already fetched paginated data when later pages fail', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        content: [{ id: 1 }],
+        number: 0,
+        last: false,
+        totalPages: 2
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+      .mockRejectedValueOnce(new Error('network error'));
+
+    const data = await api.getIngredients();
+    expect(data).toEqual([{ id: 1 }]);
+  });
+
   it('does not retry non-GET requests when failing', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify({ message: 'temporary' }), { status: 503 }));

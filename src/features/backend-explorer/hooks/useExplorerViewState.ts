@@ -12,6 +12,7 @@ export default function useExplorerViewState() {
   const { loadAll } = backendData;
 
   useEffect(() => {
+    if (!token) return;
     void loadAll();
   }, [loadAll, token]);
 

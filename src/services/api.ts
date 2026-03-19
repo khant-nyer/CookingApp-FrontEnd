@@ -274,7 +274,12 @@ async function getAllPages<T>(path: string): Promise<T[]> {
 
   while (!isLastPage) {
     currentPage += 1;
-    const nextResponse = await request<PaginatedEnvelope<T> | T[]>(`${path}?page=${currentPage}`);
+    let nextResponse: PaginatedEnvelope<T> | T[];
+    try {
+      nextResponse = await request<PaginatedEnvelope<T> | T[]>(`${path}?page=${currentPage}`);
+    } catch {
+      break;
+    }
     if (Array.isArray(nextResponse)) {
       aggregatedItems.push(...nextResponse);
       break;
