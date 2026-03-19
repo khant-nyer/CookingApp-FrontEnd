@@ -103,8 +103,11 @@ export default function useBackendData() {
   const isMountedRef = useRef(true);
   const tabRequestRef = useRef<Partial<Record<TabKey, Promise<void>>>>({});
 
-  useEffect(() => () => {
-    isMountedRef.current = false;
+  useEffect(() => {
+    isMountedRef.current = true;   // ← ADD THIS reset
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const loadFoods = useCallback(async (): Promise<LoaderResult<Food>> => {
