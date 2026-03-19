@@ -123,6 +123,7 @@ describe('api hardening behavior', () => {
     const requestInit = fetchSpy.mock.calls[0]?.[1] as RequestInit;
     const headers = requestInit.headers as Record<string, string>;
     expect(headers['Idempotency-Key']).toBe('reg-cheft-3245');
+    expect(headers['X-Idempotency-Key']).toBe('reg-cheft-3245');
   });
 
   it('retries GET once for retryable server failures', async () => {

@@ -461,11 +461,13 @@ export const api = {
     });
   },
   register(payload: { email: string; userName: string; password: string; profileImageUrl?: string }) {
+    const idempotencyKey = buildRegistrationIdempotencyKey(payload.userName);
     return request('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: {
-        'Idempotency-Key': buildRegistrationIdempotencyKey(payload.userName)
+        'Idempotency-Key': idempotencyKey,
+        'X-Idempotency-Key': idempotencyKey
       },
       skipAuth: true
     });
