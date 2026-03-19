@@ -139,6 +139,11 @@ function getHeaders(options: { skipAuth?: boolean } = {}): HeadersInit {
   return headers;
 }
 
+function buildRegistrationIdempotencyKey(userName: string) {
+  const randomSuffix = Math.floor(Math.random() * 10_000).toString().padStart(4, '0');
+  return `reg-${userName}-${randomSuffix}`;
+}
+
 function shouldRetry(method: string, error: ApiError, attempt: number) {
   if (method !== 'GET' || attempt >= MAX_GET_RETRIES) return false;
   return error.retryable;
@@ -459,6 +464,9 @@ export const api = {
     return request('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(payload),
+      headers: {
+        'Idempotency-Key': buildRegistrationIdempotencyKey(payload.userName)
+      },
       skipAuth: true
     });
   }
