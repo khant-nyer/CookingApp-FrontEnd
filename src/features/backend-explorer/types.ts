@@ -10,6 +10,22 @@ export type StateSetter<T> = Dispatch<SetStateAction<T>>;
 export type InputChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
 export type InputKeyboardEvent = KeyboardEvent<HTMLInputElement>;
 
+export interface PaginationInfo {
+  page: number;
+  size: number;
+  totalPages: number;
+  totalElements: number;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+}
+
+export interface PaginationState {
+  foods: PaginationInfo;
+  ingredients: PaginationInfo;
+  recipes: PaginationInfo;
+}
+
 
 export interface Identifiable {
   id?: string | number;
@@ -182,7 +198,8 @@ export interface BackendExplorerViewState {
   error: string;
   loading: boolean;
   loadAll: () => Promise<void>;
-  loadTabData: (tab: TabKey) => Promise<void>;
+  pagination: PaginationState;
+  loadTabData: (tab: TabKey, page?: number) => Promise<void>;
 }
 
 export interface BackendExplorerCreateFlow {

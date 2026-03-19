@@ -14,10 +14,15 @@ const NUTRIENT_ALIASES: Record<string, string> = {
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 export type ApiPayload = Record<string, JsonValue>;
-type PaginatedEnvelope<T> = {
+export type PaginatedEnvelope<T> = {
   content?: T[];
+  empty?: boolean;
+  first?: boolean;
   last?: boolean;
   number?: number;
+  numberOfElements?: number;
+  size?: number;
+  totalElements?: number;
   totalPages?: number;
 };
 
@@ -293,10 +298,66 @@ async function getAllPages<T>(path: string): Promise<T[]> {
   return aggregatedItems;
 }
 
+async function getPage<T>(path: string, page = 0, size = 20): Promise<PaginatedEnvelope<T>> {
+  const separator = path.includes('?') ? '&' : '?';
+  const response = await request<PaginatedEnvelope<T> | T[]>(`${path}${separator}page=${page}&size=${size}`);
+
+  if (Array.isArray(response)) {
+    const normalizedPage = Number.isFinite(page) ? page : 0;
+    return {
+      content: response,
+      empty: response.length === 0,
+      first: normalizedPage <= 0,
+      last: true,
+      number: normalizedPage,
+      numberOfElements: response.length,
+      size,
+      totalElements: response.length,
+      totalPages: 1
+    };
+  }
+
+  if (!isPaginatedEnvelope<T>(response)) {
+    return {
+      content: [],
+      empty: true,
+      first: true,
+      last: true,
+      number: 0,
+      numberOfElements: 0,
+      size,
+      totalElements: 0,
+      totalPages: 0
+    };
+  }
+
+  return {
+    ...response,
+    content: response.content ?? [],
+    number: typeof response.number === 'number' ? response.number : page,
+    size: typeof response.size === 'number' ? response.size : size,
+    numberOfElements: typeof response.numberOfElements === 'number'
+      ? response.numberOfElements
+      : (response.content ?? []).length,
+    totalElements: typeof response.totalElements === 'number'
+      ? response.totalElements
+      : (response.content ?? []).length,
+    totalPages: typeof response.totalPages === 'number' ? response.totalPages : 1,
+    first: typeof response.first === 'boolean' ? response.first : (response.number ?? page) <= 0,
+    last: typeof response.last === 'boolean'
+      ? response.last
+      : ((response.number ?? page) >= ((response.totalPages ?? 1) - 1)),
+    empty: typeof response.empty === 'boolean' ? response.empty : (response.content ?? []).length === 0
+  };
+}
+
 export const api = {
   // Foods
   getFoods(): Promise<FoodDto[]> {
     return getAllPages<FoodDto>('/api/foods');
+  },
+  getFoodsPage(page = 0, size = 20): Promise<PaginatedEnvelope<FoodDto>> {
+    return getPage<FoodDto>('/api/foods', page, size);
   },
   createFood(payload: ApiPayload) {
     return request('/api/foods', {
@@ -320,6 +381,9 @@ export const api = {
   // Ingredients
   getIngredients(): Promise<IngredientDto[]> {
     return getAllPages<IngredientDto>('/api/ingredients');
+  },
+  getIngredientsPage(page = 0, size = 20): Promise<PaginatedEnvelope<IngredientDto>> {
+    return getPage<IngredientDto>('/api/ingredients', page, size);
   },
   createIngredient(payload: ApiPayload) {
     return request('/api/ingredients', {
@@ -354,6 +418,9 @@ export const api = {
   // Recipes
   getRecipes(): Promise<RecipeDto[]> {
     return getAllPages<RecipeDto>('/api/recipes');
+  },
+  getRecipesPage(page = 0, size = 20): Promise<PaginatedEnvelope<RecipeDto>> {
+    return getPage<RecipeDto>('/api/recipes', page, size);
   },
   createRecipe(payload: ApiPayload) {
     return request('/api/recipes', {

@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import type { Food, CreateSuccessState, EntityType } from '../types';
-import { GalleryTile, TextDetail } from '../shared/ExplorerShared';
+import type { CreateSuccessState, EntityType, Food, PaginationInfo } from '../types';
+import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
 
 interface FoodsTabProps {
   foods: Food[];
@@ -10,6 +10,9 @@ interface FoodsTabProps {
   createSuccess: CreateSuccessState;
   openCreateModal: (type: EntityType) => void;
   getItemId: (item: Food) => string | number | undefined;
+  pagination: PaginationInfo;
+  onPageChange: (page: number) => void;
+  loading: boolean;
   onDeleteFood: (food: Food) => void;
 }
 
@@ -21,6 +24,9 @@ function FoodsTab({
   createSuccess,
   openCreateModal,
   getItemId,
+  pagination,
+  onPageChange,
+  loading,
   onDeleteFood
 }: FoodsTabProps) {
   return (
@@ -29,6 +35,7 @@ function FoodsTab({
         <button onClick={() => openCreateModal('food')}>Create Food</button>
         {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
         <h3>Gallery</h3>
+        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
         <div className="gallery-grid">
           {foods.map((food) => {
             const id = getItemId(food);

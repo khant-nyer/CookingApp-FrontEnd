@@ -15,6 +15,18 @@ const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
 export default function BackendExplorer() {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
+  const {
+    selectedId,
+    setSelectedId,
+    selectedNutrient,
+    setSelectedNutrient,
+    setActiveTab,
+    activeTab,
+    loadTabData,
+    loading,
+    error,
+    pagination
+  } = viewState;
 
   const handleDeleteCancel = useCallback(() => {
     deleteFlow.setDeleteModal({ open: false, message: '', action: null });
@@ -22,63 +34,72 @@ export default function BackendExplorer() {
 
   const foodsTabProps = useMemo(() => ({
     foods: entities.foods,
-    selectedId: viewState.selectedId,
-    setSelectedId: viewState.setSelectedId,
+    selectedId,
+    setSelectedId,
     selectedFood: entities.selectedFood,
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     getItemId,
+    pagination: pagination.foods,
+    onPageChange: (page: number) => loadTabData('foods', page),
+    loading,
     onDeleteFood: deleteFlow.handleDeleteFood
-  }), [entities.foods, viewState.selectedId, viewState.setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, deleteFlow.handleDeleteFood]);
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, pagination.foods, loadTabData, loading, deleteFlow.handleDeleteFood]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
-    selectedId: viewState.selectedId,
-    setSelectedId: viewState.setSelectedId,
+    selectedId,
+    setSelectedId,
     selectedIngredient: entities.selectedIngredient,
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     openIngredientUpdateModal: updateFlow.openIngredientUpdateModal,
     getItemId,
+    pagination: pagination.ingredients,
+    onPageChange: (page: number) => loadTabData('ingredients', page),
+    loading,
     onDeleteIngredient: deleteFlow.handleDeleteIngredient
-  }), [entities.ingredients, viewState.selectedId, viewState.setSelectedId, entities.selectedIngredient, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, deleteFlow.handleDeleteIngredient]);
+  }), [entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, pagination.ingredients, loadTabData, loading, deleteFlow.handleDeleteIngredient]);
 
   const recipesTabProps = useMemo(() => ({
     recipes: entities.recipes,
     foods: entities.foods,
-    selectedId: viewState.selectedId,
-    setSelectedId: viewState.setSelectedId,
+    selectedId,
+    setSelectedId,
     selectedRecipe: entities.selectedRecipe,
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     openRecipeUpdateModal: updateFlow.openRecipeUpdateModal,
+    pagination: pagination.recipes,
+    onPageChange: (page: number) => loadTabData('recipes', page),
+    loading,
     onDeleteRecipe: deleteFlow.handleDeleteRecipe
-  }), [entities.recipes, entities.foods, viewState.selectedId, viewState.setSelectedId, entities.selectedRecipe, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openRecipeUpdateModal, deleteFlow.handleDeleteRecipe]);
+  }), [entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openRecipeUpdateModal, pagination.recipes, loadTabData, loading, deleteFlow.handleDeleteRecipe]);
 
   const nutritionTabProps = useMemo(() => ({
-    selectedNutrient: viewState.selectedNutrient,
-    setSelectedNutrient: viewState.setSelectedNutrient,
+    selectedNutrient,
+    setSelectedNutrient,
     nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
-    setActiveTab: viewState.setActiveTab,
+    setActiveTab,
     getItemId
-  }), [viewState.selectedNutrient, viewState.setSelectedNutrient, entities.nutrientFilteredIngredients, viewState.setActiveTab]);
+  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, setActiveTab]);
 
   return (
     <section>
       <nav className="nav-row">
-        {tabs.map((tab) => <button key={tab} className={tab === viewState.activeTab ? 'tab active' : 'tab'} onClick={() => viewState.setActiveTab(tab)}>{tab}</button>)}
-        <button onClick={() => viewState.loadTabData(viewState.activeTab)}>{viewState.loading ? 'Loading…' : 'Refresh tab'}</button>
+        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => setActiveTab(tab)}>{tab}</button>)}
+        <button onClick={() => loadTabData(activeTab)}>{loading ? 'Loading…' : 'Refresh tab'}</button>
       </nav>
 
-      {viewState.error && <p className="error">{viewState.error}</p>}
+      {error && <p className="error">{error}</p>}
 
-      {viewState.activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
+      {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
 
-      {viewState.activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
+      {activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
 
-      {viewState.activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
+      {activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
 
-      {viewState.activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
+      {activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
 
       <CreateEntityModal
         createModal={createFlow.createModal}

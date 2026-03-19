@@ -2,7 +2,24 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../services/api';
 import type { Food, Ingredient, Recipe, TabKey } from '../types';
 
-type LoaderResult<T> = { data: T[]; error?: string };
+type PaginationInfo = {
+  page: number;
+  size: number;
+  totalPages: number;
+  totalElements: number;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+};
+
+type PaginationState = Record<'foods' | 'ingredients' | 'recipes', PaginationInfo>;
+
+type LoaderResult<T> = {
+  data: T[];
+  error?: string;
+  pagination: PaginationInfo;
+};
+
 
 interface ListEnvelope<T> {
   data?: T[] | unknown;
@@ -93,10 +110,28 @@ export function extractCollection<T>(
   return [];
 }
 
+const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_PAGINATION: PaginationInfo = {
+  page: 0,
+  size: DEFAULT_PAGE_SIZE,
+  totalPages: 0,
+  totalElements: 0,
+  numberOfElements: 0,
+  first: true,
+  last: true
+};
+
+const defaultPaginationState = (): PaginationState => ({
+  foods: { ...DEFAULT_PAGINATION },
+  ingredients: { ...DEFAULT_PAGINATION },
+  recipes: { ...DEFAULT_PAGINATION }
+});
+
 export default function useBackendData() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [pagination, setPagination] = useState<PaginationState>(defaultPaginationState);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const latestRequestIdRef = useRef(0);
@@ -104,47 +139,75 @@ export default function useBackendData() {
   const tabRequestRef = useRef<Partial<Record<TabKey, Promise<void>>>>({});
 
   useEffect(() => {
-    isMountedRef.current = true;   // ← ADD THIS reset
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
   }, []);
 
-  const loadFoods = useCallback(async (): Promise<LoaderResult<Food>> => {
+  const getPaginationInfo = useCallback((payload: {
+    number?: number;
+    size?: number;
+    totalPages?: number;
+    totalElements?: number;
+    numberOfElements?: number;
+    first?: boolean;
+    last?: boolean;
+    content?: unknown[];
+  }, fallbackPage: number) => {
+    const totalPages = typeof payload.totalPages === 'number' ? payload.totalPages : 1;
+    const contentLength = Array.isArray(payload.content) ? payload.content.length : 0;
+    const page = typeof payload.number === 'number' ? payload.number : fallbackPage;
+
+    return {
+      page,
+      size: typeof payload.size === 'number' ? payload.size : DEFAULT_PAGE_SIZE,
+      totalPages,
+      totalElements: typeof payload.totalElements === 'number' ? payload.totalElements : contentLength,
+      numberOfElements: typeof payload.numberOfElements === 'number' ? payload.numberOfElements : contentLength,
+      first: typeof payload.first === 'boolean' ? payload.first : page <= 0,
+      last: typeof payload.last === 'boolean' ? payload.last : page >= Math.max(totalPages - 1, 0)
+    } satisfies PaginationInfo;
+  }, []);
+
+  const loadFoods = useCallback(async (page = 0): Promise<LoaderResult<Food>> => {
     try {
-      const foodData = await api.getFoods();
-      return { data: extractCollection<Food>(foodData, 0, ['foods']) };
+      const foodPage = await api.getFoodsPage(page, DEFAULT_PAGE_SIZE);
+      return { data: foodPage.content ?? [], pagination: getPaginationInfo(foodPage, page) };
     } catch (loadError) {
       return {
         data: [],
+        pagination: { ...DEFAULT_PAGINATION, page },
         error: loadError instanceof Error ? loadError.message : 'Failed to load foods.'
       };
     }
-  }, []);
+  }, [getPaginationInfo]);
 
-  const loadIngredients = useCallback(async (): Promise<LoaderResult<Ingredient>> => {
+  const loadIngredients = useCallback(async (page = 0): Promise<LoaderResult<Ingredient>> => {
     try {
-      const ingredientData = await api.getIngredients();
-      return { data: extractCollection<Ingredient>(ingredientData, 0, ['ingredients']) };
+      const ingredientPage = await api.getIngredientsPage(page, DEFAULT_PAGE_SIZE);
+      return { data: ingredientPage.content ?? [], pagination: getPaginationInfo(ingredientPage, page) };
     } catch (loadError) {
       return {
         data: [],
+        pagination: { ...DEFAULT_PAGINATION, page },
         error: loadError instanceof Error ? loadError.message : 'Failed to load ingredients.'
       };
     }
-  }, []);
+  }, [getPaginationInfo]);
 
-  const loadRecipes = useCallback(async (): Promise<LoaderResult<Recipe>> => {
+  const loadRecipes = useCallback(async (page = 0): Promise<LoaderResult<Recipe>> => {
     try {
-      const recipeData = await api.getRecipes();
-      return { data: extractCollection<Recipe>(recipeData, 0, ['recipes']) };
+      const recipePage = await api.getRecipesPage(page, DEFAULT_PAGE_SIZE);
+      return { data: recipePage.content ?? [], pagination: getPaginationInfo(recipePage, page) };
     } catch (loadError) {
       return {
         data: [],
+        pagination: { ...DEFAULT_PAGINATION, page },
         error: loadError instanceof Error ? loadError.message : 'Failed to load recipes.'
       };
     }
-  }, []);
+  }, [getPaginationInfo]);
 
   const loadAll = useCallback(async () => {
     const requestId = latestRequestIdRef.current + 1;
@@ -154,9 +217,9 @@ export default function useBackendData() {
 
     try {
       const [foodsResult, ingredientsResult, recipesResult] = await Promise.all([
-        loadFoods(),
-        loadIngredients(),
-        loadRecipes()
+        loadFoods(0),
+        loadIngredients(0),
+        loadRecipes(0)
       ]);
 
       if (!isMountedRef.current || requestId !== latestRequestIdRef.current) return;
@@ -164,6 +227,11 @@ export default function useBackendData() {
       setFoods(foodsResult.data);
       setIngredients(ingredientsResult.data);
       setRecipes(recipesResult.data);
+      setPagination({
+        foods: foodsResult.pagination,
+        ingredients: ingredientsResult.pagination,
+        recipes: recipesResult.pagination
+      });
 
       const loadErrors = [foodsResult.error, ingredientsResult.error, recipesResult.error].filter(Boolean);
       if (loadErrors.length > 0) setError(loadErrors.join(' | '));
@@ -177,7 +245,7 @@ export default function useBackendData() {
     }
   }, [loadFoods, loadIngredients, loadRecipes]);
 
-  const loadTabData = useCallback(async (tab: TabKey) => {
+  const loadTabData = useCallback(async (tab: TabKey, page?: number) => {
     const inFlightRequest = tabRequestRef.current[tab];
     if (inFlightRequest) return inFlightRequest;
 
@@ -187,16 +255,22 @@ export default function useBackendData() {
     const requestPromise = (async () => {
       try {
         if (tab === 'foods') {
-          const result = await loadFoods();
+          const nextPage = Math.max(0, page ?? pagination.foods.page ?? 0);
+          const result = await loadFoods(nextPage);
           setFoods(result.data);
+          setPagination((prev) => ({ ...prev, foods: result.pagination }));
           if (result.error) setError(result.error);
         } else if (tab === 'ingredients' || tab === 'nutrition') {
-          const result = await loadIngredients();
+          const nextPage = Math.max(0, page ?? pagination.ingredients.page ?? 0);
+          const result = await loadIngredients(nextPage);
           setIngredients(result.data);
+          setPagination((prev) => ({ ...prev, ingredients: result.pagination }));
           if (result.error) setError(result.error);
         } else if (tab === 'recipes') {
-          const result = await loadRecipes();
+          const nextPage = Math.max(0, page ?? pagination.recipes.page ?? 0);
+          const result = await loadRecipes(nextPage);
           setRecipes(result.data);
+          setPagination((prev) => ({ ...prev, recipes: result.pagination }));
           if (result.error) setError(result.error);
         }
       } catch (err) {
@@ -213,7 +287,7 @@ export default function useBackendData() {
     if (tabRequestRef.current[tab] === requestPromise) {
       delete tabRequestRef.current[tab];
     }
-  }, [loadFoods, loadIngredients, loadRecipes]);
+  }, [loadFoods, loadIngredients, loadRecipes, pagination]);
 
   const runWithRefresh = useCallback(async (action: () => Promise<unknown> | unknown) => {
     setLoading(true);
@@ -231,6 +305,7 @@ export default function useBackendData() {
     foods,
     ingredients,
     recipes,
+    pagination,
     error,
     loading,
     setLoading,
