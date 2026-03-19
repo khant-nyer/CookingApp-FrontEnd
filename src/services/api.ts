@@ -267,7 +267,7 @@ async function getAllPages<T>(path: string): Promise<T[]> {
   if (Array.isArray(firstResponse)) return firstResponse;
   if (!isPaginatedEnvelope<T>(firstResponse)) return [];
 
-  const aggregatedItems = [...firstResponse.content];
+  const aggregatedItems = [...(firstResponse.content ?? [])];
   const totalPages = typeof firstResponse.totalPages === 'number' ? firstResponse.totalPages : undefined;
   let currentPage = typeof firstResponse.number === 'number' ? firstResponse.number : 0;
   let isLastPage = Boolean(firstResponse.last);
@@ -280,7 +280,7 @@ async function getAllPages<T>(path: string): Promise<T[]> {
       break;
     }
     if (!isPaginatedEnvelope<T>(nextResponse)) break;
-    aggregatedItems.push(...nextResponse.content);
+    aggregatedItems.push(...(nextResponse.content ?? []));
     isLastPage = Boolean(nextResponse.last);
     if (typeof totalPages === 'number' && currentPage >= totalPages - 1) break;
   }
