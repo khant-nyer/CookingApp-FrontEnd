@@ -1,5 +1,8 @@
 import type { FoodDto, IngredientDto, RecipeDto } from './apiTypes';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const FALLBACK_PROD_API_BASE_URL = 'https://cookingapp-6pj2.onrender.com';
+const resolvedApiBaseUrl = import.meta.env.VITE_API_BASE_URL
+  ?? (import.meta.env.DEV ? '' : FALLBACK_PROD_API_BASE_URL);
+const API_BASE_URL = resolvedApiBaseUrl.replace(/\/$/, '');
 const DEFAULT_TIMEOUT_MS = 10_000;
 const MAX_GET_RETRIES = 1;
 const TOKEN_STORAGE_KEY = 'cooking_app_token';

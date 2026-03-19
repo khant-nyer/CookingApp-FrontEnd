@@ -74,6 +74,9 @@ On pushes to `main`, GitHub Actions also triggers Render deployment via a deploy
 # For local dev with Vite proxy, keep this unset
 # VITE_API_BASE_URL=
 
+# Production fallback (already baked into frontend when VITE_API_BASE_URL is unset):
+# https://cookingapp-6pj2.onrender.com
+
 # Optional: direct backend call (may require backend CORS config)
 # VITE_API_BASE_URL=http://localhost:8080
 
