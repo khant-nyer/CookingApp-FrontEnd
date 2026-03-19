@@ -65,6 +65,7 @@ export default function useBackendExplorerController(): BackendExplorerControlle
     error: viewStateCore.error,
     loading: viewStateCore.loading,
     loadAll: viewStateCore.loadAll,
+    pagination: viewStateCore.pagination,
     loadTabData: viewStateCore.loadTabData
   }), [
     viewStateCore.activeTab,
@@ -76,6 +77,7 @@ export default function useBackendExplorerController(): BackendExplorerControlle
     viewStateCore.error,
     viewStateCore.loading,
     viewStateCore.loadAll,
+    viewStateCore.pagination,
     viewStateCore.loadTabData
   ]);
 

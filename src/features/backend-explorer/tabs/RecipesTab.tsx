@@ -1,7 +1,7 @@
 import { memo } from 'react';
-import type { CreateSuccessState, EntityType, Food, Recipe } from '../types';
+import type { CreateSuccessState, EntityType, Food, PaginationInfo, Recipe } from '../types';
 import { getRecipeTileId } from '../utils/ids';
-import { GalleryTile, TextDetail } from '../shared/ExplorerShared';
+import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
 
 interface RecipesTabProps {
   recipes: Recipe[];
@@ -12,6 +12,9 @@ interface RecipesTabProps {
   createSuccess: CreateSuccessState;
   openCreateModal: (type: EntityType) => void;
   openRecipeUpdateModal: (recipe: Recipe) => void;
+  pagination: PaginationInfo;
+  onPageChange: (page: number) => void;
+  loading: boolean;
   onDeleteRecipe: (recipe: Recipe) => void;
 }
 
@@ -24,6 +27,9 @@ function RecipesTab({
   createSuccess,
   openCreateModal,
   openRecipeUpdateModal,
+  pagination,
+  onPageChange,
+  loading,
   onDeleteRecipe
 }: RecipesTabProps) {
   return (
@@ -32,6 +38,7 @@ function RecipesTab({
         <button onClick={() => openCreateModal('recipe')}>Create Recipe</button>
         {createSuccess.recipe ? <p className="success">{createSuccess.recipe}</p> : null}
         <h3>Gallery</h3>
+        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
         <div className="gallery-grid">
           {recipes.map((recipe, index) => {
             const id = getRecipeTileId(recipe, index);

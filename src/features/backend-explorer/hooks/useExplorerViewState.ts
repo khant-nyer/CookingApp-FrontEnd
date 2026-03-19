@@ -9,13 +9,12 @@ export default function useExplorerViewState() {
   const [selectedId, setSelectedId] = useState('');
   const [selectedNutrient, setSelectedNutrient] = useState('CALORIES');
   const backendData = useBackendData();
-  const { loadTabData } = backendData;
-
-
+  const { loadAll } = backendData;
 
   useEffect(() => {
-    void loadTabData(activeTab);
-  }, [activeTab, loadTabData, token]);
+    if (!token) return;
+    void loadAll();
+  }, [loadAll, token]);
 
   useEffect(() => {
     setSelectedId('');
