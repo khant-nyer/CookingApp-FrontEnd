@@ -7,7 +7,7 @@ import {
   nutrientShortNames
 } from '../constants/nutrients';
 import { unitOptions } from '../constants/units';
-import type { Ingredient, IngredientNutrition, InputChangeEvent, InputKeyboardEvent, RecipeIngredientItem } from '../types';
+import type { Ingredient, IngredientNutrition, InputChangeEvent, InputKeyboardEvent, PaginationInfo, RecipeIngredientItem } from '../types';
 import { getItemId } from '../utils/ids';
 
 interface GalleryTileProps {
@@ -26,6 +26,42 @@ export function GalleryTile({ imageUrl, fallbackText, onClick, isSelected, subti
       <div className="gallery-caption">{fallbackText}</div>
       {subtitle ? <div className="gallery-subtitle">{subtitle}</div> : null}
     </button>
+  );
+}
+
+
+interface PaginationControlsProps {
+  pagination: PaginationInfo;
+  onPageChange: (page: number) => void;
+  disabled?: boolean;
+}
+
+export function PaginationControls({ pagination, onPageChange, disabled = false }: PaginationControlsProps) {
+  const currentPage = Math.max((pagination.page || 0) + 1, 1);
+  const totalPages = Math.max(pagination.totalPages || 1, 1);
+
+  return (
+    <div className="pagination-row">
+      <button
+        type="button"
+        className="secondary"
+        disabled={disabled || pagination.first}
+        onClick={() => onPageChange(Math.max(pagination.page - 1, 0))}
+      >
+        Previous
+      </button>
+      <small>
+        Page {currentPage} of {totalPages} • {pagination.numberOfElements} / {pagination.totalElements} items
+      </small>
+      <button
+        type="button"
+        className="secondary"
+        disabled={disabled || pagination.last}
+        onClick={() => onPageChange(pagination.page + 1)}
+      >
+        Next
+      </button>
+    </div>
   );
 }
 

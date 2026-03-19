@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import type { CreateSuccessState, EntityType, Ingredient } from '../types';
-import { GalleryTile, TextDetail } from '../shared/ExplorerShared';
+import type { CreateSuccessState, EntityType, Ingredient, PaginationInfo } from '../types';
+import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
 
 interface IngredientsTabProps {
   ingredients: Ingredient[];
@@ -11,6 +11,9 @@ interface IngredientsTabProps {
   openCreateModal: (type: EntityType) => void;
   openIngredientUpdateModal: (ingredient: Ingredient) => void;
   getItemId: (item: Ingredient) => string | number | undefined;
+  pagination: PaginationInfo;
+  onPageChange: (page: number) => void;
+  loading: boolean;
   onDeleteIngredient: (ingredient: Ingredient) => void;
 }
 
@@ -23,6 +26,9 @@ function IngredientsTab({
   openCreateModal,
   openIngredientUpdateModal,
   getItemId,
+  pagination,
+  onPageChange,
+  loading,
   onDeleteIngredient
 }: IngredientsTabProps) {
   return (
@@ -31,6 +37,7 @@ function IngredientsTab({
         <button onClick={() => openCreateModal('ingredient')}>Create Ingredient</button>
         {createSuccess.ingredient ? <p className="success">{createSuccess.ingredient}</p> : null}
         <h3>Gallery</h3>
+        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
         <div className="gallery-grid">
           {ingredients.map((ingredient) => {
             const id = getItemId(ingredient);

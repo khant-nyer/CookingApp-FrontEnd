@@ -28,8 +28,11 @@ export default function BackendExplorer() {
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     getItemId,
+    pagination: viewState.pagination.foods,
+    onPageChange: (page: number) => viewState.loadTabData('foods', page),
+    loading: viewState.loading,
     onDeleteFood: deleteFlow.handleDeleteFood
-  }), [entities.foods, viewState.selectedId, viewState.setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, deleteFlow.handleDeleteFood]);
+  }), [entities.foods, viewState.selectedId, viewState.setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, viewState.pagination.foods, viewState.loadTabData, viewState.loading, deleteFlow.handleDeleteFood]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
@@ -40,8 +43,11 @@ export default function BackendExplorer() {
     openCreateModal: createFlow.openCreateModal,
     openIngredientUpdateModal: updateFlow.openIngredientUpdateModal,
     getItemId,
+    pagination: viewState.pagination.ingredients,
+    onPageChange: (page: number) => viewState.loadTabData('ingredients', page),
+    loading: viewState.loading,
     onDeleteIngredient: deleteFlow.handleDeleteIngredient
-  }), [entities.ingredients, viewState.selectedId, viewState.setSelectedId, entities.selectedIngredient, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, deleteFlow.handleDeleteIngredient]);
+  }), [entities.ingredients, viewState.selectedId, viewState.setSelectedId, entities.selectedIngredient, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, viewState.pagination.ingredients, viewState.loadTabData, viewState.loading, deleteFlow.handleDeleteIngredient]);
 
   const recipesTabProps = useMemo(() => ({
     recipes: entities.recipes,
@@ -52,8 +58,11 @@ export default function BackendExplorer() {
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     openRecipeUpdateModal: updateFlow.openRecipeUpdateModal,
+    pagination: viewState.pagination.recipes,
+    onPageChange: (page: number) => viewState.loadTabData('recipes', page),
+    loading: viewState.loading,
     onDeleteRecipe: deleteFlow.handleDeleteRecipe
-  }), [entities.recipes, entities.foods, viewState.selectedId, viewState.setSelectedId, entities.selectedRecipe, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openRecipeUpdateModal, deleteFlow.handleDeleteRecipe]);
+  }), [entities.recipes, entities.foods, viewState.selectedId, viewState.setSelectedId, entities.selectedRecipe, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openRecipeUpdateModal, viewState.pagination.recipes, viewState.loadTabData, viewState.loading, deleteFlow.handleDeleteRecipe]);
 
   const nutritionTabProps = useMemo(() => ({
     selectedNutrient: viewState.selectedNutrient,

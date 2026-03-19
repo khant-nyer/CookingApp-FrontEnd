@@ -515,3 +515,16 @@ pre {
     display: inline;
   }
 }
+
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.pagination-row small {
+  color: #4f6462;
+  font-weight: 600;
+}
