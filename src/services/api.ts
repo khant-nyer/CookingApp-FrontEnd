@@ -14,6 +14,12 @@ const NUTRIENT_ALIASES: Record<string, string> = {
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 export type ApiPayload = Record<string, JsonValue>;
+type PaginatedEnvelope<T> = {
+  content?: T[];
+  last?: boolean;
+  number?: number;
+  totalPages?: number;
+};
 
 type TokenProvider = () => string | null;
 
@@ -250,10 +256,42 @@ async function request<T = unknown>(path: string, options: RequestOptions = {}):
   return nextRequest as Promise<T>;
 }
 
+function isPaginatedEnvelope<T>(payload: unknown): payload is PaginatedEnvelope<T> {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+  const candidate = payload as PaginatedEnvelope<T>;
+  return Array.isArray(candidate.content);
+}
+
+async function getAllPages<T>(path: string): Promise<T[]> {
+  const firstResponse = await request<PaginatedEnvelope<T> | T[]>(path);
+  if (Array.isArray(firstResponse)) return firstResponse;
+  if (!isPaginatedEnvelope<T>(firstResponse)) return [];
+
+  const aggregatedItems = [...firstResponse.content];
+  const totalPages = typeof firstResponse.totalPages === 'number' ? firstResponse.totalPages : undefined;
+  let currentPage = typeof firstResponse.number === 'number' ? firstResponse.number : 0;
+  let isLastPage = Boolean(firstResponse.last);
+
+  while (!isLastPage) {
+    currentPage += 1;
+    const nextResponse = await request<PaginatedEnvelope<T> | T[]>(`${path}?page=${currentPage}`);
+    if (Array.isArray(nextResponse)) {
+      aggregatedItems.push(...nextResponse);
+      break;
+    }
+    if (!isPaginatedEnvelope<T>(nextResponse)) break;
+    aggregatedItems.push(...nextResponse.content);
+    isLastPage = Boolean(nextResponse.last);
+    if (typeof totalPages === 'number' && currentPage >= totalPages - 1) break;
+  }
+
+  return aggregatedItems;
+}
+
 export const api = {
   // Foods
   getFoods(): Promise<FoodDto[]> {
-    return request<FoodDto[]>('/api/foods');
+    return getAllPages<FoodDto>('/api/foods');
   },
   createFood(payload: ApiPayload) {
     return request('/api/foods', {
@@ -276,7 +314,7 @@ export const api = {
 
   // Ingredients
   getIngredients(): Promise<IngredientDto[]> {
-    return request<IngredientDto[]>('/api/ingredients');
+    return getAllPages<IngredientDto>('/api/ingredients');
   },
   createIngredient(payload: ApiPayload) {
     return request('/api/ingredients', {
@@ -310,7 +348,7 @@ export const api = {
 
   // Recipes
   getRecipes(): Promise<RecipeDto[]> {
-    return request<RecipeDto[]>('/api/recipes');
+    return getAllPages<RecipeDto>('/api/recipes');
   },
   createRecipe(payload: ApiPayload) {
     return request('/api/recipes', {
