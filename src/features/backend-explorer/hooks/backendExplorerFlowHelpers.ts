@@ -1,11 +1,13 @@
 import { api } from '../../../services/api';
 import { normalizeNutritionEntry } from '../utils/nutrients';
 import {
+  buildUpdateFoodPayload,
   buildUpdateIngredientPayload,
   buildUpdateRecipePayload
 } from '../utils/payloadMappers';
 import type {
   DeleteModalState,
+  FoodUpdateForm,
   IngredientUpdateForm,
   NutritionDraft,
   RecipeUpdateForm,
@@ -51,6 +53,11 @@ export async function executeUpdateConfirmation({
   if (updateModal.type === 'ingredient') {
     const form = updateModal.form as IngredientUpdateForm;
     await run(() => api.updateIngredient(updateModal.itemId, buildUpdateIngredientPayload(form)));
+  }
+
+  if (updateModal.type === 'food') {
+    const form = updateModal.form as FoodUpdateForm;
+    await run(() => api.updateFood(updateModal.itemId, buildUpdateFoodPayload(form)));
   }
 
   if (updateModal.type === 'recipe') {

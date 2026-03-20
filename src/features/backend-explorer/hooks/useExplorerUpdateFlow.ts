@@ -4,6 +4,7 @@ import { normalizeNutrientKey } from '../utils/nutrients';
 import { initialUpdateFlowState, updateFlowReducer } from '../reducers/updateFlowReducer';
 import { appendUpdateNutritionToForm, executeUpdateConfirmation } from './backendExplorerFlowHelpers';
 import type {
+  Food,
   Ingredient,
   IngredientUpdateForm,
   NutritionDraft,
@@ -69,6 +70,20 @@ export default function useExplorerUpdateFlow({ run, setError }: Params) {
     });
   }
 
+  function openFoodUpdateModal(item: Food) {
+    setUpdateModal({
+      open: true,
+      type: 'food',
+      itemId: getItemId(item) || null,
+      title: `Update ${item?.name || 'Food'}`,
+      form: {
+        name: item?.name || '',
+        category: item?.category || '',
+        imageUrl: item?.imageUrl || ''
+      }
+    });
+  }
+
   function openRecipeUpdateModal(item: Recipe) {
     setUpdateModal({
       open: true,
@@ -100,6 +115,7 @@ export default function useExplorerUpdateFlow({ run, setError }: Params) {
     updateNutritionDraft,
     setUpdateNutritionDraft,
     addUpdateNutrition,
+    openFoodUpdateModal,
     openIngredientUpdateModal,
     openRecipeUpdateModal,
     confirmUpdate

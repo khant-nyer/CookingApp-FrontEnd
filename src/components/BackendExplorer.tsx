@@ -39,12 +39,13 @@ export default function BackendExplorer() {
     selectedFood: entities.selectedFood,
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
+    openFoodUpdateModal: updateFlow.openFoodUpdateModal,
     getItemId,
     pagination: pagination.foods,
     onPageChange: (page: number) => loadTabData('foods', page),
     loading,
     onDeleteFood: deleteFlow.handleDeleteFood
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, pagination.foods, loadTabData, loading, deleteFlow.handleDeleteFood]);
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openFoodUpdateModal, pagination.foods, loadTabData, loading, deleteFlow.handleDeleteFood]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
