@@ -373,6 +373,12 @@ export const api = {
       body: JSON.stringify(payload)
     });
   },
+  updateFood(id: string | number | null, payload: ApiPayload) {
+    return request(`/api/foods/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  },
   deleteFood(id: string | number | undefined) {
     return request(`/api/foods/${id}`, { method: 'DELETE' });
   },

@@ -148,6 +148,12 @@ export interface IngredientUpdateForm {
   nutritionList: IngredientNutrition[];
 }
 
+export interface FoodUpdateForm {
+  name: string;
+  category: string;
+  imageUrl: string;
+}
+
 export interface RecipeIngredientFormItem {
   ingredientId: string;
   quantity: string;
@@ -170,10 +176,10 @@ export interface RecipeUpdateForm {
 
 export interface UpdateModalState {
   open: boolean;
-  type: '' | 'ingredient' | 'recipe';
+  type: '' | 'food' | 'ingredient' | 'recipe';
   title: string;
   itemId: string | number | null;
-  form: IngredientUpdateForm | RecipeUpdateForm | null;
+  form: FoodUpdateForm | IngredientUpdateForm | RecipeUpdateForm | null;
 }
 
 export interface UpdateFlowState {
@@ -240,6 +246,7 @@ export interface BackendExplorerUpdateFlow {
   updateNutritionDraft: NutritionDraft;
   setUpdateNutritionDraft: (value: Updater<NutritionDraft>) => void;
   addUpdateNutrition: () => void;
+  openFoodUpdateModal: (item: Food) => void;
   openIngredientUpdateModal: (item: Ingredient) => void;
   openRecipeUpdateModal: (item: Recipe) => void;
   confirmUpdate: () => Promise<void>;
