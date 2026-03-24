@@ -70,26 +70,19 @@ On pushes to `main`, GitHub Actions also triggers Render deployment via a deploy
 
 ## Environment
 
-The app now reads all environment-specific config from env files:
+This repo keeps a single committed `.env` file as the default template.
 
-- `.env` for shared defaults (committed).
-- `.env.development` for local/dev overrides.
-- `.env.production` for production overrides.
-- `.env.local` for machine-specific secrets that should not be committed.
+- Configure local machine-specific values in `.env.local`.
+- Configure production values on your hosting/deployment platform.
 
 ```bash
-# API base URL used for direct backend requests.
-# Keep empty in dev to use Vite proxy.
+# API config
 VITE_API_BASE_URL=
-
-# Production fallback API origin (used when VITE_API_BASE_URL is empty outside dev)
-VITE_PROD_API_BASE_URL=https://cookingapp-6pj2.onrender.com
-
-# Dev server configuration
+VITE_PROD_API_BASE_URL=
 VITE_DEV_PROXY_TARGET=http://localhost:8080
 VITE_DEV_SERVER_PORT=5173
 
-# Cognito auth (required for auth flows)
+# Cognito auth config
 VITE_COGNITO_USER_POOL_ID=ap-southeast-2_xxxxxxxx
 VITE_COGNITO_REGION=ap-southeast-2
 VITE_COGNITO_USER_POOL_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
