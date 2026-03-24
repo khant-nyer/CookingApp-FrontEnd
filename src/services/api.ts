@@ -1,5 +1,5 @@
 import type { FoodDto, IngredientDto, RecipeDto } from './apiTypes';
-const FALLBACK_PROD_API_BASE_URL = 'https://cookingapp-6pj2.onrender.com';
+const FALLBACK_PROD_API_BASE_URL = import.meta.env.VITE_PROD_API_BASE_URL || '';
 const resolvedApiBaseUrl = import.meta.env.VITE_API_BASE_URL
   ?? (import.meta.env.DEV ? '' : FALLBACK_PROD_API_BASE_URL);
 const API_BASE_URL = resolvedApiBaseUrl.replace(/\/$/, '');

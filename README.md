@@ -70,22 +70,30 @@ On pushes to `main`, GitHub Actions also triggers Render deployment via a deploy
 
 ## Environment
 
+The app now reads all environment-specific config from env files:
+
+- `.env` for shared defaults (committed).
+- `.env.development` for local/dev overrides.
+- `.env.production` for production overrides.
+- `.env.local` for machine-specific secrets that should not be committed.
+
 ```bash
-# For local dev with Vite proxy, keep this unset
-# VITE_API_BASE_URL=
+# API base URL used for direct backend requests.
+# Keep empty in dev to use Vite proxy.
+VITE_API_BASE_URL=
 
-# Production fallback (already baked into frontend when VITE_API_BASE_URL is unset):
-# https://cookingapp-6pj2.onrender.com
+# Production fallback API origin (used when VITE_API_BASE_URL is empty outside dev)
+VITE_PROD_API_BASE_URL=https://cookingapp-6pj2.onrender.com
 
-# Optional: direct backend call (may require backend CORS config)
-# VITE_API_BASE_URL=http://localhost:8080
+# Dev server configuration
+VITE_DEV_PROXY_TARGET=http://localhost:8080
+VITE_DEV_SERVER_PORT=5173
 
-# Cognito auth (frontend direct login/logout/forgot password)
-# These are required for auth flows. Put them in `.env.local` and restart `npm run dev`.
-# VITE_COGNITO_USER_POOL_ID=ap-southeast-2_xxxxxxxx
-# VITE_COGNITO_REGION=ap-southeast-2
-# VITE_COGNITO_USER_POOL_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
-# VITE_COGNITO_BACKEND_TOKEN_USE=access
+# Cognito auth (required for auth flows)
+VITE_COGNITO_USER_POOL_ID=ap-southeast-2_xxxxxxxx
+VITE_COGNITO_REGION=ap-southeast-2
+VITE_COGNITO_USER_POOL_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+VITE_COGNITO_BACKEND_TOKEN_USE=access
 ```
 
 ## DTO notes from backend (used to prefill payload editors)
