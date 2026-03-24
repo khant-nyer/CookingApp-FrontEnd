@@ -1,5 +1,8 @@
 import type { FoodDto, IngredientDto, RecipeDto } from './apiTypes';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const FALLBACK_PROD_API_BASE_URL = 'https://cookingapp-6pj2.onrender.com';
+const resolvedApiBaseUrl = import.meta.env.VITE_API_BASE_URL
+  ?? (import.meta.env.DEV ? '' : FALLBACK_PROD_API_BASE_URL);
+const API_BASE_URL = resolvedApiBaseUrl.replace(/\/$/, '');
 const DEFAULT_TIMEOUT_MS = 10_000;
 const MAX_GET_RETRIES = 1;
 const TOKEN_STORAGE_KEY = 'cooking_app_token';
@@ -134,6 +137,11 @@ function getHeaders(options: { skipAuth?: boolean } = {}): HeadersInit {
   }
 
   return headers;
+}
+
+function buildRegistrationIdempotencyKey(userName: string) {
+  const randomSuffix = Math.floor(Math.random() * 10_000).toString().padStart(4, '0');
+  return `reg-${userName}-${randomSuffix}`;
 }
 
 function shouldRetry(method: string, error: ApiError, attempt: number) {
@@ -365,6 +373,12 @@ export const api = {
       body: JSON.stringify(payload)
     });
   },
+  updateFood(id: string | number | null, payload: ApiPayload) {
+    return request(`/api/foods/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  },
   deleteFood(id: string | number | undefined) {
     return request(`/api/foods/${id}`, { method: 'DELETE' });
   },
@@ -453,9 +467,14 @@ export const api = {
     });
   },
   register(payload: { email: string; userName: string; password: string; profileImageUrl?: string }) {
+    const idempotencyKey = buildRegistrationIdempotencyKey(payload.userName);
     return request('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(payload),
+      headers: {
+        'Idempotency-Key': idempotencyKey,
+        'X-Idempotency-Key': idempotencyKey
+      },
       skipAuth: true
     });
   }

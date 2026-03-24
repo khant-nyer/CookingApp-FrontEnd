@@ -111,6 +111,21 @@ describe('api hardening behavior', () => {
     expect(headers.Authorization).toBeUndefined();
   });
 
+  it('adds registration idempotency header with expected format', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.3245);
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+
+    await api.register({ email: 'chef@example.com', userName: 'cheft', password: 'secret123' });
+
+    const requestInit = fetchSpy.mock.calls[0]?.[1] as RequestInit;
+    const headers = requestInit.headers as Record<string, string>;
+    expect(headers['Idempotency-Key']).toBe('reg-cheft-3245');
+    expect(headers['X-Idempotency-Key']).toBe('reg-cheft-3245');
+  });
+
   it('retries GET once for retryable server failures', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify({ message: 'temporary' }), { status: 503 }))

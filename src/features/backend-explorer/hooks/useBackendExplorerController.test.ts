@@ -74,6 +74,7 @@ describe('useBackendExplorerController helpers', () => {
 
   it('does not call update APIs for empty update modal type', async () => {
     const run = vi.fn(async (fn: () => Promise<unknown> | unknown) => { await fn(); });
+    const updateFoodSpy = vi.spyOn(api, 'updateFood').mockResolvedValue({ ok: true } as never);
     const updateIngredientSpy = vi.spyOn(api, 'updateIngredient').mockResolvedValue({ ok: true } as never);
     const updateRecipeSpy = vi.spyOn(api, 'updateRecipe').mockResolvedValue({ ok: true } as never);
 
@@ -83,6 +84,7 @@ describe('useBackendExplorerController helpers', () => {
     });
 
     expect(run).not.toHaveBeenCalled();
+    expect(updateFoodSpy).not.toHaveBeenCalled();
     expect(updateIngredientSpy).not.toHaveBeenCalled();
     expect(updateRecipeSpy).not.toHaveBeenCalled();
   });
@@ -90,8 +92,24 @@ describe('useBackendExplorerController helpers', () => {
   it('dispatches correct API update method by modal type', async () => {
     const run = vi.fn(async (fn: () => Promise<unknown> | unknown) => { await fn(); });
 
+    const updateFoodSpy = vi.spyOn(api, 'updateFood').mockResolvedValue({ ok: true } as never);
     const updateIngredientSpy = vi.spyOn(api, 'updateIngredient').mockResolvedValue({ ok: true } as never);
     const updateRecipeSpy = vi.spyOn(api, 'updateRecipe').mockResolvedValue({ ok: true } as never);
+
+    await executeUpdateConfirmation({
+      updateModal: {
+        open: true,
+        type: 'food',
+        title: 'Update Food',
+        itemId: 'food-1',
+        form: {
+          name: 'Rice',
+          category: 'Grains',
+          imageUrl: ''
+        }
+      },
+      run
+    });
 
     await executeUpdateConfirmation({
       updateModal: {
@@ -129,6 +147,7 @@ describe('useBackendExplorerController helpers', () => {
       run
     });
 
+    expect(updateFoodSpy).toHaveBeenCalledTimes(1);
     expect(updateIngredientSpy).toHaveBeenCalledTimes(1);
     expect(updateRecipeSpy).toHaveBeenCalledTimes(1);
   });

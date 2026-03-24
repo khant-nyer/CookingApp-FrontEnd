@@ -9,6 +9,7 @@ interface FoodsTabProps {
   selectedFood?: Food;
   createSuccess: CreateSuccessState;
   openCreateModal: (type: EntityType) => void;
+  openFoodUpdateModal: (food: Food) => void;
   getItemId: (item: Food) => string | number | undefined;
   pagination: PaginationInfo;
   onPageChange: (page: number) => void;
@@ -23,6 +24,7 @@ function FoodsTab({
   selectedFood,
   createSuccess,
   openCreateModal,
+  openFoodUpdateModal,
   getItemId,
   pagination,
   onPageChange,
@@ -51,6 +53,7 @@ function FoodsTab({
           fields={[{ label: 'Category', value: selectedFood.category }, { label: 'ID', value: selectedFood.id }]}
           sections={[{ title: 'Recipes', items: (selectedFood.recipes || []).map((recipe) => recipe.name || `Recipe #${recipe.id}`) }]}
           onDelete={() => onDeleteFood(selectedFood)}
+          onUpdate={() => openFoodUpdateModal(selectedFood)}
         />
       ) : <div className="card muted">Select a food image to view details.</div>}
     </div>

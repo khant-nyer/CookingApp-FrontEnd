@@ -1,4 +1,5 @@
 import type {
+  FoodUpdateForm,
   FoodForm,
   IngredientForm,
   IngredientNutrition,
@@ -67,6 +68,14 @@ export function buildUpdateIngredientPayload(form: IngredientUpdateForm) {
     nutritionList: (form.nutritionList || [])
       .map((nutrition) => normalizeNutritionEntry(nutrition))
       .filter((nutrition): nutrition is { nutrient: string; value: number; unit: string } => nutrition !== null)
+  };
+}
+
+export function buildUpdateFoodPayload(form: FoodUpdateForm) {
+  return {
+    name: form.name.trim(),
+    category: form.category.trim(),
+    imageUrl: form.imageUrl.trim() || null
   };
 }
 

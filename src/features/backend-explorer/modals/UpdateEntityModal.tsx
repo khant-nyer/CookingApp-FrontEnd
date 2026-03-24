@@ -1,4 +1,4 @@
-import type { Food, Ingredient, IngredientUpdateForm, InputChangeEvent, NutritionDraft, RecipeUpdateForm, UpdateModalState, Updater } from '../types';
+import type { Food, FoodUpdateForm, Ingredient, IngredientUpdateForm, InputChangeEvent, NutritionDraft, RecipeUpdateForm, UpdateModalState, Updater } from '../types';
 import { NutrientPicker, NutritionSummaryCards } from '../shared/ExplorerShared';
 
 interface UpdateEntityModalProps {
@@ -29,6 +29,7 @@ export default function UpdateEntityModal({
   if (!updateModal.open) return null;
 
   const ingredientForm = updateModal.type === 'ingredient' ? updateModal.form as IngredientUpdateForm : null;
+  const foodForm = updateModal.type === 'food' ? updateModal.form as FoodUpdateForm : null;
   const recipeForm = updateModal.type === 'recipe' ? updateModal.form as RecipeUpdateForm : null;
 
   return (
@@ -63,6 +64,14 @@ export default function UpdateEntityModal({
                 onUnitChange={(index, unit) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as IngredientUpdateForm), nutritionList: (prev.form as IngredientUpdateForm).nutritionList.map((item, idx) => idx === index ? { ...item, unit } : item) } }))}
               />
             </div>
+          </div>
+        ) : null}
+
+        {updateModal.type === 'food' && foodForm ? (
+          <div className="form">
+            <input placeholder="Name" value={foodForm.name} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as FoodUpdateForm), name: event.target.value } }))} />
+            <input placeholder="Category" value={foodForm.category} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as FoodUpdateForm), category: event.target.value } }))} />
+            <input placeholder="Image URL" value={foodForm.imageUrl} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as FoodUpdateForm), imageUrl: event.target.value } }))} />
           </div>
         ) : null}
 

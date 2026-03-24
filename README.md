@@ -27,6 +27,7 @@ npm run build
 ```
 
 CI runs the same commands on each PR and on pushes to protected branches.
+On pushes to `main`, GitHub Actions also triggers Render deployment via a deploy hook and then smoke-checks `https://cookingapp-6pj2.onrender.com`. Configure repository secret `RENDER_DEPLOY_HOOK_URL` with your Render deploy hook URL.
 
 ## Backend routes currently wired in UI (no auth)
 
@@ -72,6 +73,9 @@ CI runs the same commands on each PR and on pushes to protected branches.
 ```bash
 # For local dev with Vite proxy, keep this unset
 # VITE_API_BASE_URL=
+
+# Production fallback (already baked into frontend when VITE_API_BASE_URL is unset):
+# https://cookingapp-6pj2.onrender.com
 
 # Optional: direct backend call (may require backend CORS config)
 # VITE_API_BASE_URL=http://localhost:8080
