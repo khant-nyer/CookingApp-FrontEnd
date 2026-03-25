@@ -11,10 +11,16 @@ if (!rootElement) {
   throw new Error('Root element not found');
 }
 
-ReactDOM.createRoot(rootElement).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </React.StrictMode>
-);
+const isHealthcheckRoute = window.location.pathname === '/health';
+
+if (isHealthcheckRoute) {
+  ReactDOM.createRoot(rootElement).render(<main>ok</main>);
+} else {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </React.StrictMode>
+  );
+}

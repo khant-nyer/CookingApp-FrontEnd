@@ -48,7 +48,7 @@ jobs:
     env:
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       APP_BASE_URL: https://cookingapp-6pj2.onrender.com
-      APP_HEALTHCHECK_PATH: /
+      APP_HEALTHCHECK_PATH: /health
     steps:
       - name: Trigger Render deploy hook
         run: |
