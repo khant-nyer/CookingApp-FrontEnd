@@ -143,36 +143,40 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
       </aside>
 
       <div className="dashboard-main">
-        <header>
-          <h1>Welcome back, Chef.</h1>
-          <p className="muted">Here is the overview of your culinary creations today.</p>
-        </header>
-        <div className="overview-grid">
-          <article className="overview-card">
-            <h3>Total Foods</h3>
-            <p>{totalFoods}</p>
-          </article>
-          <article className="overview-card">
-            <h3>Ingredients</h3>
-            <p>{totalIngredients}</p>
-          </article>
-          <article className="overview-card">
-            <h3>Recipes</h3>
-            <p>{totalRecipes}</p>
-          </article>
-        </div>
-        <section className="featured-recipe">
-          <h2>Featured Recipe</h2>
-          <div className="featured-recipe-card">
-            <div className="featured-recipe-image" />
-            <div className="featured-recipe-content">
-              <span className="difficulty-chip">Easy</span>
-              <h3>{featuredRecipe?.foodName || 'Traditional Aglio e Olio'}</h3>
-              <p>{featuredRecipe?.description || 'A classic Italian pasta dish.'}</p>
-              <small>{featuredDuration} mins • {featuredIngredientCount} ingredients</small>
+        {selectedSection === 'dashboard' && (
+          <>
+            <header>
+              <h1>Welcome back, Chef.</h1>
+              <p className="muted">Here is the overview of your culinary creations today.</p>
+            </header>
+            <div className="overview-grid">
+              <article className="overview-card">
+                <h3>Total Foods</h3>
+                <p>{totalFoods}</p>
+              </article>
+              <article className="overview-card">
+                <h3>Ingredients</h3>
+                <p>{totalIngredients}</p>
+              </article>
+              <article className="overview-card">
+                <h3>Recipes</h3>
+                <p>{totalRecipes}</p>
+              </article>
             </div>
-          </div>
-        </section>
+            <section className="featured-recipe">
+              <h2>Featured Recipe</h2>
+              <div className="featured-recipe-card">
+                <div className="featured-recipe-image" />
+                <div className="featured-recipe-content">
+                  <span className="difficulty-chip">Easy</span>
+                  <h3>{featuredRecipe?.foodName || 'Traditional Aglio e Olio'}</h3>
+                  <p>{featuredRecipe?.description || 'A classic Italian pasta dish.'}</p>
+                  <small>{featuredDuration} mins • {featuredIngredientCount} ingredients</small>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
 
       {error && <p className="error">{error}</p>}
 
