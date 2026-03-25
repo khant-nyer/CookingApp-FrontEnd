@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
@@ -13,7 +13,12 @@ import type { TabKey } from '../features/backend-explorer/types';
 
 const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
-export default function BackendExplorer() {
+interface BackendExplorerProps {
+  userEmail?: string;
+  onLogout: () => void;
+}
+
+export default function BackendExplorer({ userEmail, onLogout }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -27,6 +32,7 @@ export default function BackendExplorer() {
     error,
     pagination
   } = viewState;
+  const [selectedSection, setSelectedSection] = useState<'dashboard' | TabKey>('dashboard');
 
   const handleDeleteCancel = useCallback(() => {
     deleteFlow.setDeleteModal({ open: false, message: '', action: null });
@@ -85,22 +91,98 @@ export default function BackendExplorer() {
     getItemId
   }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, setActiveTab]);
 
+  const featuredRecipe = entities.recipes[0];
+  const totalIngredients = pagination.ingredients.totalElements || entities.ingredients.length;
+  const totalFoods = pagination.foods.totalElements || entities.foods.length;
+  const totalRecipes = pagination.recipes.totalElements || entities.recipes.length;
+  const featuredDuration = Math.max((featuredRecipe?.instructions || []).length * 5, 20);
+  const featuredIngredientCount = featuredRecipe?.ingredients?.length || 0;
+  const tabLabels: Record<TabKey, string> = {
+    foods: 'Food',
+    ingredients: 'Ingredient',
+    recipes: 'Recipe',
+    nutrition: 'Nutrition'
+  };
+
   return (
-    <section>
-      <nav className="nav-row">
-        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => setActiveTab(tab)}>{tab}</button>)}
-        <button onClick={() => loadTabData(activeTab)}>{loading ? 'Loading…' : 'Refresh tab'}</button>
-      </nav>
+    <section className="dashboard-layout">
+      <aside className="dashboard-sidebar">
+        <div className="brand-mark">
+          <span className="brand-icon">🍳</span>
+          <strong>Savor</strong>
+        </div>
+        <nav className="sidebar-nav">
+          <button
+            className={selectedSection === 'dashboard' ? 'tab active' : 'tab'}
+            type="button"
+            onClick={() => setSelectedSection('dashboard')}
+          >
+            Dashboard
+          </button>
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              className={selectedSection === tab ? 'tab active' : 'tab'}
+              onClick={() => {
+                setSelectedSection(tab);
+                setActiveTab(tab);
+                void loadTabData(tab);
+              }}
+            >
+              {tabLabels[tab]}
+            </button>
+          ))}
+          <button onClick={() => void loadTabData(selectedSection === 'dashboard' ? activeTab : selectedSection)}>
+            {loading ? 'Loading…' : 'Refresh tab'}
+          </button>
+        </nav>
+        <div className="sidebar-footer">
+          <p>{userEmail || 'Authenticated user'}</p>
+          <button type="button" onClick={onLogout}>Logout</button>
+        </div>
+      </aside>
+
+      <div className="dashboard-main">
+        <header>
+          <h1>Welcome back, Chef.</h1>
+          <p className="muted">Here is the overview of your culinary creations today.</p>
+        </header>
+        <div className="overview-grid">
+          <article className="overview-card">
+            <h3>Total Foods</h3>
+            <p>{totalFoods}</p>
+          </article>
+          <article className="overview-card">
+            <h3>Ingredients</h3>
+            <p>{totalIngredients}</p>
+          </article>
+          <article className="overview-card">
+            <h3>Recipes</h3>
+            <p>{totalRecipes}</p>
+          </article>
+        </div>
+        <section className="featured-recipe">
+          <h2>Featured Recipe</h2>
+          <div className="featured-recipe-card">
+            <div className="featured-recipe-image" />
+            <div className="featured-recipe-content">
+              <span className="difficulty-chip">Easy</span>
+              <h3>{featuredRecipe?.foodName || 'Traditional Aglio e Olio'}</h3>
+              <p>{featuredRecipe?.description || 'A classic Italian pasta dish.'}</p>
+              <small>{featuredDuration} mins • {featuredIngredientCount} ingredients</small>
+            </div>
+          </div>
+        </section>
 
       {error && <p className="error">{error}</p>}
 
-      {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
+      {selectedSection !== 'dashboard' && activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
 
-      {activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
+      {selectedSection !== 'dashboard' && activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
 
-      {activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
+      {selectedSection !== 'dashboard' && activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
 
-      {activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
+      {selectedSection !== 'dashboard' && activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
 
       <CreateEntityModal
         createModal={createFlow.createModal}
@@ -154,6 +236,7 @@ export default function BackendExplorer() {
         addUpdateNutrition={updateFlow.addUpdateNutrition}
         confirmUpdate={updateFlow.confirmUpdate}
       />
+      </div>
     </section>
   );
 }
