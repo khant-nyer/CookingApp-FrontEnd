@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
@@ -32,6 +32,7 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
     error,
     pagination
   } = viewState;
+  const [selectedSection, setSelectedSection] = useState<'dashboard' | TabKey>('dashboard');
 
   const handleDeleteCancel = useCallback(() => {
     deleteFlow.setDeleteModal({ open: false, message: '', action: null });
@@ -96,6 +97,12 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
   const totalRecipes = pagination.recipes.totalElements || entities.recipes.length;
   const featuredDuration = Math.max((featuredRecipe?.instructions || []).length * 5, 20);
   const featuredIngredientCount = featuredRecipe?.ingredients?.length || 0;
+  const tabLabels: Record<TabKey, string> = {
+    foods: 'Food',
+    ingredients: 'Ingredient',
+    recipes: 'Recipe',
+    nutrition: 'Nutrition'
+  };
 
   return (
     <section className="dashboard-layout">
@@ -105,15 +112,29 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
           <strong>Savor</strong>
         </div>
         <nav className="sidebar-nav">
-          <button className="tab active" type="button">
+          <button
+            className={selectedSection === 'dashboard' ? 'tab active' : 'tab'}
+            type="button"
+            onClick={() => setSelectedSection('dashboard')}
+          >
             Dashboard
           </button>
           {tabs.map((tab) => (
-            <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => setActiveTab(tab)}>
-              {tab[0].toUpperCase() + tab.slice(1)}
+            <button
+              key={tab}
+              className={selectedSection === tab ? 'tab active' : 'tab'}
+              onClick={() => {
+                setSelectedSection(tab);
+                setActiveTab(tab);
+                void loadTabData(tab);
+              }}
+            >
+              {tabLabels[tab]}
             </button>
           ))}
-          <button onClick={() => loadTabData(activeTab)}>{loading ? 'Loading…' : 'Refresh tab'}</button>
+          <button onClick={() => void loadTabData(selectedSection === 'dashboard' ? activeTab : selectedSection)}>
+            {loading ? 'Loading…' : 'Refresh tab'}
+          </button>
         </nav>
         <div className="sidebar-footer">
           <p>{userEmail || 'Authenticated user'}</p>
@@ -155,13 +176,13 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
 
       {error && <p className="error">{error}</p>}
 
-      {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
+      {selectedSection !== 'dashboard' && activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
 
-      {activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
+      {selectedSection !== 'dashboard' && activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
 
-      {activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
+      {selectedSection !== 'dashboard' && activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
 
-      {activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
+      {selectedSection !== 'dashboard' && activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
 
       <CreateEntityModal
         createModal={createFlow.createModal}
