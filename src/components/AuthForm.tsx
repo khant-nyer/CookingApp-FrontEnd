@@ -43,6 +43,8 @@ export default function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   function onChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
@@ -87,7 +89,7 @@ export default function AuthForm() {
   }
 
   return (
-    <section className="card">
+    <section className="card auth-card">
       <h2>{modeHeading[mode]}</h2>
       <form onSubmit={onSubmit} className="form">
         {(mode === 'register' || mode === 'verify-email') && (
@@ -119,15 +121,25 @@ export default function AuthForm() {
         {(mode === 'login' || mode === 'register' || mode === 'verify-email') && (
           <label>
             Password
-            <input
-              name="password"
-              value={form.password}
-              onChange={onChange}
-              type="password"
-              minLength={6}
-              required
-              disabled={mode === 'verify-email'}
-            />
+            <div className="password-input-wrap">
+              <input
+                name="password"
+                value={form.password}
+                onChange={onChange}
+                type={showPassword ? 'text' : 'password'}
+                minLength={6}
+                required
+                disabled={mode === 'verify-email'}
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? '🙈' : '👁'}
+              </button>
+            </div>
           </label>
         )}
 
@@ -151,14 +163,24 @@ export default function AuthForm() {
             </label>
             <label>
               New password
-              <input
-                name="newPassword"
-                value={form.newPassword}
-                onChange={onChange}
-                type="password"
-                minLength={6}
-                required
-              />
+              <div className="password-input-wrap">
+                <input
+                  name="newPassword"
+                  value={form.newPassword}
+                  onChange={onChange}
+                  type={showNewPassword ? 'text' : 'password'}
+                  minLength={6}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowNewPassword((prev) => !prev)}
+                  aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                >
+                  {showNewPassword ? '🙈' : '👁'}
+                </button>
+              </div>
             </label>
           </>
         )}

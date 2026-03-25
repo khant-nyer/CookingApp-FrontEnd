@@ -105,15 +105,42 @@ button:disabled {
 }
 
 .auth-header {
+  display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 1rem;
+}
+
+.auth-header-public {
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .auth-actions {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+}
+
+.auth-card {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.password-input-wrap {
+  position: relative;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #35504d;
+  padding: 0.2rem;
 }
 
 .link-btn {

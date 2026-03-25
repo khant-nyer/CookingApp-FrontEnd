@@ -38,18 +38,19 @@ export default function App() {
 
   return (
     <main className="container">
-      <header className="header-row auth-header">
-        <div>
-          <h1>Cooking App Frontend</h1>
-          <p className="muted">Connected to Cognito auth and backend controllers.</p>
-        </div>
-        {isAuthenticated && (
+      {isAuthenticated ? (
+        <header className="auth-header">
+          <h1>Cooking App</h1>
           <div className="auth-actions">
             <span className="muted">{user?.email || 'Authenticated user'}</span>
             <button onClick={() => void logout()}>Logout</button>
           </div>
-        )}
-      </header>
+        </header>
+      ) : (
+        <header className="auth-header auth-header-public">
+          <h1>Cooking App</h1>
+        </header>
+      )}
 
       {!isAuthenticated ? <AuthForm /> : <BackendExplorer />}
 
