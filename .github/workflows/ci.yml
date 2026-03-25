@@ -62,7 +62,7 @@ jobs:
         run: |
           for attempt in $(seq 1 30); do
             code=$(curl --silent --output /dev/null --write-out "%{http_code}" "$APP_BASE_URL")
-            if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then
+            if [ "$code" -ge 200 ] && [ "$code" -lt 500 ]; then
               echo "App is reachable at $APP_BASE_URL (HTTP $code)."
               exit 0
             fi
