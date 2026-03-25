@@ -26,7 +26,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
@@ -48,6 +48,7 @@ jobs:
     env:
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       APP_BASE_URL: https://cookingapp-6pj2.onrender.com
+      APP_HEALTHCHECK_PATH: /
     steps:
       - name: Trigger Render deploy hook
         run: |
@@ -60,16 +61,18 @@ jobs:
 
       - name: Smoke check deployed app
         run: |
+          app_url="${APP_BASE_URL%/}${APP_HEALTHCHECK_PATH}"
+
           for attempt in $(seq 1 30); do
-            code=$(curl --silent --output /dev/null --write-out "%{http_code}" "$APP_BASE_URL")
-            if [ "$code" -ge 200 ] && [ "$code" -lt 500 ]; then
-              echo "App is reachable at $APP_BASE_URL (HTTP $code)."
+            code=$(curl --silent --show-error --max-time 10 --output /dev/null --write-out "%{http_code}" "$app_url")
+            if { [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; } || [ "$code" = "401" ] || [ "$code" = "403" ]; then
+              echo "App is reachable at $app_url (HTTP $code)."
               exit 0
             fi
 
-            echo "Attempt $attempt/30: app not ready yet (HTTP $code). Waiting 20s..."
+            echo "Attempt $attempt/30: app not ready yet at $app_url (HTTP $code). Waiting 20s..."
             sleep 20
           done
 
-          echo "Timed out waiting for deployment at $APP_BASE_URL" >&2
+          echo "Timed out waiting for deployment at $app_url" >&2
           exit 1
