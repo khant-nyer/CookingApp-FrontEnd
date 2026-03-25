@@ -37,22 +37,17 @@ export default function App() {
   }
 
   return (
-    <main className="container">
-      {isAuthenticated ? (
-        <header className="auth-header">
-          <h1>Cooking App</h1>
-          <div className="auth-actions">
-            <span className="muted">{user?.email || 'Authenticated user'}</span>
-            <button onClick={() => void logout()}>Logout</button>
-          </div>
-        </header>
+    <main className={isAuthenticated ? 'container app-shell-authenticated' : 'container'}>
+      {!isAuthenticated ? (
+        <>
+          <header className="auth-header auth-header-public">
+            <h1>Cooking App</h1>
+          </header>
+          <AuthForm />
+        </>
       ) : (
-        <header className="auth-header auth-header-public">
-          <h1>Cooking App</h1>
-        </header>
+        <BackendExplorer userEmail={user?.email} onLogout={() => void logout()} />
       )}
-
-      {!isAuthenticated ? <AuthForm /> : <BackendExplorer />}
 
       <SessionExpiryModal
         isOpen={isAuthenticated && isExpiryWarningOpen}
