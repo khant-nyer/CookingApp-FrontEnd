@@ -19,8 +19,14 @@ body {
   padding: 2rem 1rem 4rem;
 }
 
+.app-shell-authenticated {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 .muted {
-  color: #51615f;
+  color: #8f98a6;
 }
 
 .grid {
