@@ -448,10 +448,11 @@
 }
 
 .ingredient-detail-modal {
-  width: min(700px, 100%);
-  background: #13161d;
-  border: 1px solid #2a313d;
+  width: min(780px, 100%);
+  background: linear-gradient(180deg, #151921, #11151c);
+  border: 1px solid #2f3644;
   color: #dbe2ef;
+  box-shadow: 0 20px 45px rgb(0 0 0 / 45%);
 }
 
 .ingredient-detail-head {
@@ -480,6 +481,10 @@
   display: grid;
   gap: 0.3rem;
   margin-bottom: 0.8rem;
+  background: #171c25;
+  border: 1px solid #2b3342;
+  border-radius: 10px;
+  padding: 0.7rem;
 }
 
 .ingredient-detail-grid p {
@@ -501,7 +506,7 @@
   border: 1px solid #2a313d;
   border-radius: 10px;
   padding: 0.5rem 0.6rem;
-  background: #171b23;
+  background: #1a202b;
   display: grid;
   gap: 0.15rem;
 }
@@ -513,6 +518,14 @@
 
 .ingredient-nutrition-item strong {
   color: #fff;
+}
+
+.ingredient-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #2a313d;
 }
 
 .food-card {

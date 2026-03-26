@@ -134,7 +134,6 @@ function IngredientsTab({
           <div className="modal-card ingredient-detail-modal" onClick={(event) => event.stopPropagation()}>
             <div className="ingredient-detail-head">
               <h3>{detailIngredient.name || 'Ingredient details'}</h3>
-              <button type="button" className="secondary" onClick={() => setDetailIngredient(null)}>Close</button>
             </div>
             {detailIngredient.imageUrl ? <img src={detailIngredient.imageUrl} alt={detailIngredient.name || 'Ingredient'} className="detail-image ingredient-detail-image" /> : null}
             <div className="ingredient-detail-grid">
@@ -157,6 +156,9 @@ function IngredientsTab({
                   ))}
                 </div>
               ) : null}
+            </div>
+            <div className="ingredient-detail-actions">
+              <button type="button" className="secondary" onClick={() => setDetailIngredient(null)}>Close</button>
             </div>
           </div>
         </div>
