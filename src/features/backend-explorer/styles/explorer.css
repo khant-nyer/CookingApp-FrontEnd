@@ -379,6 +379,15 @@
   vertical-align: middle;
 }
 
+.ingredient-row-clickable {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ingredient-row-clickable:hover {
+  background: #171b23;
+}
+
 .ingredient-name-cell {
   display: flex;
   align-items: center;
@@ -436,6 +445,74 @@
 .ingredient-action-btn.delete {
   background: #52141a;
   color: #ff7070;
+}
+
+.ingredient-detail-modal {
+  width: min(700px, 100%);
+  background: #13161d;
+  border: 1px solid #2a313d;
+  color: #dbe2ef;
+}
+
+.ingredient-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.ingredient-detail-head h3 {
+  margin: 0;
+  color: #fff;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.ingredient-detail-image {
+  max-height: 260px;
+  border-color: #2a313d;
+  margin-bottom: 0.9rem;
+}
+
+.ingredient-detail-grid {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.8rem;
+}
+
+.ingredient-detail-grid p {
+  margin: 0;
+}
+
+.ingredient-nutrition-block {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ingredient-nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.ingredient-nutrition-item {
+  border: 1px solid #2a313d;
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+  background: #171b23;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.ingredient-nutrition-item span {
+  color: #aab5c8;
+  font-size: 0.86rem;
+}
+
+.ingredient-nutrition-item strong {
+  color: #fff;
 }
 
 .food-card {

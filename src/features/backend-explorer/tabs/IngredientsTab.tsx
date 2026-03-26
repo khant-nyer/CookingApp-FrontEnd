@@ -26,6 +26,7 @@ function IngredientsTab({
   onDeleteIngredient
 }: IngredientsTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [detailIngredient, setDetailIngredient] = useState<Ingredient | null>(null);
 
   const filteredIngredients = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -81,7 +82,7 @@ function IngredientsTab({
             {filteredIngredients.map((ingredient) => {
               const id = getItemId(ingredient);
               return (
-                <tr key={String(id || ingredient.name)}>
+                <tr key={String(id || ingredient.name)} className="ingredient-row-clickable" onClick={() => setDetailIngredient(ingredient)}>
                   <td>
                     <div className="ingredient-name-cell">
                       <span className="ingredient-row-icon">🌿</span>
@@ -97,8 +98,28 @@ function IngredientsTab({
                   </td>
                   <td>
                     <div className="ingredient-actions-cell">
-                      <button type="button" className="ingredient-action-btn edit" aria-label={`Edit ${ingredient.name || 'ingredient'}`} onClick={() => openIngredientUpdateModal(ingredient)}>✎</button>
-                      <button type="button" className="ingredient-action-btn delete" aria-label={`Delete ${ingredient.name || 'ingredient'}`} onClick={() => onDeleteIngredient(ingredient)}>🗑</button>
+                      <button
+                        type="button"
+                        className="ingredient-action-btn edit"
+                        aria-label={`Edit ${ingredient.name || 'ingredient'}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openIngredientUpdateModal(ingredient);
+                        }}
+                      >
+                        ✎
+                      </button>
+                      <button
+                        type="button"
+                        className="ingredient-action-btn delete"
+                        aria-label={`Delete ${ingredient.name || 'ingredient'}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onDeleteIngredient(ingredient);
+                        }}
+                      >
+                        🗑
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -107,6 +128,39 @@ function IngredientsTab({
           </tbody>
         </table>
       </div>
+
+      {detailIngredient ? (
+        <div className="modal-backdrop" onClick={() => setDetailIngredient(null)}>
+          <div className="modal-card ingredient-detail-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="ingredient-detail-head">
+              <h3>{detailIngredient.name || 'Ingredient details'}</h3>
+              <button type="button" className="secondary" onClick={() => setDetailIngredient(null)}>Close</button>
+            </div>
+            {detailIngredient.imageUrl ? <img src={detailIngredient.imageUrl} alt={detailIngredient.name || 'Ingredient'} className="detail-image ingredient-detail-image" /> : null}
+            <div className="ingredient-detail-grid">
+              <p><strong>Category:</strong> {detailIngredient.category || '-'}</p>
+              <p><strong>Description:</strong> {detailIngredient.description || '-'}</p>
+              <p><strong>Serving Amount:</strong> {detailIngredient.servingAmount ?? '-'}</p>
+              <p><strong>Serving Unit:</strong> {detailIngredient.servingUnit || '-'}</p>
+              <p><strong>ID:</strong> {String(getItemId(detailIngredient) || '-')}</p>
+            </div>
+            <div className="ingredient-nutrition-block">
+              <strong>Nutrition Facts</strong>
+              {!detailIngredient.nutritionList?.length ? <p className="muted">No nutrition facts available.</p> : null}
+              {detailIngredient.nutritionList?.length ? (
+                <div className="ingredient-nutrition-grid">
+                  {detailIngredient.nutritionList.map((item, index) => (
+                    <div key={`${item.nutrient}-${index}`} className="ingredient-nutrition-item">
+                      <span>{item.nutrient}</span>
+                      <strong>{item.value} {item.unit}</strong>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
