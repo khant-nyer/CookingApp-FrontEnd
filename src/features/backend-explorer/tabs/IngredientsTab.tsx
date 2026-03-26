@@ -1,12 +1,9 @@
-import { memo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import type { CreateSuccessState, EntityType, Ingredient, PaginationInfo } from '../types';
-import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
+import { PaginationControls } from '../shared/ExplorerShared';
 
 interface IngredientsTabProps {
   ingredients: Ingredient[];
-  selectedId: string;
-  setSelectedId: (value: string) => void;
-  selectedIngredient?: Ingredient;
   createSuccess: CreateSuccessState;
   openCreateModal: (type: EntityType) => void;
   openIngredientUpdateModal: (ingredient: Ingredient) => void;
@@ -19,9 +16,6 @@ interface IngredientsTabProps {
 
 function IngredientsTab({
   ingredients,
-  selectedId,
-  setSelectedId,
-  selectedIngredient,
   createSuccess,
   openCreateModal,
   openIngredientUpdateModal,
@@ -31,36 +25,89 @@ function IngredientsTab({
   loading,
   onDeleteIngredient
 }: IngredientsTabProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredIngredients = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return ingredients;
+    return ingredients.filter((ingredient) => {
+      const name = (ingredient.name || '').toLowerCase();
+      const category = (ingredient.category || '').toLowerCase();
+      const unit = (ingredient.servingUnit || '').toLowerCase();
+      return name.includes(normalizedQuery) || category.includes(normalizedQuery) || unit.includes(normalizedQuery);
+    });
+  }, [ingredients, searchQuery]);
+
   return (
-    <div className="grid">
-      <div className="card">
-        <button onClick={() => openCreateModal('ingredient')}>Create Ingredient</button>
-        {createSuccess.ingredient ? <p className="success">{createSuccess.ingredient}</p> : null}
-        <h3>Gallery</h3>
-        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
-        <div className="gallery-grid">
-          {ingredients.map((ingredient) => {
-            const id = getItemId(ingredient);
-            return <GalleryTile key={String(id || ingredient.name)} imageUrl={ingredient.imageUrl} fallbackText={ingredient.name || 'Unnamed ingredient'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id || ''))} />;
-          })}
+    <section className="ingredients-tab-shell">
+      <header className="ingredients-tab-header">
+        <div>
+          <h2>Pantry Inventory</h2>
+          <p>Manage your raw ingredients and supplies.</p>
         </div>
+        <button type="button" className="ingredients-add-btn" onClick={() => openCreateModal('ingredient')}>
+          + Add Ingredient
+        </button>
+      </header>
+
+      <div className="ingredients-tab-divider" />
+
+      <div className="ingredients-search-row">
+        <input
+          type="search"
+          className="ingredients-search-input"
+          placeholder="Search pantry..."
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+        />
       </div>
 
-      {selectedIngredient ? (
-        <TextDetail
-          title={selectedIngredient.name || 'Ingredient details'}
-          imageUrl={selectedIngredient.imageUrl}
-          fields={[
-            { label: 'Category', value: selectedIngredient.category },
-            { label: 'Description', value: selectedIngredient.description },
-            { label: 'Serving', value: `${selectedIngredient.servingAmount || '-'} ${selectedIngredient.servingUnit || ''}` }
-          ]}
-          sections={[{ title: 'Nutritions', items: (selectedIngredient.nutritionList || []).map((n) => `${n.nutrient}: ${n.value} ${n.unit}`) }]}
-          onDelete={() => onDeleteIngredient(selectedIngredient)}
-          onUpdate={() => openIngredientUpdateModal(selectedIngredient)}
-        />
-      ) : <div className="card muted">Select an ingredient image to view details.</div>}
-    </div>
+      <div className="ingredients-feedback-row">
+        {createSuccess.ingredient ? <p className="success">{createSuccess.ingredient}</p> : null}
+        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
+      </div>
+
+      <div className="ingredients-table-wrap">
+        <table className="ingredients-table">
+          <thead>
+            <tr>
+              <th>Ingredient Name</th>
+              <th>Category</th>
+              <th>Measurement</th>
+              <th className="ingredients-actions-head">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredIngredients.map((ingredient) => {
+              const id = getItemId(ingredient);
+              return (
+                <tr key={String(id || ingredient.name)}>
+                  <td>
+                    <div className="ingredient-name-cell">
+                      <span className="ingredient-row-icon">🌿</span>
+                      <strong>{ingredient.name || 'Unnamed ingredient'}</strong>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="ingredient-category-chip">{ingredient.category || 'Other'}</span>
+                  </td>
+                  <td>
+                    <span className="muted">measured in </span>
+                    <strong>{ingredient.servingUnit || '-'}</strong>
+                  </td>
+                  <td>
+                    <div className="ingredient-actions-cell">
+                      <button type="button" className="ingredient-action-btn edit" aria-label={`Edit ${ingredient.name || 'ingredient'}`} onClick={() => openIngredientUpdateModal(ingredient)}>✎</button>
+                      <button type="button" className="ingredient-action-btn delete" aria-label={`Delete ${ingredient.name || 'ingredient'}`} onClick={() => onDeleteIngredient(ingredient)}>🗑</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 

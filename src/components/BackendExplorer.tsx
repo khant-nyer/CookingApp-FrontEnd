@@ -52,9 +52,6 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
-    selectedId,
-    setSelectedId,
-    selectedIngredient: entities.selectedIngredient,
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     openIngredientUpdateModal: updateFlow.openIngredientUpdateModal,
@@ -63,7 +60,7 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
     onPageChange: (page: number) => loadTabData('ingredients', page),
     loading,
     onDeleteIngredient: deleteFlow.handleDeleteIngredient
-  }), [entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, pagination.ingredients, loadTabData, loading, deleteFlow.handleDeleteIngredient]);
+  }), [entities.ingredients, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, pagination.ingredients, loadTabData, loading, deleteFlow.handleDeleteIngredient]);
 
   const recipesTabProps = useMemo(() => ({
     recipes: entities.recipes,
