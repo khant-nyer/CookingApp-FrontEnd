@@ -66,7 +66,6 @@ function RecipesTab({
 
       <div className="recipes-feedback-row">
         {createSuccess.recipe ? <p className="success">{createSuccess.recipe}</p> : null}
-        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
       </div>
 
       <div className="recipes-card-list">
@@ -76,7 +75,7 @@ function RecipesTab({
           const foodName = recipe.foodName || linkedFood?.name || 'Recipe';
           const totalMinutes = Math.max((recipe.instructions || []).length * 5, 20);
           const cookMinutes = Math.max((recipe.instructions || []).length * 4, 15);
-          const keyIngredients = (recipe.ingredients || []).slice(0, 4).map((item) => item.ingredientName || String(item.ingredientId));
+          const keyIngredients = (recipe.ingredients || []).slice(0, 3).map((item) => item.ingredientName || String(item.ingredientId));
 
           return (
             <article key={String(id)} className="recipe-feature-card" onClick={() => setDetailRecipe(recipe)}>
@@ -107,6 +106,8 @@ function RecipesTab({
           );
         })}
       </div>
+
+      <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
 
       {detailRecipe ? (
         <div className="modal-backdrop" onClick={() => setDetailRecipe(null)}>
