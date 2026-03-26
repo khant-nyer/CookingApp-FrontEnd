@@ -1,12 +1,9 @@
 import { memo } from 'react';
 import type { CreateSuccessState, EntityType, Food, PaginationInfo } from '../types';
-import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
+import { PaginationControls } from '../shared/ExplorerShared';
 
 interface FoodsTabProps {
   foods: Food[];
-  selectedId: string;
-  setSelectedId: (value: string) => void;
-  selectedFood?: Food;
   createSuccess: CreateSuccessState;
   openCreateModal: (type: EntityType) => void;
   openFoodUpdateModal: (food: Food) => void;
@@ -19,9 +16,6 @@ interface FoodsTabProps {
 
 function FoodsTab({
   foods,
-  selectedId,
-  setSelectedId,
-  selectedFood,
   createSuccess,
   openCreateModal,
   openFoodUpdateModal,
@@ -38,24 +32,45 @@ function FoodsTab({
         {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
         <h3>Gallery</h3>
         <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
-        <div className="gallery-grid">
+        <div className="gallery-grid food-gallery-grid">
           {foods.map((food) => {
             const id = getItemId(food);
-            return <GalleryTile key={String(id || food.name)} imageUrl={food.imageUrl} fallbackText={food.name || 'Unnamed food'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id || ''))} />;
+            const recipes = food.recipes || [];
+            return (
+              <article key={String(id || food.name)} className="food-card">
+                <div className="food-card-image-wrap">
+                  {food.imageUrl ? <img src={food.imageUrl} alt={food.name || 'Unnamed food'} className="food-card-image" /> : <div className="gallery-fallback food-card-image-fallback">{food.name || 'Unnamed food'}</div>}
+                  <div className="food-card-actions">
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      aria-label={`Edit ${food.name || 'food'}`}
+                      onClick={() => openFoodUpdateModal(food)}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn danger-icon-btn"
+                      aria-label={`Delete ${food.name || 'food'}`}
+                      onClick={() => onDeleteFood(food)}
+                    >
+                      🗑
+                    </button>
+                  </div>
+                </div>
+                <div className="food-card-content">
+                  <div className="food-card-title-row">
+                    <strong>{food.name || 'Unnamed food'}</strong>
+                    <span className="food-category-chip">{food.category || 'Uncategorized'}</span>
+                  </div>
+                  <p className="muted">Recipes: {recipes.length}</p>
+                </div>
+              </article>
+            );
           })}
         </div>
       </div>
-
-      {selectedFood ? (
-        <TextDetail
-          title={selectedFood.name || 'Food details'}
-          imageUrl={selectedFood.imageUrl}
-          fields={[{ label: 'Category', value: selectedFood.category }, { label: 'ID', value: selectedFood.id }]}
-          sections={[{ title: 'Recipes', items: (selectedFood.recipes || []).map((recipe) => recipe.name || `Recipe #${recipe.id}`) }]}
-          onDelete={() => onDeleteFood(selectedFood)}
-          onUpdate={() => openFoodUpdateModal(selectedFood)}
-        />
-      ) : <div className="card muted">Select a food image to view details.</div>}
     </div>
   );
 }
