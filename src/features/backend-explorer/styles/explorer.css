@@ -423,6 +423,7 @@
   cursor: pointer;
   transition: border-color 0.2s ease, transform 0.2s ease;
   width: 100%;
+  max-width: 340px;
   overflow: hidden;
 }
 
@@ -1309,6 +1310,7 @@ pre {
   .recipe-feature-card {
     grid-template-columns: 1fr;
     width: 100%;
+    max-width: none;
   }
 
   .recipe-feature-title-row h3 {
