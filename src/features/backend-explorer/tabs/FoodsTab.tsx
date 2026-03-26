@@ -63,7 +63,6 @@ function FoodsTab({
 
       <div className="foods-feedback-row">
         {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
-        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
       </div>
 
       <div className="gallery-grid food-gallery-grid">
@@ -104,6 +103,8 @@ function FoodsTab({
           );
         })}
       </div>
+
+      <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
     </section>
   );
 }

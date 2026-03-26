@@ -65,7 +65,6 @@ function IngredientsTab({
 
       <div className="ingredients-feedback-row">
         {createSuccess.ingredient ? <p className="success">{createSuccess.ingredient}</p> : null}
-        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
       </div>
 
       <div className="ingredients-table-wrap">
@@ -128,6 +127,8 @@ function IngredientsTab({
           </tbody>
         </table>
       </div>
+
+      <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
 
       {detailIngredient ? (
         <div className="modal-backdrop" onClick={() => setDetailIngredient(null)}>

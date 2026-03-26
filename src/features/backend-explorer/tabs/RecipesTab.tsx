@@ -66,7 +66,6 @@ function RecipesTab({
 
       <div className="recipes-feedback-row">
         {createSuccess.recipe ? <p className="success">{createSuccess.recipe}</p> : null}
-        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
       </div>
 
       <div className="recipes-card-list">
@@ -107,6 +106,8 @@ function RecipesTab({
           );
         })}
       </div>
+
+      <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
 
       {detailRecipe ? (
         <div className="modal-backdrop" onClick={() => setDetailRecipe(null)}>
