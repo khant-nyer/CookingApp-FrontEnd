@@ -234,7 +234,64 @@
 }
 
 .food-gallery-grid {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  align-items: start;
+}
+
+.foods-tab-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.foods-tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.foods-tab-header h2 {
+  margin: 0;
+  color: #fff;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.8rem;
+  font-weight: 500;
+}
+
+.foods-tab-header p {
+  margin: 0.2rem 0 0;
+  color: #aab2be;
+  font-size: 1.1rem;
+}
+
+.foods-add-btn {
+  background: #ff9100;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.7rem 1.1rem;
+  min-width: 130px;
+  font-weight: 700;
+}
+
+.foods-tab-divider {
+  width: 100%;
+  border-bottom: 1px solid #1f232c;
+}
+
+.foods-search-row {
+  max-width: 460px;
+}
+
+.foods-search-input {
+  min-height: 42px;
+  background: #14161c;
+  border: 1px solid #272c36;
+  color: #d8deea;
+}
+
+.foods-feedback-row {
+  display: grid;
+  gap: 0.45rem;
 }
 
 .food-card {
@@ -246,19 +303,19 @@
 
 .food-card-image-wrap {
   position: relative;
-  min-height: 210px;
+  min-height: 230px;
   background: #17191e;
 }
 
 .food-card-image {
   width: 100%;
-  height: 210px;
+  height: 230px;
   object-fit: cover;
   display: block;
 }
 
 .food-card-image-fallback {
-  min-height: 210px;
+  min-height: 230px;
   border: 0;
   border-radius: 0;
   background: #1c1f26;
@@ -298,7 +355,7 @@
 }
 
 .food-card-content {
-  padding: 0.9rem 1rem 1rem;
+  padding: 1.1rem 1.1rem 1.1rem;
   display: grid;
   gap: 0.4rem;
 }
@@ -312,16 +369,17 @@
 
 .food-card-title-row strong {
   color: #fff;
-  font-size: 1.2rem;
+  font-size: 2rem;
   font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 500;
 }
 
 .food-category-chip {
   background: #2b3039;
   border-radius: 999px;
   color: #c7cfda;
-  font-size: 0.8rem;
-  padding: 0.2rem 0.55rem;
+  font-size: 0.9rem;
+  padding: 0.24rem 0.65rem;
   white-space: nowrap;
 }
 
@@ -737,6 +795,19 @@ pre {
 }
 
 @media (max-width: 760px) {
+  .foods-tab-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .foods-tab-header h2 {
+    font-size: 2rem;
+  }
+
+  .food-gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
   .summary-head {
     flex-direction: column;
     align-items: flex-start;
