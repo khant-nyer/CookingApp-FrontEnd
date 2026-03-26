@@ -40,9 +40,6 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
 
   const foodsTabProps = useMemo(() => ({
     foods: entities.foods,
-    selectedId,
-    setSelectedId,
-    selectedFood: entities.selectedFood,
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     openFoodUpdateModal: updateFlow.openFoodUpdateModal,
@@ -51,13 +48,10 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
     onPageChange: (page: number) => loadTabData('foods', page),
     loading,
     onDeleteFood: deleteFlow.handleDeleteFood
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openFoodUpdateModal, pagination.foods, loadTabData, loading, deleteFlow.handleDeleteFood]);
+  }), [entities.foods, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openFoodUpdateModal, pagination.foods, loadTabData, loading, deleteFlow.handleDeleteFood]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
-    selectedId,
-    setSelectedId,
-    selectedIngredient: entities.selectedIngredient,
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     openIngredientUpdateModal: updateFlow.openIngredientUpdateModal,
@@ -66,7 +60,7 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
     onPageChange: (page: number) => loadTabData('ingredients', page),
     loading,
     onDeleteIngredient: deleteFlow.handleDeleteIngredient
-  }), [entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, pagination.ingredients, loadTabData, loading, deleteFlow.handleDeleteIngredient]);
+  }), [entities.ingredients, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, pagination.ingredients, loadTabData, loading, deleteFlow.handleDeleteIngredient]);
 
   const recipesTabProps = useMemo(() => ({
     recipes: entities.recipes,
