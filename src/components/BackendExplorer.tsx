@@ -21,8 +21,6 @@ interface BackendExplorerProps {
 export default function BackendExplorer({ userEmail, onLogout }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
-    selectedId,
-    setSelectedId,
     selectedNutrient,
     setSelectedNutrient,
     setActiveTab,
@@ -65,9 +63,6 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
   const recipesTabProps = useMemo(() => ({
     recipes: entities.recipes,
     foods: entities.foods,
-    selectedId,
-    setSelectedId,
-    selectedRecipe: entities.selectedRecipe,
     createSuccess: createFlow.createSuccess,
     openCreateModal: createFlow.openCreateModal,
     openRecipeUpdateModal: updateFlow.openRecipeUpdateModal,
@@ -75,7 +70,7 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
     onPageChange: (page: number) => loadTabData('recipes', page),
     loading,
     onDeleteRecipe: deleteFlow.handleDeleteRecipe
-  }), [entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openRecipeUpdateModal, pagination.recipes, loadTabData, loading, deleteFlow.handleDeleteRecipe]);
+  }), [entities.recipes, entities.foods, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openRecipeUpdateModal, pagination.recipes, loadTabData, loading, deleteFlow.handleDeleteRecipe]);
 
   const nutritionTabProps = useMemo(() => ({
     selectedNutrient,
