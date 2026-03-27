@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from 'react';
 import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
 import { createSubmitHandlers} from './authFormLogic';
+import LoadingLabel from './LoadingLabel';
 import type { AuthMode, AuthFormState } from './authFormLogic';
 
 const modeHeading: Record<AuthMode, string> = {
@@ -189,7 +190,7 @@ export default function AuthForm() {
         {success && <p className="success">{success}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Please wait…' : modeSubmitLabel[mode]}
+          {loading ? <LoadingLabel label="Please wait…" /> : modeSubmitLabel[mode]}
         </button>
       </form>
 
