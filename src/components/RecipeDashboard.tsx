@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { api } from '../services/api';
+import LoadingLabel from './LoadingLabel';
 
 interface RecipeDashboardItem {
   id?: string | number;
@@ -104,7 +105,7 @@ export default function RecipeDashboard() {
             <input name="ingredients" value={form.ingredients} onChange={onChange} required />
           </label>
           <button type="submit" disabled={loading}>
-            {loading ? 'Saving…' : 'Create recipe'}
+            {loading ? <LoadingLabel label="Saving…" /> : 'Create recipe'}
           </button>
         </form>
       </div>

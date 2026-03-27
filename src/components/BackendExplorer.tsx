@@ -10,6 +10,7 @@ import IngredientsTab from '../features/backend-explorer/tabs/IngredientsTab';
 import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { TabKey } from '../features/backend-explorer/types';
+import LoadingLabel from './LoadingLabel';
 
 const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
@@ -122,7 +123,7 @@ export default function BackendExplorer({ userEmail, onLogout }: BackendExplorer
             </button>
           ))}
           <button onClick={() => void loadTabData(selectedSection === 'dashboard' ? activeTab : selectedSection)}>
-            {loading ? 'Loading…' : 'Refresh tab'}
+            {loading ? <LoadingLabel /> : 'Refresh tab'}
           </button>
         </nav>
         <div className="sidebar-footer">

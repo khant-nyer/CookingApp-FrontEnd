@@ -161,3 +161,16 @@ button:disabled {
 .link-btn:hover {
   text-decoration: underline;
 }
+
+.loading-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.loading-label__icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  object-fit: contain;
+}
