@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
@@ -9,12 +9,13 @@ import FoodsTab from '../features/backend-explorer/tabs/FoodsTab';
 import IngredientsTab from '../features/backend-explorer/tabs/IngredientsTab';
 import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
-import type { TabKey } from '../features/backend-explorer/types';
+import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
 
 const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
-export default function BackendExplorer() {
+export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
+  const [authPrompt, setAuthPrompt] = useState('');
   const {
     selectedId,
     setSelectedId,
@@ -32,20 +33,29 @@ export default function BackendExplorer() {
     deleteFlow.setDeleteModal({ open: false, message: '', action: null });
   }, [deleteFlow]);
 
+  const runProtectedAction = useCallback((action: () => void) => {
+    if (!isAuthenticated) {
+      setAuthPrompt('Please sign in or register to create, update, or delete items.');
+      return;
+    }
+    setAuthPrompt('');
+    action();
+  }, [isAuthenticated]);
+
   const foodsTabProps = useMemo(() => ({
     foods: entities.foods,
     selectedId,
     setSelectedId,
     selectedFood: entities.selectedFood,
     createSuccess: createFlow.createSuccess,
-    openCreateModal: createFlow.openCreateModal,
-    openFoodUpdateModal: updateFlow.openFoodUpdateModal,
+    openCreateModal: (type: EntityType) => runProtectedAction(() => createFlow.openCreateModal(type)),
+    openFoodUpdateModal: (food: Food) => runProtectedAction(() => updateFlow.openFoodUpdateModal(food)),
     getItemId,
     pagination: pagination.foods,
     onPageChange: (page: number) => loadTabData('foods', page),
     loading,
-    onDeleteFood: deleteFlow.handleDeleteFood
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openFoodUpdateModal, pagination.foods, loadTabData, loading, deleteFlow.handleDeleteFood]);
+    onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food))
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
@@ -53,14 +63,14 @@ export default function BackendExplorer() {
     setSelectedId,
     selectedIngredient: entities.selectedIngredient,
     createSuccess: createFlow.createSuccess,
-    openCreateModal: createFlow.openCreateModal,
-    openIngredientUpdateModal: updateFlow.openIngredientUpdateModal,
+    openCreateModal: (type: EntityType) => runProtectedAction(() => createFlow.openCreateModal(type)),
+    openIngredientUpdateModal: (ingredient: Ingredient) => runProtectedAction(() => updateFlow.openIngredientUpdateModal(ingredient)),
     getItemId,
     pagination: pagination.ingredients,
     onPageChange: (page: number) => loadTabData('ingredients', page),
     loading,
-    onDeleteIngredient: deleteFlow.handleDeleteIngredient
-  }), [entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openIngredientUpdateModal, pagination.ingredients, loadTabData, loading, deleteFlow.handleDeleteIngredient]);
+    onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient))
+  }), [entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
 
   const recipesTabProps = useMemo(() => ({
     recipes: entities.recipes,
@@ -69,13 +79,13 @@ export default function BackendExplorer() {
     setSelectedId,
     selectedRecipe: entities.selectedRecipe,
     createSuccess: createFlow.createSuccess,
-    openCreateModal: createFlow.openCreateModal,
-    openRecipeUpdateModal: updateFlow.openRecipeUpdateModal,
+    openCreateModal: (type: EntityType) => runProtectedAction(() => createFlow.openCreateModal(type)),
+    openRecipeUpdateModal: (recipe: Recipe) => runProtectedAction(() => updateFlow.openRecipeUpdateModal(recipe)),
     pagination: pagination.recipes,
     onPageChange: (page: number) => loadTabData('recipes', page),
     loading,
-    onDeleteRecipe: deleteFlow.handleDeleteRecipe
-  }), [entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow.createSuccess, createFlow.openCreateModal, updateFlow.openRecipeUpdateModal, pagination.recipes, loadTabData, loading, deleteFlow.handleDeleteRecipe]);
+    onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe))
+  }), [entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
 
   const nutritionTabProps = useMemo(() => ({
     selectedNutrient,
@@ -92,6 +102,8 @@ export default function BackendExplorer() {
         <button onClick={() => loadTabData(activeTab)}>{loading ? 'Loading…' : 'Refresh tab'}</button>
       </nav>
 
+      {!isAuthenticated && <p className="muted">Browse data freely. Sign in or register to perform create, update, and delete actions.</p>}
+      {authPrompt && <p className="error">{authPrompt}</p>}
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}

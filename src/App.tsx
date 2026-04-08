@@ -52,7 +52,9 @@ export default function App() {
         </header>
       )}
 
-      {!isAuthenticated ? <AuthForm /> : <BackendExplorer />}
+      <BackendExplorer isAuthenticated={isAuthenticated} />
+
+      {!isAuthenticated ? <AuthForm /> : null}
 
       <SessionExpiryModal
         isOpen={isAuthenticated && isExpiryWarningOpen}
