@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api } from '../../../services/api';
+import { ApiError, api } from '../../../services/api';
 import type { Food, Ingredient, Recipe, TabKey } from '../types';
 
 type PaginationInfo = {
@@ -127,6 +127,23 @@ const defaultPaginationState = (): PaginationState => ({
   recipes: { ...DEFAULT_PAGINATION }
 });
 
+function mapLoadError(loadError: unknown, fallbackMessage: string) {
+  if (loadError instanceof ApiError) {
+    if (loadError.status === 404) {
+      return 'Backend endpoint was not found (404). Please start the backend service or verify the API URL.';
+    }
+    if (loadError.status != null && loadError.status >= 500) {
+      return 'Backend server error (500). Please try again later.';
+    }
+  }
+
+  if (loadError instanceof Error && /<!doctype|<html/i.test(loadError.message)) {
+    return 'Backend response was not valid API data. Please start the backend service and try again.';
+  }
+
+  return loadError instanceof Error ? loadError.message : fallbackMessage;
+}
+
 export default function useBackendData() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -178,7 +195,7 @@ export default function useBackendData() {
       return {
         data: [],
         pagination: { ...DEFAULT_PAGINATION, page },
-        error: loadError instanceof Error ? loadError.message : 'Failed to load foods.'
+        error: mapLoadError(loadError, 'Failed to load foods.')
       };
     }
   }, [getPaginationInfo]);
@@ -191,7 +208,7 @@ export default function useBackendData() {
       return {
         data: [],
         pagination: { ...DEFAULT_PAGINATION, page },
-        error: loadError instanceof Error ? loadError.message : 'Failed to load ingredients.'
+        error: mapLoadError(loadError, 'Failed to load ingredients.')
       };
     }
   }, [getPaginationInfo]);
@@ -204,7 +221,7 @@ export default function useBackendData() {
       return {
         data: [],
         pagination: { ...DEFAULT_PAGINATION, page },
-        error: loadError instanceof Error ? loadError.message : 'Failed to load recipes.'
+        error: mapLoadError(loadError, 'Failed to load recipes.')
       };
     }
   }, [getPaginationInfo]);

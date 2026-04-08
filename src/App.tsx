@@ -16,6 +16,7 @@ export default function App() {
   } = useAuth();
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -38,21 +39,30 @@ export default function App() {
 
   return (
     <main className="container">
-      {isAuthenticated ? (
-        <header className="auth-header">
-          <h1>Cooking App</h1>
-          <div className="auth-actions">
-            <span className="muted">{user?.email || 'Authenticated user'}</span>
-            <button onClick={() => void logout()}>Logout</button>
-          </div>
-        </header>
-      ) : (
-        <header className="auth-header auth-header-public">
-          <h1>Cooking App</h1>
-        </header>
-      )}
+      <header className="auth-header">
+        <h1>Cooking App</h1>
+        <div className="auth-actions">
+          {isAuthenticated ? (
+            <>
+              <span className="muted">{user?.email || 'Authenticated user'}</span>
+              <button onClick={() => void logout()}>Logout</button>
+            </>
+          ) : (
+            <button onClick={() => setIsAuthModalOpen(true)}>Sign in</button>
+          )}
+        </div>
+      </header>
 
-      {!isAuthenticated ? <AuthForm /> : <BackendExplorer />}
+      <BackendExplorer isAuthenticated={isAuthenticated} />
+
+      {!isAuthenticated && isAuthModalOpen ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setIsAuthModalOpen(false)}>
+          <section className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="modal-close-icon" aria-label="Close sign in modal" onClick={() => setIsAuthModalOpen(false)}>×</button>
+            <AuthForm />
+          </section>
+        </div>
+      ) : null}
 
       <SessionExpiryModal
         isOpen={isAuthenticated && isExpiryWarningOpen}
