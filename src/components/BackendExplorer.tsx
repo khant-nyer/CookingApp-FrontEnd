@@ -112,7 +112,7 @@ export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: 
         <button onClick={handleRefreshTab}>{loading ? 'Loading…' : 'Refresh tab'}</button>
       </nav>
 
-      {!isAuthenticated && <p className="muted">This application is still under development, updates coming soon.</p>}
+      {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
       {authPrompt && <p className="error">{authPrompt}</p>}
       {error && <p className="error">{error}</p>}
 

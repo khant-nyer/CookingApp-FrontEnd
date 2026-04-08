@@ -465,11 +465,29 @@ pre {
   border-radius: 12px;
   padding: 1rem;
   width: min(520px, 100%);
+  position: relative;
   max-height: 88vh;
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
   box-shadow: 0 10px 30px rgb(0 0 0 / 20%);
+}
+
+.modal-close-icon {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  color: #35504d;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.1rem 0.35rem;
+}
+
+.guest-dev-notice {
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
 .modal-card::-webkit-scrollbar {

@@ -57,13 +57,8 @@ export default function App() {
 
       {!isAuthenticated && isAuthModalOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setIsAuthModalOpen(false)}>
-          <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" onClick={(event) => event.stopPropagation()}>
-            <div className="auth-actions">
-              <h2 id="auth-modal-title">Sign in or register</h2>
-              <button type="button" className="secondary" onClick={() => setIsAuthModalOpen(false)}>
-                Close
-              </button>
-            </div>
+          <section className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="modal-close-icon" aria-label="Close sign in modal" onClick={() => setIsAuthModalOpen(false)}>×</button>
             <AuthForm />
           </section>
         </div>
