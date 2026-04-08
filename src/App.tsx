@@ -16,6 +16,7 @@ export default function App() {
   } = useAuth();
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
+  const [showAuthForm, setShowAuthForm] = useState(false);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -49,12 +50,17 @@ export default function App() {
       ) : (
         <header className="auth-header auth-header-public">
           <h1>Cooking App</h1>
+          <div className="auth-actions">
+            <button onClick={() => setShowAuthForm((prev) => !prev)}>
+              {showAuthForm ? 'Hide sign in' : 'Sign in / Register'}
+            </button>
+          </div>
         </header>
       )}
 
       <BackendExplorer isAuthenticated={isAuthenticated} />
 
-      {!isAuthenticated ? <AuthForm /> : null}
+      {!isAuthenticated && showAuthForm ? <AuthForm /> : null}
 
       <SessionExpiryModal
         isOpen={isAuthenticated && isExpiryWarningOpen}
