@@ -16,7 +16,7 @@ export default function App() {
   } = useAuth();
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
-  const [showAuthForm, setShowAuthForm] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -39,28 +39,35 @@ export default function App() {
 
   return (
     <main className="container">
-      {isAuthenticated ? (
-        <header className="auth-header">
-          <h1>Cooking App</h1>
-          <div className="auth-actions">
-            <span className="muted">{user?.email || 'Authenticated user'}</span>
-            <button onClick={() => void logout()}>Logout</button>
-          </div>
-        </header>
-      ) : (
-        <header className="auth-header auth-header-public">
-          <h1>Cooking App</h1>
-          <div className="auth-actions">
-            <button onClick={() => setShowAuthForm((prev) => !prev)}>
-              {showAuthForm ? 'Hide sign in' : 'Sign in / Register'}
-            </button>
-          </div>
-        </header>
-      )}
+      <header className="auth-header">
+        <h1>Cooking App</h1>
+        <div className="auth-actions">
+          {isAuthenticated ? (
+            <>
+              <span className="muted">{user?.email || 'Authenticated user'}</span>
+              <button onClick={() => void logout()}>Logout</button>
+            </>
+          ) : (
+            <button onClick={() => setIsAuthModalOpen(true)}>Sign in</button>
+          )}
+        </div>
+      </header>
 
       <BackendExplorer isAuthenticated={isAuthenticated} />
 
-      {!isAuthenticated && showAuthForm ? <AuthForm /> : null}
+      {!isAuthenticated && isAuthModalOpen ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setIsAuthModalOpen(false)}>
+          <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" onClick={(event) => event.stopPropagation()}>
+            <div className="auth-actions">
+              <h2 id="auth-modal-title">Sign in or register</h2>
+              <button type="button" className="secondary" onClick={() => setIsAuthModalOpen(false)}>
+                Close
+              </button>
+            </div>
+            <AuthForm />
+          </section>
+        </div>
+      ) : null}
 
       <SessionExpiryModal
         isOpen={isAuthenticated && isExpiryWarningOpen}
