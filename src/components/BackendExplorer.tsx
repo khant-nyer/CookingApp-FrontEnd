@@ -42,6 +42,16 @@ export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: 
     action();
   }, [isAuthenticated]);
 
+  const handleTabSwitch = useCallback((tab: TabKey) => {
+    setAuthPrompt('');
+    setActiveTab(tab);
+  }, [setActiveTab]);
+
+  const handleRefreshTab = useCallback(() => {
+    setAuthPrompt('');
+    void loadTabData(activeTab);
+  }, [activeTab, loadTabData]);
+
   const foodsTabProps = useMemo(() => ({
     foods: entities.foods,
     selectedId,
@@ -98,11 +108,11 @@ export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: 
   return (
     <section>
       <nav className="nav-row">
-        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => setActiveTab(tab)}>{tab}</button>)}
-        <button onClick={() => loadTabData(activeTab)}>{loading ? 'Loading…' : 'Refresh tab'}</button>
+        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => handleTabSwitch(tab)}>{tab}</button>)}
+        <button onClick={handleRefreshTab}>{loading ? 'Loading…' : 'Refresh tab'}</button>
       </nav>
 
-      {!isAuthenticated && <p className="muted">Browse data freely. Sign in or register to perform create, update, and delete actions.</p>}
+      {!isAuthenticated && <p className="muted">This application is still under development, updates coming soon.</p>}
       {authPrompt && <p className="error">{authPrompt}</p>}
       {error && <p className="error">{error}</p>}
 
