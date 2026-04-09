@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { extractCollection } from './useBackendData';
+import { extractCollection, mapLoadError } from './useBackendData';
+import { ApiError } from '../../../services/api';
 
 describe('extractCollection', () => {
   it('returns plain array payloads as-is', () => {
@@ -50,5 +51,25 @@ describe('extractCollection', () => {
     expect(extractCollection({})).toEqual([]);
     expect(extractCollection({ wrapped: ['row'] })).toEqual([]);
     expect(extractCollection(null)).toEqual([]);
+  });
+});
+
+describe('mapLoadError', () => {
+  it('maps network failures to a CORS/API configuration guidance message', () => {
+    const error = new ApiError('Cannot connect to backend via https://example.com', {
+      code: 'NETWORK_ERROR',
+      isNetworkError: true
+    });
+
+    expect(mapLoadError(error, 'fallback')).toBe(
+      'Cannot connect to the backend. This is usually a CORS or API URL configuration issue. If you are using the Vite dev server, leave VITE_API_BASE_URL empty to use the proxy.'
+    );
+  });
+
+  it('returns http-specific mapped message for 404 errors', () => {
+    const error = new ApiError('Request failed', { status: 404 });
+    expect(mapLoadError(error, 'fallback')).toBe(
+      'Backend endpoint was not found (404). Please start the backend service or verify the API URL.'
+    );
   });
 });
