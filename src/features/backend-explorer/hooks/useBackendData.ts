@@ -127,8 +127,11 @@ const defaultPaginationState = (): PaginationState => ({
   recipes: { ...DEFAULT_PAGINATION }
 });
 
-function mapLoadError(loadError: unknown, fallbackMessage: string) {
+export function mapLoadError(loadError: unknown, fallbackMessage: string) {
   if (loadError instanceof ApiError) {
+    if (loadError.isNetworkError || loadError.code === 'NETWORK_ERROR') {
+      return 'Cannot connect to the backend. This is usually a CORS or API URL configuration issue. If you are using the Vite dev server, leave VITE_API_BASE_URL empty to use the proxy.';
+    }
     if (loadError.status === 404) {
       return 'Backend endpoint was not found (404). Please start the backend service or verify the API URL.';
     }
@@ -251,7 +254,10 @@ export default function useBackendData() {
       });
 
       const loadErrors = [foodsResult.error, ingredientsResult.error, recipesResult.error].filter(Boolean);
-      if (loadErrors.length > 0) setError(loadErrors.join(' | '));
+      if (loadErrors.length > 0) {
+        const uniqueErrors = [...new Set(loadErrors)];
+        setError(uniqueErrors.join(' | '));
+      }
     } catch {
       if (!isMountedRef.current || requestId !== latestRequestIdRef.current) return;
       setError('Failed to load data.');
