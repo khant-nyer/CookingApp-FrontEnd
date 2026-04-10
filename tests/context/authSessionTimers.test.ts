@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateSecondsToExpiry, calculateSessionTiming } from './authSessionTimers';
+import { calculateSecondsToExpiry, calculateSessionTiming } from '../../src/context/authSessionTimers';
 
 describe('authSessionTimers', () => {
   it('triggers warning at threshold and expiry at exp', () => {

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { api } from '../../../services/api';
+import { api } from '../../../../src/services/api';
 import {
   appendUpdateNutritionToForm,
   executeDeleteConfirmation,
   executeUpdateConfirmation
-} from './useBackendExplorerController';
+} from '../../../../src/features/backend-explorer/hooks/useBackendExplorerController';
 
 describe('useBackendExplorerController helpers', () => {
 
