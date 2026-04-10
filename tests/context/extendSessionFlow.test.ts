@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { executeExtendSession } from './extendSessionFlow';
+import { executeExtendSession } from '../../src/context/extendSessionFlow';
 
 describe('executeExtendSession', () => {
   it('updates tokens and calls onExtended on success', async () => {

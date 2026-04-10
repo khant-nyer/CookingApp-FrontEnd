@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getItemId, getRecipeTileId } from './ids';
-import { normalizeNutrientKey, normalizeNutritionEntry } from './nutrients';
+import { getItemId, getRecipeTileId } from '../../../../src/features/backend-explorer/utils/ids';
+import { normalizeNutrientKey, normalizeNutritionEntry } from '../../../../src/features/backend-explorer/utils/nutrients';
 
 describe('core utility behavior', () => {
   it('normalizes nutrient aliases and unknown values', () => {

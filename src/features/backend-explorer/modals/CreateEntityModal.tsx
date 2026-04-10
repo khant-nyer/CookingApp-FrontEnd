@@ -100,7 +100,6 @@ export default function CreateEntityModal({
               ? 'Create Ingredient'
               : 'Create Recipe'}
         </h3>
-        {createError ? <p className="error">{createError}</p> : null}
 
         {createModal.type === 'food' ? (
           <form className="form" onSubmit={preventSubmit}>
@@ -199,6 +198,7 @@ export default function CreateEntityModal({
           </>
         ) : null}
 
+        {createError ? <p className="error">{createError}</p> : null}
         <div className="detail-actions">
           <button onClick={closeCreateModal}>Cancel</button>
           <button onClick={createModal.type === 'food' ? createFood : createModal.type === 'ingredient' ? createIngredient : createRecipe}>Create</button>

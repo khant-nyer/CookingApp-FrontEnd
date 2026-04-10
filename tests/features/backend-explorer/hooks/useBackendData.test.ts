@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { extractCollection, mapLoadError } from './useBackendData';
-import { ApiError } from '../../../services/api';
+import { extractCollection, mapLoadError } from '../../../../src/features/backend-explorer/hooks/useBackendData';
+import { ApiError } from '../../../../src/services/api';
 
 describe('extractCollection', () => {
   it('returns plain array payloads as-is', () => {

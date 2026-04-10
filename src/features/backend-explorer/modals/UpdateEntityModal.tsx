@@ -3,6 +3,7 @@ import { NutrientPicker, NutritionSummaryCards } from '../shared/ExplorerShared'
 
 interface UpdateEntityModalProps {
   updateModal: UpdateModalState;
+  errorMessage: string;
   setUpdateModal: (value: Updater<UpdateModalState>) => void;
   unitOptions: readonly string[];
   foods: Food[];
@@ -16,6 +17,7 @@ interface UpdateEntityModalProps {
 
 export default function UpdateEntityModal({
   updateModal,
+  errorMessage,
   setUpdateModal,
   unitOptions,
   foods,
@@ -165,6 +167,7 @@ export default function UpdateEntityModal({
           </div>
         ) : null}
 
+        {errorMessage ? <p className="error">{errorMessage}</p> : null}
         <div className="detail-actions">
           <button onClick={() => setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null })}>Cancel</button>
           <button className="secondary" onClick={confirmUpdate}>Update</button>

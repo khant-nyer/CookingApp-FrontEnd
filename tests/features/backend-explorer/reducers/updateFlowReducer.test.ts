@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { initialUpdateFlowState, updateFlowReducer } from './updateFlowReducer';
+import { initialUpdateFlowState, updateFlowReducer } from '../../../../src/features/backend-explorer/reducers/updateFlowReducer';
 
 describe('updateFlowReducer', () => {
   it('supports updater function for nutrition draft', () => {
