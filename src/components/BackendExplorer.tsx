@@ -13,7 +13,12 @@ import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/b
 
 const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
-export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: boolean }) {
+interface BackendExplorerProps {
+  isAuthenticated: boolean;
+  onRequireAuth: () => void;
+}
+
+export default function BackendExplorer({ isAuthenticated, onRequireAuth }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const [authPrompt, setAuthPrompt] = useState('');
   const {
@@ -36,11 +41,12 @@ export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: 
   const runProtectedAction = useCallback((action: () => void) => {
     if (!isAuthenticated) {
       setAuthPrompt('Please sign in or register to create, update, or delete items.');
+      onRequireAuth();
       return;
     }
     setAuthPrompt('');
     action();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, onRequireAuth]);
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
     setAuthPrompt('');

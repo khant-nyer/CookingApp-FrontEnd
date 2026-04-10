@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatExpiryCountdown } from './sessionExpiryUtils';
+import { formatExpiryCountdown } from '../../src/components/sessionExpiryUtils';
 
 describe('SessionExpiryModal display helpers', () => {
   it('formats countdown as X:YY', () => {

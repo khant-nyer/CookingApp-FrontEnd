@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CognitoServiceError } from './cognitoAuth';
-import { getFriendlyAuthErrorMessage, isUnrecoverableSessionExtensionError } from './authErrorMessages';
+import { CognitoServiceError } from '../../src/services/cognitoAuth';
+import { getFriendlyAuthErrorMessage, isUnrecoverableSessionExtensionError } from '../../src/services/authErrorMessages';
 
 describe('auth error mapping', () => {
   it('maps Cognito error codes to friendly messages', () => {
