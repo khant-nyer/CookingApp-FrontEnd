@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
@@ -20,7 +20,6 @@ interface BackendExplorerProps {
 
 export default function BackendExplorer({ isAuthenticated, onRequireAuth }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
-  const [authPrompt, setAuthPrompt] = useState('');
   const {
     selectedId,
     setSelectedId,
@@ -40,21 +39,17 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
 
   const runProtectedAction = useCallback((action: () => void) => {
     if (!isAuthenticated) {
-      setAuthPrompt('Please sign in or register to create, update, or delete items.');
       onRequireAuth();
       return;
     }
-    setAuthPrompt('');
     action();
   }, [isAuthenticated, onRequireAuth]);
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
-    setAuthPrompt('');
     setActiveTab(tab);
   }, [setActiveTab]);
 
   const handleRefreshTab = useCallback(() => {
-    setAuthPrompt('');
     void loadTabData(activeTab);
   }, [activeTab, loadTabData]);
 
@@ -119,7 +114,6 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
       </nav>
 
       {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
-      {authPrompt && <p className="error">{authPrompt}</p>}
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
