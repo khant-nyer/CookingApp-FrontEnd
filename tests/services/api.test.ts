@@ -208,6 +208,19 @@ describe('api hardening behavior', () => {
     expect(secondBody.nutritionList[1].nutrient).toBe('ADDED_SUGARS');
   });
 
+
+  it('includes discoverSupermarkets userId when set to 0', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify([]), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+
+    await api.discoverSupermarkets('salt', 'Boston', 0);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain('userId=0');
+  });
+
   it('exposes ApiError class type', () => {
     const err = new ApiError('failed', { status: 500, code: 'ERR', retryable: true });
     expect(err.name).toBe('ApiError');

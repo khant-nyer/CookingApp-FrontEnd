@@ -269,6 +269,12 @@ async function request<T = unknown>(path: string, options: RequestOptions = {}):
   return nextRequest as Promise<T>;
 }
 
+function appendPaginationParams(path: string, page: number, size?: number) {
+  const separator = path.includes('?') ? '&' : '?';
+  const base = `${path}${separator}page=${page}`;
+  return typeof size === 'number' ? `${base}&size=${size}` : base;
+}
+
 function isPaginatedEnvelope<T>(payload: unknown): payload is PaginatedEnvelope<T> {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
   const candidate = payload as PaginatedEnvelope<T>;
@@ -289,7 +295,7 @@ async function getAllPages<T>(path: string): Promise<T[]> {
     currentPage += 1;
     let nextResponse: PaginatedEnvelope<T> | T[];
     try {
-      nextResponse = await request<PaginatedEnvelope<T> | T[]>(`${path}?page=${currentPage}`);
+      nextResponse = await request<PaginatedEnvelope<T> | T[]>(appendPaginationParams(path, currentPage));
     } catch {
       break;
     }
@@ -307,8 +313,7 @@ async function getAllPages<T>(path: string): Promise<T[]> {
 }
 
 async function getPage<T>(path: string, page = 0, size = 20): Promise<PaginatedEnvelope<T>> {
-  const separator = path.includes('?') ? '&' : '?';
-  const response = await request<PaginatedEnvelope<T> | T[]>(`${path}${separator}page=${page}&size=${size}`);
+  const response = await request<PaginatedEnvelope<T> | T[]>(appendPaginationParams(path, page, size));
 
   if (Array.isArray(response)) {
     const normalizedPage = Number.isFinite(page) ? page : 0;
@@ -425,7 +430,7 @@ export const api = {
   discoverSupermarkets(ingredientName: string, city?: string, userId?: string | number) {
     const params = new URLSearchParams({ ingredientName });
     if (city) params.set('city', city);
-    if (userId) params.set('userId', String(userId));
+    if (userId != null) params.set('userId', String(userId));
     return request(`/api/ingredients/discover-supermarkets?${params.toString()}`);
   },
 
