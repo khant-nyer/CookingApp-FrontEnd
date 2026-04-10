@@ -12,12 +12,14 @@ const initialDeleteModalState: DeleteModalState = { open: false, message: '', ac
 
 export default function useExplorerDeleteFlow({ run }: Params) {
   const [deleteModal, setDeleteModalState] = useState<DeleteModalState>(initialDeleteModalState);
+  const [deleteError, setDeleteError] = useState('');
 
   function setDeleteModal(value: Updater<DeleteModalState>) {
     setDeleteModalState((prev) => (typeof value === 'function' ? value(prev) : value));
   }
 
   function requestDelete(message: string, action: () => Promise<unknown> | unknown) {
+    setDeleteError('');
     setDeleteModal({ open: true, message, action });
   }
 
@@ -34,11 +36,17 @@ export default function useExplorerDeleteFlow({ run }: Params) {
   }
 
   async function confirmDelete() {
-    await executeDeleteConfirmation({ deleteModal, run, setDeleteModal });
+    setDeleteError('');
+    try {
+      await executeDeleteConfirmation({ deleteModal, run, setDeleteModal });
+    } catch (deleteActionError) {
+      setDeleteError(deleteActionError instanceof Error ? deleteActionError.message : 'Unable to delete item.');
+    }
   }
 
   return {
     deleteModal,
+    deleteError,
     setDeleteModal,
     confirmDelete,
     handleDeleteFood,

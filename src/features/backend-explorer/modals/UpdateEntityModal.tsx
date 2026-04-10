@@ -106,7 +106,10 @@ export default function UpdateEntityModal({
               </div>
               {recipeForm.ingredients.map((ri, index) => (
                 <div key={`upd-ri-${index}`} className="summary-row">
-                  <select value={ri.ingredientId} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, ingredientId: event.target.value } : x) } }))}>{ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}</select>
+                  <select value={ri.ingredientId} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, ingredientId: event.target.value } : x) } }))}>
+                    <option value="">Ingredient</option>
+                    {ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}
+                  </select>
                   <input type="number" value={ri.quantity} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, quantity: event.target.value } : x) } }))} />
                   <select value={ri.unit} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, unit: event.target.value } : x) } }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
                   <input value={ri.note} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, note: event.target.value } : x) } }))} />
