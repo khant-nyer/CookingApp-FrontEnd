@@ -160,12 +160,14 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
 
       <DeleteConfirmModal
         deleteModal={deleteFlow.deleteModal}
+        errorMessage={error}
         onCancel={handleDeleteCancel}
         onConfirm={deleteFlow.confirmDelete}
       />
 
       <UpdateEntityModal
         updateModal={updateFlow.updateModal}
+        errorMessage={error}
         setUpdateModal={updateFlow.setUpdateModal}
         unitOptions={unitOptions}
         foods={entities.foods}
