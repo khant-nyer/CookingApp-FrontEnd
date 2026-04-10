@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useReducer, useState } from 'react';
 import { getItemId } from '../utils/ids';
 import { normalizeNutrientKey } from '../utils/nutrients';
 import { initialUpdateFlowState, updateFlowReducer } from '../reducers/updateFlowReducer';
@@ -15,11 +15,11 @@ import type {
 
 interface Params {
   run: (action: () => Promise<unknown> | unknown) => Promise<void>;
-  setError: (message: string) => void;
 }
 
-export default function useExplorerUpdateFlow({ run, setError }: Params) {
+export default function useExplorerUpdateFlow({ run }: Params) {
   const [updateFlowState, dispatchUpdateFlow] = useReducer(updateFlowReducer, initialUpdateFlowState);
+  const [updateError, setUpdateError] = useState('');
   const { updateNutritionDraft, updateModal } = updateFlowState;
 
   function setUpdateModal(value: Updater<UpdateModalState>) {
@@ -31,13 +31,13 @@ export default function useExplorerUpdateFlow({ run, setError }: Params) {
   }
 
   function addUpdateNutrition() {
-    if (!updateNutritionDraft.value) return setError('Nutrition value is required.');
+    if (!updateNutritionDraft.value) return setUpdateError('Nutrition value is required.');
 
     setUpdateModal((prev) => {
       const form = prev.form as IngredientUpdateForm;
       const nextForm = appendUpdateNutritionToForm(form, updateNutritionDraft);
       if (!nextForm) {
-        setError('Nutrition value must be a valid number.');
+        setUpdateError('Nutrition value must be a valid number.');
         return prev;
       }
 
@@ -50,6 +50,7 @@ export default function useExplorerUpdateFlow({ run, setError }: Params) {
   }
 
   function openIngredientUpdateModal(item: Ingredient) {
+    setUpdateError('');
     setUpdateNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
     setUpdateModal({
       open: true,
@@ -71,6 +72,7 @@ export default function useExplorerUpdateFlow({ run, setError }: Params) {
   }
 
   function openFoodUpdateModal(item: Food) {
+    setUpdateError('');
     setUpdateModal({
       open: true,
       type: 'food',
@@ -85,6 +87,7 @@ export default function useExplorerUpdateFlow({ run, setError }: Params) {
   }
 
   function openRecipeUpdateModal(item: Recipe) {
+    setUpdateError('');
     setUpdateModal({
       open: true,
       type: 'recipe',
@@ -105,12 +108,18 @@ export default function useExplorerUpdateFlow({ run, setError }: Params) {
   }
 
   async function confirmUpdate() {
-    await executeUpdateConfirmation({ updateModal, run });
-    setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
+    setUpdateError('');
+    try {
+      await executeUpdateConfirmation({ updateModal, run });
+      setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
+    } catch (updateError) {
+      setUpdateError(updateError instanceof Error ? updateError.message : 'Unable to update item.');
+    }
   }
 
   return {
     updateModal,
+    updateError,
     setUpdateModal,
     updateNutritionDraft,
     setUpdateNutritionDraft,

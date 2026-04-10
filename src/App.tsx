@@ -53,7 +53,7 @@ export default function App() {
         </div>
       </header>
 
-      <BackendExplorer isAuthenticated={isAuthenticated} />
+      <BackendExplorer isAuthenticated={isAuthenticated} onRequireAuth={() => setIsAuthModalOpen(true)} />
 
       {!isAuthenticated && isAuthModalOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setIsAuthModalOpen(false)}>

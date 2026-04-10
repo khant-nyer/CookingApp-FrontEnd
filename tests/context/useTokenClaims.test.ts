@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { decodeJwtPayload, isTokenClaimsValid, parseTokenExpiry } from './useTokenClaims';
+import { decodeJwtPayload, isTokenClaimsValid, parseTokenExpiry } from '../../src/context/useTokenClaims';
 
 function base64UrlEncode(value: string) {
   return btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');

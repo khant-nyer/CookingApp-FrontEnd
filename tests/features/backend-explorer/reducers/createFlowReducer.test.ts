@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createFlowReducer, initialCreateFlowState } from './createFlowReducer';
+import { createFlowReducer, initialCreateFlowState } from '../../../../src/features/backend-explorer/reducers/createFlowReducer';
 
 describe('createFlowReducer', () => {
   it('opens modal and clears error/success for selected entity', () => {

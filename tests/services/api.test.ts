@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, api, setApiTokenProvider } from './api';
+import { ApiError, api, setApiTokenProvider } from '../../src/services/api';
 
 function createStorageMock() {
   const state = new Map<string, string>();
