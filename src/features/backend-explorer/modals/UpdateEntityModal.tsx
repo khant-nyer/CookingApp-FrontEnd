@@ -110,7 +110,24 @@ export default function UpdateEntityModal({
                     <option value="">Ingredient</option>
                     {ingredients.map((ing) => <option key={getItemId(ing)} value={getItemId(ing)}>{ing.name}</option>)}
                   </select>
-                  <input type="number" value={ri.quantity} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, quantity: event.target.value } : x) } }))} />
+                  <input
+                    type="number"
+                    min={0}
+                    className="quantity-input"
+                    value={ri.quantity}
+                    onChange={(event: InputChangeEvent) => {
+                      const value = event.target.value;
+                      if (value === '' || Number(value) >= 0) {
+                        setUpdateModal((prev) => ({
+                          ...prev,
+                          form: {
+                            ...(prev.form as RecipeUpdateForm),
+                            ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, quantity: value } : x)
+                          }
+                        }));
+                      }
+                    }}
+                  />
                   <select value={ri.unit} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, unit: event.target.value } : x) } }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
                   <input value={ri.note} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, note: event.target.value } : x) } }))} />
                   <button

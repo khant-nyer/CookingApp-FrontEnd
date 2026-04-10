@@ -200,7 +200,19 @@ export default function CreateEntityModal({
                 <option value="">Ingredient</option>
                 {recipeIngredientSource.map((ingredient) => <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>)}
               </select>
-              <input type="number" placeholder="Quantity" value={recipeIngredientDraft.quantity} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, quantity: event.target.value }))} />
+              <input
+                type="number"
+                min={0}
+                className="quantity-input"
+                placeholder="Quantity"
+                value={recipeIngredientDraft.quantity}
+                onChange={(event: InputChangeEvent) => {
+                  const value = event.target.value;
+                  if (value === '' || Number(value) >= 0) {
+                    setRecipeIngredientDraft((p) => ({ ...p, quantity: value }));
+                  }
+                }}
+              />
               <select value={recipeIngredientDraft.unit} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, unit: event.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
               <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, note: event.target.value }))} />
               <button onClick={addRecipeIngredient}>Add Ingredient</button>
