@@ -37,13 +37,13 @@ function IngredientsTab({
         <button onClick={() => openCreateModal('ingredient')}>Create Ingredient</button>
         {createSuccess.ingredient ? <p className="success">{createSuccess.ingredient}</p> : null}
         <h3>Gallery</h3>
-        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
         <div className="gallery-grid">
           {ingredients.map((ingredient) => {
             const id = getItemId(ingredient);
             return <GalleryTile key={String(id || ingredient.name)} imageUrl={ingredient.imageUrl} fallbackText={ingredient.name || 'Unnamed ingredient'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id || ''))} />;
           })}
         </div>
+        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
       </div>
 
       {selectedIngredient ? (

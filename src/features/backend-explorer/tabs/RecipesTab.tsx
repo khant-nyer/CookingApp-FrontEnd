@@ -38,7 +38,6 @@ function RecipesTab({
         <button onClick={() => openCreateModal('recipe')}>Create Recipe</button>
         {createSuccess.recipe ? <p className="success">{createSuccess.recipe}</p> : null}
         <h3>Gallery</h3>
-        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
         <div className="gallery-grid">
           {recipes.map((recipe, index) => {
             const id = getRecipeTileId(recipe, index);
@@ -46,6 +45,7 @@ function RecipesTab({
             return <GalleryTile key={String(id)} imageUrl={undefined} fallbackText={foodName} subtitle={recipe.version || 'No version'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id))} />;
           })}
         </div>
+        <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
       </div>
 
       {selectedRecipe ? (

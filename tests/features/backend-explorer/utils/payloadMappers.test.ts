@@ -3,7 +3,7 @@ import {
   buildCreateIngredientPayload,
   buildCreateRecipePayload,
   buildUpdateRecipePayload
-} from './payloadMappers';
+} from '../../../../src/features/backend-explorer/utils/payloadMappers';
 
 describe('payloadMappers', () => {
   it('normalizes and converts ingredient payload fields', () => {

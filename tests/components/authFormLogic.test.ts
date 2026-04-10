@@ -4,8 +4,8 @@ import {
   modeErrorContext,
   modeHeading,
   modeSubmitLabel
-} from './authFormLogic';
-import type { AuthFormActions, AuthFormState } from './authFormLogic';
+} from '../../src/components/authFormLogic';
+import type { AuthFormActions, AuthFormState } from '../../src/components/authFormLogic';
 
 function createForm(overrides: Partial<AuthFormState> = {}): AuthFormState {
   return {
