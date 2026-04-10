@@ -208,6 +208,26 @@ describe('api hardening behavior', () => {
     expect(secondBody.nutritionList[1].nutrient).toBe('ADDED_SUGARS');
   });
 
+  it('parses successful plain-text responses without throwing', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('READY', {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' }
+    }));
+
+    const data = await api.getFoodRecipeStatus(101);
+    expect(data).toBe('READY');
+  });
+
+  it('treats empty 200 responses as null', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('', {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+
+    const data = await api.deleteFood(101);
+    expect(data).toBeNull();
+  });
+
 
   it('includes discoverSupermarkets userId when set to 0', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify([]), {

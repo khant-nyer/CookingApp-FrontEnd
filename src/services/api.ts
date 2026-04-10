@@ -216,6 +216,24 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
   }
 }
 
+async function parseSuccessBody<T>(response: Response): Promise<T> {
+  if (response.status === 204) return null as T;
+
+  const contentType = response.headers.get('content-type')?.toLowerCase() || '';
+  const rawText = await response.text();
+  if (!rawText.trim()) return null as T;
+
+  if (contentType.includes('application/json')) {
+    return JSON.parse(rawText) as T;
+  }
+
+  try {
+    return JSON.parse(rawText) as T;
+  } catch {
+    return rawText as T;
+  }
+}
+
 async function request<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
   const url = buildUrl(path);
   const {
@@ -238,8 +256,7 @@ async function request<T = unknown>(path: string, options: RequestOptions = {}):
           throw await parseErrorEnvelope(response);
         }
 
-        if (response.status === 204) return null as T;
-        return response.json() as Promise<T>;
+        return parseSuccessBody<T>(response);
       } catch (error) {
         const apiError = error instanceof ApiError
           ? error
