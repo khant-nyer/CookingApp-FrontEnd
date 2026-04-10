@@ -14,16 +14,17 @@ export {
 
 export default function useBackendExplorerController(): BackendExplorerController {
   const viewStateCore = useExplorerViewState();
+  const { loadAll } = viewStateCore;
 
   const run = useCallback(async (action: () => Promise<unknown> | unknown) => {
     await action();
-    await viewStateCore.loadAll();
-  }, [viewStateCore.loadAll]);
+    await loadAll();
+  }, [loadAll]);
 
   const createFlow = useExplorerCreateFlow({
     ingredients: viewStateCore.ingredients,
     setLoading: viewStateCore.setLoading,
-    loadAll: viewStateCore.loadAll
+    loadAll
   });
 
   const updateFlow = useExplorerUpdateFlow({
@@ -62,7 +63,7 @@ export default function useBackendExplorerController(): BackendExplorerControlle
     setSelectedNutrient: viewStateCore.setSelectedNutrient,
     error: viewStateCore.error,
     loading: viewStateCore.loading,
-    loadAll: viewStateCore.loadAll,
+    loadAll,
     pagination: viewStateCore.pagination,
     loadTabData: viewStateCore.loadTabData
   }), [
@@ -74,7 +75,7 @@ export default function useBackendExplorerController(): BackendExplorerControlle
     viewStateCore.setSelectedNutrient,
     viewStateCore.error,
     viewStateCore.loading,
-    viewStateCore.loadAll,
+    loadAll,
     viewStateCore.pagination,
     viewStateCore.loadTabData
   ]);

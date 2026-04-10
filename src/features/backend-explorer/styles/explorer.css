@@ -547,3 +547,13 @@ pre {
   color: #4f6462;
   font-weight: 600;
 }
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-input[type='number'] {
+  appearance: textfield;
+}

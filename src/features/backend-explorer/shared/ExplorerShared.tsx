@@ -299,7 +299,14 @@ export function RecipeIngredientSummaryCards({ items = [], ingredients = [], onC
             <strong className="mini-ingredient-name">{item.ingredientName || ingredient?.name || 'Ingredient'}</strong>
             <div className="mini-summary-fields ingredient-summary-fields">
               <div className="ingredient-amount-row">
-                <input type="number" value={item.quantity} onChange={(event: InputChangeEvent) => onChange(index, { quantity: Number(event.target.value) })} placeholder="Amt" />
+                <input
+                  type="number"
+                  min={0}
+                  className="quantity-input"
+                  value={item.quantity}
+                  onChange={(event: InputChangeEvent) => onChange(index, { quantity: Math.max(0, Number(event.target.value) || 0) })}
+                  placeholder="Amt"
+                />
                 <select value={item.unit} onChange={(event: InputChangeEvent) => onChange(index, { unit: event.target.value })}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
               </div>
               <input value={item.note || ''} onChange={(event: InputChangeEvent) => onChange(index, { note: event.target.value })} placeholder="Note" />

@@ -1,4 +1,6 @@
+import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
+import { api } from '../../../services/api';
 import type {
   CreateModalState,
   Food,
@@ -84,6 +86,34 @@ export default function CreateEntityModal({
   recipeInstructions,
   setRecipeInstructions
 }: CreateEntityModalProps) {
+  const [recipeIngredientsOptions, setRecipeIngredientsOptions] = useState<Ingredient[]>(ingredients);
+
+  useEffect(() => {
+    if (!createModal.open || createModal.type !== 'recipe') return;
+
+    let isCancelled = false;
+    void api.getIngredients()
+      .then((allIngredients) => {
+        if (!isCancelled) {
+          setRecipeIngredientsOptions(allIngredients);
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setRecipeIngredientsOptions(ingredients);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [createModal.open, createModal.type, ingredients]);
+
+  const recipeIngredientSource = useMemo(
+    () => (recipeIngredientsOptions.length ? recipeIngredientsOptions : ingredients),
+    [recipeIngredientsOptions, ingredients]
+  );
+
   if (!createModal.open) return null;
 
   function preventSubmit(event: FormEvent<HTMLFormElement>) {
@@ -160,7 +190,7 @@ export default function CreateEntityModal({
               {!recipeIngredients.length ? <p className="muted">No recipe ingredients added yet.</p> : null}
               <RecipeIngredientSummaryCards
                 items={recipeIngredients}
-                ingredients={ingredients}
+                ingredients={recipeIngredientSource}
                 onChange={(index, patch) => setRecipeIngredients((prev) => prev.map((current, idx) => idx === index ? { ...current, ...patch } : current))}
                 onRemove={(index) => setRecipeIngredients((prev) => prev.filter((_, idx) => idx !== index))}
               />
@@ -168,9 +198,21 @@ export default function CreateEntityModal({
             <div className="inline-builder">
               <select value={recipeIngredientDraft.ingredientId} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, ingredientId: event.target.value }))}>
                 <option value="">Ingredient</option>
-                {ingredients.map((ingredient) => <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>)}
+                {recipeIngredientSource.map((ingredient) => <option key={getItemId(ingredient)} value={getItemId(ingredient)}>{ingredient.name}</option>)}
               </select>
-              <input type="number" placeholder="Quantity" value={recipeIngredientDraft.quantity} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, quantity: event.target.value }))} />
+              <input
+                type="number"
+                min={0}
+                className="quantity-input"
+                placeholder="Quantity"
+                value={recipeIngredientDraft.quantity}
+                onChange={(event: InputChangeEvent) => {
+                  const value = event.target.value;
+                  if (value === '' || Number(value) >= 0) {
+                    setRecipeIngredientDraft((p) => ({ ...p, quantity: value }));
+                  }
+                }}
+              />
               <select value={recipeIngredientDraft.unit} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, unit: event.target.value }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
               <input placeholder="Note" value={recipeIngredientDraft.note} onChange={(event: InputChangeEvent) => setRecipeIngredientDraft((p) => ({ ...p, note: event.target.value }))} />
               <button onClick={addRecipeIngredient}>Add Ingredient</button>
