@@ -9,7 +9,7 @@ import {
   clearAuthSessionStorage,
   persistTokens,
   resolveBackendToken
-} from './useAuthSessionStorage';
+} from '../../src/context/useAuthSessionStorage';
 
 function base64UrlEncode(value: string) {
   return btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');

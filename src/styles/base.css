@@ -123,11 +123,6 @@ button:disabled {
   align-items: center;
 }
 
-.auth-card {
-  max-width: 520px;
-  margin: 0 auto;
-}
-
 .password-input-wrap {
   position: relative;
 }

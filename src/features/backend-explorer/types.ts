@@ -242,6 +242,7 @@ export interface BackendExplorerCreateFlow {
 
 export interface BackendExplorerUpdateFlow {
   updateModal: UpdateModalState;
+  updateError: string;
   setUpdateModal: (value: Updater<UpdateModalState>) => void;
   updateNutritionDraft: NutritionDraft;
   setUpdateNutritionDraft: (value: Updater<NutritionDraft>) => void;
@@ -254,6 +255,7 @@ export interface BackendExplorerUpdateFlow {
 
 export interface BackendExplorerDeleteFlow {
   deleteModal: DeleteModalState;
+  deleteError: string;
   setDeleteModal: (value: Updater<DeleteModalState>) => void;
   confirmDelete: () => Promise<void>;
   handleDeleteFood: (food: { id?: string | number; _id?: string | number }) => void;

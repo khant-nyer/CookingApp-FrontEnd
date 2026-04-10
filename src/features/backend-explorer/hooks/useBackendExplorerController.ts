@@ -15,11 +15,10 @@ export {
 export default function useBackendExplorerController(): BackendExplorerController {
   const viewStateCore = useExplorerViewState();
 
-  const { runWithRefresh } = viewStateCore;
-
   const run = useCallback(async (action: () => Promise<unknown> | unknown) => {
-    await runWithRefresh(action);
-  }, [runWithRefresh]);
+    await action();
+    await viewStateCore.loadAll();
+  }, [viewStateCore.loadAll]);
 
   const createFlow = useExplorerCreateFlow({
     ingredients: viewStateCore.ingredients,
@@ -28,8 +27,7 @@ export default function useBackendExplorerController(): BackendExplorerControlle
   });
 
   const updateFlow = useExplorerUpdateFlow({
-    run,
-    setError: viewStateCore.setError
+    run
   });
 
   const deleteFlow = useExplorerDeleteFlow({ run });

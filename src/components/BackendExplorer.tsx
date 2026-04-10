@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
@@ -13,9 +13,13 @@ import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/b
 
 const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
 
-export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: boolean }) {
+interface BackendExplorerProps {
+  isAuthenticated: boolean;
+  onRequireAuth: () => void;
+}
+
+export default function BackendExplorer({ isAuthenticated, onRequireAuth }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
-  const [authPrompt, setAuthPrompt] = useState('');
   const {
     selectedId,
     setSelectedId,
@@ -35,20 +39,17 @@ export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: 
 
   const runProtectedAction = useCallback((action: () => void) => {
     if (!isAuthenticated) {
-      setAuthPrompt('Please sign in or register to create, update, or delete items.');
+      onRequireAuth();
       return;
     }
-    setAuthPrompt('');
     action();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, onRequireAuth]);
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
-    setAuthPrompt('');
     setActiveTab(tab);
   }, [setActiveTab]);
 
   const handleRefreshTab = useCallback(() => {
-    setAuthPrompt('');
     void loadTabData(activeTab);
   }, [activeTab, loadTabData]);
 
@@ -113,7 +114,6 @@ export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: 
       </nav>
 
       {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
-      {authPrompt && <p className="error">{authPrompt}</p>}
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
@@ -160,12 +160,14 @@ export default function BackendExplorer({ isAuthenticated }: { isAuthenticated: 
 
       <DeleteConfirmModal
         deleteModal={deleteFlow.deleteModal}
+        errorMessage={deleteFlow.deleteError}
         onCancel={handleDeleteCancel}
         onConfirm={deleteFlow.confirmDelete}
       />
 
       <UpdateEntityModal
         updateModal={updateFlow.updateModal}
+        errorMessage={updateFlow.updateError}
         setUpdateModal={updateFlow.setUpdateModal}
         unitOptions={unitOptions}
         foods={entities.foods}

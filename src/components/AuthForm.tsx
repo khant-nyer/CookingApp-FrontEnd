@@ -89,7 +89,7 @@ export default function AuthForm() {
   }
 
   return (
-    <section className="card auth-card">
+    <section>
       <h2>{modeHeading[mode]}</h2>
       <form onSubmit={onSubmit} className="form">
         {(mode === 'register' || mode === 'verify-email') && (
