@@ -126,6 +126,12 @@ interface NutrientPickerProps {
 export function NutrientPicker({ value, onChange, storageKey = 'default' }: NutrientPickerProps) {
   const [query, setQuery] = useState('');
   const [highlightIndex, setHighlightIndex] = useState(0);
+  const groupOrder = useMemo(() => Object.keys(nutrientGroups).sort((a, b) => {
+    if (a === 'Other') return 1;
+    if (b === 'Other') return -1;
+    return a.localeCompare(b);
+  }), []);
+  const [activeGroup, setActiveGroup] = useState(groupOrder[0] || 'Energy');
 
   const normalizedQuery = query.trim().toLowerCase();
   const filtered = useMemo(() => {
@@ -142,6 +148,11 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
     });
   }, [normalizedQuery]);
 
+  const groupFiltered = useMemo(() => {
+    const keys = nutrientGroups[activeGroup] || [];
+    return filtered.filter((item) => keys.includes(item.key));
+  }, [activeGroup, filtered]);
+
   const recent = useMemo(() => {
     try {
       const raw = localStorage.getItem(`nutrient-recent-${storageKey}`);
@@ -154,7 +165,14 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
 
   useEffect(() => {
     setHighlightIndex(0);
-  }, [normalizedQuery]);
+  }, [normalizedQuery, activeGroup]);
+
+  useEffect(() => {
+    const selectedGroup = groupOrder.find((group) => (nutrientGroups[group] || []).includes(value));
+    if (selectedGroup) {
+      setActiveGroup(selectedGroup);
+    }
+  }, [groupOrder, value]);
 
   function selectNutrient(nutrient: string) {
     onChange(nutrient);
@@ -168,10 +186,10 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
   }
 
   function onKeyDown(event: InputKeyboardEvent) {
-    if (!filtered.length) return;
+    if (!groupFiltered.length) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setHighlightIndex((prev) => Math.min(prev + 1, filtered.length - 1));
+      setHighlightIndex((prev) => Math.min(prev + 1, groupFiltered.length - 1));
     }
     if (event.key === 'ArrowUp') {
       event.preventDefault();
@@ -179,7 +197,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
     }
     if (event.key === 'Enter') {
       event.preventDefault();
-      selectNutrient(filtered[highlightIndex].key);
+      selectNutrient(groupFiltered[highlightIndex].key);
     }
   }
 
@@ -215,38 +233,39 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
       </div>
 
       <div className="picker-list">
-        <strong className="picker-list-title">Nutrient List</strong>
-        {Object.entries(nutrientGroups)
-          .sort(([a], [b]) => {
-            if (a === 'Other') return 1;
-            if (b === 'Other') return -1;
-            return 0;
-          })
-          .map(([group, keys]) => {
-            const groupItems = keys.filter((key) => filtered.some((item) => item.key === key));
-            if (!groupItems.length) return null;
+        <div className="nav-row nutrient-group-tabs">
+          {groupOrder.map((group) => {
+            const count = filtered.filter((item) => (nutrientGroups[group] || []).includes(item.key)).length;
+            if (!count) return null;
             return (
-              <div key={group} className="picker-group">
-                <strong>{group}</strong>
-                {groupItems.map((nutrient) => {
-                  const idx = filtered.findIndex((item) => item.key === nutrient);
-                  return (
-                    <button
-                      type="button"
-                      key={nutrient}
-                      className={idx === highlightIndex ? 'picker-item highlighted' : 'picker-item'}
-                      onClick={() => selectNutrient(nutrient)}
-                    >
-                      <span>{nutrientIcons[nutrient] || '🧪'}</span>
-                      <span>{nutrient}</span>
-                      <small>{nutrientShortNames[nutrient]}</small>
-                    </button>
-                  );
-                })}
-              </div>
+              <button
+                type="button"
+                key={group}
+                className={group === activeGroup ? 'tab active' : 'tab'}
+                onClick={() => setActiveGroup(group)}
+              >
+                {group}
+              </button>
             );
           })}
-        {!filtered.length ? <p className="muted">No nutrients found.</p> : null}
+        </div>
+
+        <strong className="picker-list-title">{activeGroup} nutrients</strong>
+        <div className="picker-group">
+          {groupFiltered.map((item, idx) => (
+            <button
+              type="button"
+              key={item.key}
+              className={idx === highlightIndex ? 'picker-item highlighted' : 'picker-item'}
+              onClick={() => selectNutrient(item.key)}
+            >
+              <span>{nutrientIcons[item.key] || '🧪'}</span>
+              <span>{item.key}</span>
+              <small>{nutrientShortNames[item.key]}</small>
+            </button>
+          ))}
+        </div>
+        {!groupFiltered.length ? <p className="muted">No nutrients found in this tab.</p> : null}
       </div>
     </div>
   );
