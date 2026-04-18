@@ -229,6 +229,16 @@
   background: #fbfdfc;
 }
 
+.nutrient-group-tabs {
+  margin: 0;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid #dce3e1;
+}
+
+.nutrient-group-tabs .tab {
+  font-size: 0.78rem;
+}
+
 .picker-group {
   display: grid;
   gap: 0.25rem;
