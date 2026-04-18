@@ -174,6 +174,17 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
     }
   }, [groupOrder, value]);
 
+  useEffect(() => {
+    const selectedIndex = groupFiltered.findIndex((item) => item.key === value);
+    if (selectedIndex >= 0) {
+      setHighlightIndex(selectedIndex);
+      requestAnimationFrame(() => {
+        const selectedElement = document.querySelector<HTMLButtonElement>('.picker-item.is-selected');
+        selectedElement?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      });
+    }
+  }, [groupFiltered, value]);
+
   function selectNutrient(nutrient: string) {
     onChange(nutrient);
     setQuery('');
@@ -250,13 +261,17 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
           })}
         </div>
 
-        <strong className="picker-list-title">{activeGroup} nutrients</strong>
+        <strong className="picker-list-title">{activeGroup}</strong>
         <div className="picker-group">
           {groupFiltered.map((item, idx) => (
             <button
               type="button"
               key={item.key}
-              className={idx === highlightIndex ? 'picker-item highlighted' : 'picker-item'}
+              className={[
+                'picker-item',
+                idx === highlightIndex ? 'highlighted' : '',
+                item.key === value ? 'is-selected' : ''
+              ].join(' ').trim()}
               onClick={() => selectNutrient(item.key)}
             >
               <span>{nutrientIcons[item.key] || '🧪'}</span>
