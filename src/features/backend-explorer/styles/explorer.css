@@ -229,9 +229,20 @@
   background: #fbfdfc;
 }
 
+.nutrient-group-tabs {
+  margin: 0;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid #dce3e1;
+}
+
+.nutrient-group-tabs .tab {
+  font-size: 0.78rem;
+}
+
 .picker-group {
   display: grid;
-  gap: 0.25rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.35rem;
   margin-bottom: 0.45rem;
 }
 
@@ -241,17 +252,18 @@
 }
 
 .picker-item {
-  display: grid;
-  grid-template-columns: 1.2rem 1fr auto;
-  gap: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
   align-items: center;
-  text-align: left;
+  text-align: center;
   background: #fff;
   color: #163a36;
   border: 1px solid #dce3e1;
   border-radius: 7px;
-  padding: 0.28rem 0.35rem;
-  font-size: 0.74rem;
+  padding: 0.35rem 0.25rem;
+  font-size: 0.66rem;
+  min-height: 72px;
 }
 
 .picker-item.highlighted {
@@ -259,9 +271,27 @@
   box-shadow: 0 0 0 1px rgb(15 118 110 / 30%);
 }
 
+.picker-item.is-selected {
+  background: #0f766e;
+  color: #fff;
+  border-color: #0f766e;
+}
+
 .picker-item small {
   color: #5f7673;
   font-size: 0.66rem;
+}
+
+.picker-item.is-selected small {
+  color: rgb(255 255 255 / 88%);
+}
+
+.picker-item span:first-child {
+  font-size: 0.95rem;
+}
+
+.nutrition-summary-grid .mini-summary-fields {
+  grid-template-columns: 1fr 1fr;
 }
 
 .nutrition-summary-grid {
@@ -502,9 +532,12 @@ pre {
 @media (max-width: 1080px) {
   .inline-builder,
   .summary-row,
-  .nutrition-builder-actions,
   .picker-top-row {
     grid-template-columns: 1fr;
+  }
+
+  .picker-group {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -519,6 +552,10 @@ pre {
   .nutrition-builder-actions,
   .picker-top-row {
     grid-template-columns: 1fr;
+  }
+
+  .picker-group {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .gallery-grid {
