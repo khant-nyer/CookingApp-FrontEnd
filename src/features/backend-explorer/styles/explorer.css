@@ -79,17 +79,28 @@
   gap: 0.75rem;
 }
 
+.foods-tab-grid .card {
+  border: 1px solid #dde5f0;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+}
+
+.foods-gallery-card h3,
+.detail-card h3 {
+  color: #041a45;
+}
+
 .gallery-tile {
-  border: 1px solid #dce3e1;
+  border: 1px solid #dde5f0;
   background: #fff;
-  border-radius: 10px;
-  padding: 0.45rem;
+  border-radius: 12px;
+  padding: 0.5rem;
   text-align: left;
 }
 
 .gallery-tile.selected {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 2px rgb(15 118 110 / 20%);
+  border-color: #ff6a00;
+  box-shadow: 0 0 0 2px rgb(255 106 0 / 20%);
 }
 
 .gallery-image,
@@ -97,8 +108,8 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 8px;
-  border: 1px solid #dde9e7;
-  background: #f8fbfa;
+  border: 1px solid #edf2f8;
+  background: #f9fbff;
 }
 
 .gallery-image {
@@ -118,12 +129,12 @@
 .gallery-caption {
   margin-top: 0.4rem;
   font-weight: 600;
-  color: #1f3a37;
+  color: #0b2b55;
 }
 
 .gallery-subtitle {
   font-size: 0.8rem;
-  color: #637977;
+  color: #6c7d98;
 }
 
 .summary-card-grid {
@@ -402,11 +413,18 @@
 }
 
 .detail-image {
-  width: 100%;
-  max-height: 220px;
+  width: auto;
+  max-width: none;
+  max-height: 280px;
   object-fit: cover;
   border-radius: 10px;
-  border: 1px solid #dde9e7;
+  border: 1px solid #dde5f0;
+}
+
+.detail-image-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 10px;
 }
 
 .detail-content {
@@ -466,6 +484,7 @@ pre {
   flex-direction: column;
   gap: 0.75rem;
   max-height: min(72vh, 760px);
+  background: #fff;
 }
 
 .detail-card pre {
@@ -477,6 +496,11 @@ pre {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.foods-detail-placeholder {
+  border: 1px dashed #ccd7ea;
+  color: #6c7d98;
 }
 
 .modal-backdrop {
