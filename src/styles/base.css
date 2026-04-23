@@ -272,6 +272,8 @@ button:disabled {
 .content-toolbar {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 0.65rem;
   margin-bottom: 0.75rem;
 }
 

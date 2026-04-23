@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { CreateSuccessState, EntityType, Food, PaginationInfo } from '../types';
+import type { CreateSuccessState, Food, PaginationInfo } from '../types';
 import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
 
 interface FoodsTabProps {
@@ -8,7 +8,6 @@ interface FoodsTabProps {
   setSelectedId: (value: string) => void;
   selectedFood?: Food;
   createSuccess: CreateSuccessState;
-  openCreateModal: (type: EntityType) => void;
   openFoodUpdateModal: (food: Food) => void;
   getItemId: (item: Food) => string | number | undefined;
   pagination: PaginationInfo;
@@ -23,7 +22,6 @@ function FoodsTab({
   setSelectedId,
   selectedFood,
   createSuccess,
-  openCreateModal,
   openFoodUpdateModal,
   getItemId,
   pagination,
@@ -32,9 +30,8 @@ function FoodsTab({
   onDeleteFood
 }: FoodsTabProps) {
   return (
-    <div className="grid">
-      <div className="card">
-        <button onClick={() => openCreateModal('food')}>Create Food</button>
+    <div className="grid foods-tab-grid">
+      <div className="card foods-gallery-card">
         {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
         <h3>Gallery</h3>
         <div className="gallery-grid">
@@ -50,12 +47,12 @@ function FoodsTab({
         <TextDetail
           title={selectedFood.name || 'Food details'}
           imageUrl={selectedFood.imageUrl}
-          fields={[{ label: 'Category', value: selectedFood.category }, { label: 'ID', value: selectedFood.id }]}
+          fields={[{ label: 'Category', value: selectedFood.category }]}
           sections={[{ title: 'Recipes', items: (selectedFood.recipes || []).map((recipe) => recipe.name || `Recipe #${recipe.id}`) }]}
           onDelete={() => onDeleteFood(selectedFood)}
           onUpdate={() => openFoodUpdateModal(selectedFood)}
         />
-      ) : <div className="card muted">Select a food image to view details.</div>}
+      ) : <div className="card foods-detail-placeholder muted">Select a food image to view details.</div>}
     </div>
   );
 }
