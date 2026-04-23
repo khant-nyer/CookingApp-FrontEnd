@@ -146,7 +146,7 @@ export default function App() {
       <section className="content-shell">
         <header className="page-header">
           <h1>Cooking Application</h1>
-          <p>Welcome back to Culina. Here&apos;s what&apos;s cooking today.</p>
+          <p><strong>This application is still under development, update is coming soon</strong></p>
         </header>
 
         <BackendExplorer
