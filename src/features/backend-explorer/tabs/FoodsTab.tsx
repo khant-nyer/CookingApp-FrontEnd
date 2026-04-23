@@ -84,8 +84,14 @@ function FoodsTab({
           imageUrl={selectedFood.imageUrl}
           fields={[
             { label: 'Category', value: selectedFood.category },
-            { label: 'Recipe count', value: selectedFood.recipeCount },
-            { label: 'Created by', value: selectedFood.createdBy }
+            { label: 'Created by', value: selectedFood.createdBy },
+            { label: 'Recipe count', value: selectedFood.recipeCount }
+          ]}
+          sections={[
+            {
+              title: 'Recipes',
+              items: (selectedFood.recipes || []).map((recipe) => recipe.name || `Recipe #${recipe.id}`)
+            }
           ]}
           onDelete={() => onDeleteFood(selectedFood)}
           onUpdate={() => openFoodUpdateModal(selectedFood)}
