@@ -278,6 +278,14 @@ button:disabled {
   padding-bottom: 1rem;
 }
 
+.explorer-search-row {
+  margin-bottom: 1rem;
+}
+
+.explorer-search-row input {
+  width: min(460px, 100%);
+}
+
 .page-header h1 {
   margin: 0;
   color: #041a45;

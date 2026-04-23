@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getItemId, getRecipeTileId } from '../../../../src/features/backend-explorer/utils/ids';
+import { getFoodTileId, getItemId, getRecipeTileId } from '../../../../src/features/backend-explorer/utils/ids';
 import { normalizeNutrientKey, normalizeNutritionEntry } from '../../../../src/features/backend-explorer/utils/nutrients';
 
 describe('core utility behavior', () => {
@@ -29,7 +29,19 @@ describe('core utility behavior', () => {
   it('reads entity id from id/_id', () => {
     expect(getItemId({ id: 10 })).toBe(10);
     expect(getItemId({ _id: 'abc' })).toBe('abc');
+    expect(getItemId({ foodId: 77 })).toBe(77);
+    expect(getItemId({ ingredientId: 'ing-4' })).toBe('ing-4');
+    expect(getItemId({ recipeId: 'recipe-9' })).toBe('recipe-9');
     expect(getItemId(null)).toBeUndefined();
+  });
+
+
+  it('creates stable food tile fallback id when backend id is missing', () => {
+    const first = getFoodTileId({ name: 'Soup' }, 0);
+    const second = getFoodTileId({ category: 'Main' }, 1);
+
+    expect(first).toBe('food-0');
+    expect(second).toBe('food-1');
   });
 
   it('creates stable recipe tile fallback id when backend id is missing', () => {

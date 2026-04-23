@@ -69,6 +69,7 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [foodSearchQuery, setFoodSearchQuery] = useState('');
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -146,7 +147,6 @@ export default function App() {
       <section className="content-shell">
         <header className="page-header">
           <h1>Cooking Application</h1>
-          <p><strong>This application is still under development, update is coming soon</strong></p>
         </header>
 
         <BackendExplorer
@@ -154,6 +154,8 @@ export default function App() {
           onRequireAuth={() => setIsAuthModalOpen(true)}
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          foodSearchQuery={foodSearchQuery}
+          onFoodSearchQueryChange={setFoodSearchQuery}
         />
       </section>
 

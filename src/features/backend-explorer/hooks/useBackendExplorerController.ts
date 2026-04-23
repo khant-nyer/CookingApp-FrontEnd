@@ -1,5 +1,5 @@
 import {useCallback, useMemo} from 'react';
-import { getItemId, getRecipeTileId } from '../utils/ids';
+import { getFoodTileId, getItemId, getRecipeTileId } from '../utils/ids';
 import useExplorerCreateFlow from './useExplorerCreateFlow';
 import useExplorerDeleteFlow from './useExplorerDeleteFlow';
 import useExplorerUpdateFlow from './useExplorerUpdateFlow';
@@ -34,7 +34,7 @@ export default function useBackendExplorerController(): BackendExplorerControlle
   const deleteFlow = useExplorerDeleteFlow({ run });
 
   const selectedFood = useMemo(
-    () => viewStateCore.foods.find((item) => String(getItemId(item)) === String(viewStateCore.selectedId)),
+    () => viewStateCore.foods.find((item, index) => String(getFoodTileId(item, index)) === String(viewStateCore.selectedId)),
     [viewStateCore.foods, viewStateCore.selectedId]
   );
 
