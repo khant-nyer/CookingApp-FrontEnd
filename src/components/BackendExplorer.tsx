@@ -108,7 +108,7 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
     loading,
     onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food)),
     onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food'))
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow.createSuccess, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow]);
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
