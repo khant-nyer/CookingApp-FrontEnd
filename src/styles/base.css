@@ -172,6 +172,10 @@ button:disabled {
   width: 94px;
 }
 
+.sidebar.collapsed .brand-icon {
+  margin-left: 0.35rem;
+}
+
 .sidebar-head {
   display: flex;
   align-items: center;
@@ -279,7 +283,7 @@ button:disabled {
 
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 260px));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   justify-content: space-between;
   gap: 1.75rem;
 }
@@ -288,7 +292,8 @@ button:disabled {
   background: #fff;
   border-radius: 16px;
   border: 1px solid #dde5f0;
-  padding: 1.2rem;
+  padding: 1.45rem 1.5rem;
+  min-height: 124px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
   display: flex;
   justify-content: space-between;
@@ -302,18 +307,23 @@ button:disabled {
 }
 
 .dashboard-card-total {
-  font-size: 2rem;
+  font-size: 2.25rem;
   color: #031b4f;
 }
 
 .dashboard-card-icon {
-  width: 52px;
-  height: 52px;
+  width: 58px;
+  height: 58px;
   display: grid;
   place-items: center;
   border-radius: 14px;
   background: #fff3ea;
-  font-size: 1.5rem;
+  color: #ff6a00;
+}
+
+.dashboard-card-icon .icon {
+  width: 28px;
+  height: 28px;
 }
 
 
@@ -358,14 +368,42 @@ button:disabled {
   flex-shrink: 0;
 }
 
+.dashboard-list-card .dashboard-list-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: #ff6a00;
+  background: #fff3ea;
+}
+
+.dashboard-list-card .dashboard-list-icon .icon {
+  width: 28px;
+  height: 28px;
+}
+
 .dashboard-list-card li div {
   display: grid;
   gap: 0.2rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .dashboard-list-card li span {
   color: #647b9b;
   font-size: 0.92rem;
+}
+
+.recipe-version-badge {
+  color: #0b2b55;
+  background: #eef4ff;
+  border: 1px solid #d6e2ff;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 @media (max-width: 980px) {
