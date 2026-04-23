@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
 import SessionExpiryModal from './components/SessionExpiryModal';
@@ -45,8 +46,8 @@ function SettingsIcon({ className }: IconProps) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 1 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1z" /></svg>;
 }
 
-const sidebarTabs: Array<{ key: TabKey; label: string; icon: (props: IconProps) => JSX.Element }> = [
-  { key: 'foods', label: 'Dashboard', icon: GridIcon },
+const sidebarTabs: Array<{ key: TabKey; label: string; icon: (props: IconProps) => ReactNode }> = [
+  { key: 'dashboard', label: 'Dashboard', icon: GridIcon },
   { key: 'foods', label: 'Foods', icon: BowlIcon },
   { key: 'ingredients', label: 'Ingredients', icon: UtensilsIcon },
   { key: 'recipes', label: 'Recipes', icon: ChefHatIcon },
@@ -67,7 +68,7 @@ export default function App() {
   const [isExtendingSession, setIsExtendingSession] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabKey>('foods');
+  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -106,7 +107,7 @@ export default function App() {
         <nav className="sidebar-nav" aria-label="Main navigation">
           {sidebarTabs.map((tab, index) => {
             const Icon = tab.icon;
-            const isActive = activeTab === tab.key && (index !== 0 || activeTab === 'foods');
+            const isActive = activeTab === tab.key;
 
             return (
               <button

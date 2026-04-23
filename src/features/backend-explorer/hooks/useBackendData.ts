@@ -277,7 +277,9 @@ export default function useBackendData() {
 
     const requestPromise = (async () => {
       try {
-        if (tab === 'foods') {
+        if (tab === 'dashboard') {
+          await loadAll();
+        } else if (tab === 'foods') {
           const nextPage = Math.max(0, page ?? pagination.foods.page ?? 0);
           const result = await loadFoods(nextPage);
           setFoods(result.data);
@@ -310,7 +312,7 @@ export default function useBackendData() {
     if (tabRequestRef.current[tab] === requestPromise) {
       delete tabRequestRef.current[tab];
     }
-  }, [loadFoods, loadIngredients, loadRecipes, pagination]);
+  }, [loadAll, loadFoods, loadIngredients, loadRecipes, pagination]);
 
   const runWithRefresh = useCallback(async (action: () => Promise<unknown> | unknown) => {
     setLoading(true);
