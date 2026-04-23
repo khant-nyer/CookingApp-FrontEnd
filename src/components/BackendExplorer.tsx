@@ -11,14 +11,14 @@ import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
 
-const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
-
 interface BackendExplorerProps {
   isAuthenticated: boolean;
   onRequireAuth: () => void;
+  activeTab?: TabKey;
+  onTabChange?: (tab: TabKey) => void;
 }
 
-export default function BackendExplorer({ isAuthenticated, onRequireAuth }: BackendExplorerProps) {
+export default function BackendExplorer({ isAuthenticated, onRequireAuth, activeTab: externalActiveTab, onTabChange }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -26,7 +26,7 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     selectedNutrient,
     setSelectedNutrient,
     setActiveTab,
-    activeTab,
+    activeTab: controllerActiveTab,
     loadTabData,
     loading,
     error,
@@ -45,13 +45,19 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     action();
   }, [isAuthenticated, onRequireAuth]);
 
-  const handleTabSwitch = useCallback((tab: TabKey) => {
-    setActiveTab(tab);
-  }, [setActiveTab]);
+  const activeTab = externalActiveTab ?? controllerActiveTab;
 
   const handleRefreshTab = useCallback(() => {
     void loadTabData(activeTab);
   }, [activeTab, loadTabData]);
+
+  const handleTabSwitch = useCallback((tab: TabKey) => {
+    if (onTabChange) {
+      onTabChange(tab);
+      return;
+    }
+    setActiveTab(tab);
+  }, [onTabChange, setActiveTab]);
 
   const foodsTabProps = useMemo(() => ({
     foods: entities.foods,
@@ -102,16 +108,15 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     selectedNutrient,
     setSelectedNutrient,
     nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
-    setActiveTab,
+    setActiveTab: handleTabSwitch,
     getItemId
-  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, setActiveTab]);
+  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, handleTabSwitch]);
 
   return (
     <section>
-      <nav className="nav-row">
-        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => handleTabSwitch(tab)}>{tab}</button>)}
+      <div className="content-toolbar">
         <button onClick={handleRefreshTab}>{loading ? 'Loading…' : 'Refresh tab'}</button>
-      </nav>
+      </div>
 
       {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
       {error && <p className="error">{error}</p>}
