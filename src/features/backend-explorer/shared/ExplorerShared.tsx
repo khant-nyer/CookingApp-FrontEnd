@@ -79,9 +79,7 @@ export function TextDetail({ title, imageUrl, fields = [], sections = [], onDele
     <div className="card detail-card">
       <h3>{title}</h3>
       {imageUrl ? (
-        <div className="detail-image-scroll">
-          <img src={imageUrl} alt={title} className="detail-image" />
-        </div>
+        <img src={imageUrl} alt={title} className="detail-image" />
       ) : null}
       <div className="detail-content">
         {fields.map((field) => (

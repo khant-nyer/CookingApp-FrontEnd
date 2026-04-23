@@ -79,6 +79,12 @@
   gap: 0.75rem;
 }
 
+.foods-gallery-header {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+}
+
 .foods-tab-grid .card {
   border: 1px solid #dde5f0;
   border-radius: 16px;
@@ -413,18 +419,12 @@
 }
 
 .detail-image {
-  width: auto;
-  max-width: none;
-  max-height: 280px;
+  width: 100%;
+  max-width: 100%;
+  max-height: 420px;
   object-fit: cover;
   border-radius: 10px;
   border: 1px solid #dde5f0;
-}
-
-.detail-image-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  border-radius: 10px;
 }
 
 .detail-content {

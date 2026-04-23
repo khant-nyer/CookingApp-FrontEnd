@@ -12,6 +12,10 @@ export interface FoodDto extends IdentifiableDto {
   name?: string;
   category?: string;
   imageUrl?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+  recipeCount?: number;
   recipes?: FoodRecipeRefDto[];
 }
 
