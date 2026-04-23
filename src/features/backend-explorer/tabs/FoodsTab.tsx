@@ -3,6 +3,8 @@ import type { CreateSuccessState, Food, PaginationInfo } from '../types';
 import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
 
 interface FoodsTabProps {
+  searchQuery?: string;
+  onSearchQueryChange?: (value: string) => void;
   foods: Food[];
   selectedId: string;
   setSelectedId: (value: string) => void;
@@ -29,9 +31,12 @@ function FoodsTab({
   onPageChange,
   loading,
   onDeleteFood,
-  onCreateFood
+  onCreateFood,
+  searchQuery: controlledSearchQuery,
+  onSearchQueryChange
 }: FoodsTabProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const searchQuery = controlledSearchQuery ?? localSearchQuery;
 
   const filteredFoods = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -50,12 +55,17 @@ function FoodsTab({
         <div className="foods-gallery-header">
           <button type="button" onClick={onCreateFood}>Create Food</button>
         </div>
-        <input
-          type="search"
-          placeholder="Search foods by name, category, or creator"
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-        />
+        {!onSearchQueryChange ? (
+          <input
+            type="search"
+            placeholder="Search foods by name, category, or creator"
+            value={searchQuery}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setLocalSearchQuery(nextValue);
+            }}
+          />
+        ) : null}
         {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
         <h3>Gallery</h3>
         <div className="gallery-grid">

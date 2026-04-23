@@ -30,6 +30,9 @@ export interface PaginationState {
 export interface Identifiable {
   id?: string | number;
   _id?: string | number;
+  foodId?: string | number;
+  ingredientId?: string | number;
+  recipeId?: string | number;
 }
 
 export interface FoodRecipeRef {

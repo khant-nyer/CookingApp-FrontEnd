@@ -56,9 +56,18 @@ interface BackendExplorerProps {
   onRequireAuth: () => void;
   activeTab?: TabKey;
   onTabChange?: (tab: TabKey) => void;
+  foodSearchQuery?: string;
+  onFoodSearchQueryChange?: (value: string) => void;
 }
 
-export default function BackendExplorer({ isAuthenticated, onRequireAuth, activeTab: externalActiveTab, onTabChange }: BackendExplorerProps) {
+export default function BackendExplorer({
+  isAuthenticated,
+  onRequireAuth,
+  activeTab: externalActiveTab,
+  onTabChange,
+  foodSearchQuery,
+  onFoodSearchQueryChange
+}: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -107,8 +116,10 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
     onPageChange: (page: number) => loadTabData('foods', page),
     loading,
     onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food)),
-    onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food'))
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow]);
+    onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food')),
+    searchQuery: foodSearchQuery,
+    onSearchQueryChange: onFoodSearchQueryChange
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
@@ -156,7 +167,15 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
   const latestFoods = entities.foods.slice(0, 4);
   return (
     <section className="backend-explorer-scroll">
-      {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
+      <div className="explorer-search-row">
+        <input
+          type="search"
+          placeholder="Search foods by name, category, or creator"
+          value={foodSearchQuery || ''}
+          onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
+          aria-label="Search foods"
+        />
+      </div>
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'dashboard' ? (
