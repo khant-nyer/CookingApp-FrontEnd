@@ -1,6 +1,9 @@
 export interface IdentifiableDto {
   id?: string | number;
   _id?: string | number;
+  foodId?: string | number;
+  ingredientId?: string | number;
+  recipeId?: string | number;
 }
 
 export interface FoodRecipeRefDto {
