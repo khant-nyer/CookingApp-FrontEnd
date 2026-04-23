@@ -13,6 +13,16 @@ body {
   margin: 0;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -153,8 +163,9 @@ button:disabled {
 
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: #f1f4f8;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -255,6 +266,16 @@ button:disabled {
   flex: 1;
   min-width: 0;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.backend-explorer-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 1rem;
 }
 
 .page-header h1 {

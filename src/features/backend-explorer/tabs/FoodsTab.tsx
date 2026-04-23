@@ -14,6 +14,7 @@ interface FoodsTabProps {
   onPageChange: (page: number) => void;
   loading: boolean;
   onDeleteFood: (food: Food) => void;
+  onCreateFood: () => void;
 }
 
 function FoodsTab({
@@ -27,11 +28,15 @@ function FoodsTab({
   pagination,
   onPageChange,
   loading,
-  onDeleteFood
+  onDeleteFood,
+  onCreateFood
 }: FoodsTabProps) {
   return (
     <div className="grid foods-tab-grid">
       <div className="card foods-gallery-card">
+        <div className="foods-gallery-header">
+          <button type="button" onClick={onCreateFood}>Create Food</button>
+        </div>
         {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
         <h3>Gallery</h3>
         <div className="gallery-grid">
@@ -47,8 +52,11 @@ function FoodsTab({
         <TextDetail
           title={selectedFood.name || 'Food details'}
           imageUrl={selectedFood.imageUrl}
-          fields={[{ label: 'Category', value: selectedFood.category }]}
-          sections={[{ title: 'Recipes', items: (selectedFood.recipes || []).map((recipe) => recipe.name || `Recipe #${recipe.id}`) }]}
+          fields={[
+            { label: 'Category', value: selectedFood.category },
+            { label: 'Recipe count', value: selectedFood.recipeCount },
+            { label: 'Created by', value: selectedFood.createdBy }
+          ]}
           onDelete={() => onDeleteFood(selectedFood)}
           onUpdate={() => openFoodUpdateModal(selectedFood)}
         />
