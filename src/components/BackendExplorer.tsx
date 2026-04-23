@@ -105,14 +105,13 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
     setSelectedId,
     selectedFood: entities.selectedFood,
     createSuccess: createFlow.createSuccess,
-    openCreateModal: (type: EntityType) => runProtectedAction(() => createFlow.openCreateModal(type)),
     openFoodUpdateModal: (food: Food) => runProtectedAction(() => updateFlow.openFoodUpdateModal(food)),
     getItemId,
     pagination: pagination.foods,
     onPageChange: (page: number) => loadTabData('foods', page),
     loading,
     onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food))
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow.createSuccess, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
@@ -162,6 +161,11 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
     <section>
       <div className="content-toolbar">
         <button onClick={handleRefreshTab}>{loading ? 'Loading…' : 'Refresh tab'}</button>
+        {activeTab === 'foods' ? (
+          <button type="button" onClick={() => runProtectedAction(() => createFlow.openCreateModal('food'))}>
+            Create Food
+          </button>
+        ) : null}
       </div>
 
       {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { CreateSuccessState, EntityType, Food, PaginationInfo } from '../types';
+import type { CreateSuccessState, Food, PaginationInfo } from '../types';
 import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
 
 interface FoodsTabProps {
@@ -8,7 +8,6 @@ interface FoodsTabProps {
   setSelectedId: (value: string) => void;
   selectedFood?: Food;
   createSuccess: CreateSuccessState;
-  openCreateModal: (type: EntityType) => void;
   openFoodUpdateModal: (food: Food) => void;
   getItemId: (item: Food) => string | number | undefined;
   pagination: PaginationInfo;
@@ -23,7 +22,6 @@ function FoodsTab({
   setSelectedId,
   selectedFood,
   createSuccess,
-  openCreateModal,
   openFoodUpdateModal,
   getItemId,
   pagination,
