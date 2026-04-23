@@ -32,9 +32,11 @@ function FoodsTab({
   onDeleteFood
 }: FoodsTabProps) {
   return (
-    <div className="grid">
-      <div className="card">
-        <button onClick={() => openCreateModal('food')}>Create Food</button>
+    <div className="grid foods-tab-grid">
+      <div className="card foods-gallery-card">
+        <div className="foods-gallery-toolbar">
+          <button type="button" onClick={() => openCreateModal('food')}>Create Food</button>
+        </div>
         {createSuccess.food ? <p className="success">{createSuccess.food}</p> : null}
         <h3>Gallery</h3>
         <div className="gallery-grid">
@@ -50,12 +52,12 @@ function FoodsTab({
         <TextDetail
           title={selectedFood.name || 'Food details'}
           imageUrl={selectedFood.imageUrl}
-          fields={[{ label: 'Category', value: selectedFood.category }, { label: 'ID', value: selectedFood.id }]}
+          fields={[{ label: 'Category', value: selectedFood.category }]}
           sections={[{ title: 'Recipes', items: (selectedFood.recipes || []).map((recipe) => recipe.name || `Recipe #${recipe.id}`) }]}
           onDelete={() => onDeleteFood(selectedFood)}
           onUpdate={() => openFoodUpdateModal(selectedFood)}
         />
-      ) : <div className="card muted">Select a food image to view details.</div>}
+      ) : <div className="card foods-detail-placeholder muted">Select a food image to view details.</div>}
     </div>
   );
 }

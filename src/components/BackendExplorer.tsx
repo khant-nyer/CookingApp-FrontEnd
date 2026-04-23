@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
@@ -11,8 +12,23 @@ import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
 
+interface IconProps {
+  className?: string;
+}
 
-function DashboardCard({ title, total, icon }: { title: string; total: number; icon: string }) {
+function ChefHatIcon({ className }: IconProps) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6.8 10.2A4.5 4.5 0 0 1 8 2a5.8 5.8 0 0 1 4 1.7A5.8 5.8 0 0 1 16 2a4.5 4.5 0 0 1 1.2 8.2" /><path d="M4 10h16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4z" /><line x1="7" y1="20" x2="17" y2="20" /></svg>;
+}
+
+function BowlIcon({ className }: IconProps) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 13h16a8 8 0 0 1-16 0z" /><path d="M9 9c.4-1.3 1.4-2.2 3-2.5" /><path d="M14.5 7c1 .1 1.8.6 2.3 1.6" /><line x1="12" y1="3" x2="12" y2="6" /></svg>;
+}
+
+function UtensilsIcon({ className }: IconProps) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 3v7a3 3 0 0 0 3 3v8" /><path d="M7 3v7" /><path d="M10 3v7" /><path d="M15 3l5 5-3 3-5-5" /><path d="M13 11l-3 3" /><path d="M17 14l4 4" /></svg>;
+}
+
+function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
   return (
     <article className="dashboard-card">
       <div>
@@ -30,24 +46,9 @@ function pickRecipeTitle(recipe: Recipe) {
   return 'Untitled recipe';
 }
 
-
-function foodImageById(foods: Food[]) {
-  const imageById = new Map<string, string>();
-  foods.forEach((food) => {
-    const id = getItemId(food);
-    if (food.imageUrl && id !== '') {
-      imageById.set(String(id), food.imageUrl);
-    }
-  });
-  return imageById;
-}
-
-function recipeImage(recipe: Recipe, fallbackImage: string, imageByFoodId: Map<string, string>) {
-  if (typeof recipe.foodId === 'string' || typeof recipe.foodId === 'number') {
-    const linkedFoodImage = imageByFoodId.get(String(recipe.foodId));
-    if (linkedFoodImage) return linkedFoodImage;
-  }
-  return fallbackImage;
+function pickRecipeVersion(recipe: Recipe) {
+  if (recipe.version && String(recipe.version).trim()) return `v${String(recipe.version).trim()}`;
+  return 'vN/A';
 }
 
 interface BackendExplorerProps {
@@ -157,8 +158,6 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
 
   const recentRecipes = entities.recipes.slice(0, 4);
   const latestFoods = entities.foods.slice(0, 4);
-  const imageByFoodId = foodImageById(entities.foods);
-
   return (
     <section>
       <div className="content-toolbar">
@@ -171,9 +170,9 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
       {activeTab === 'dashboard' ? (
         <section className="dashboard-layout">
           <div className="dashboard-cards">
-            <DashboardCard title="Total Foods" total={totalFoods} icon="🥗" />
-            <DashboardCard title="Ingredients" total={totalIngredients} icon="🧂" />
-            <DashboardCard title="Recipes" total={totalRecipes} icon="👨‍🍳" />
+            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />
+            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} />
           </div>
 
           <div className="dashboard-lists">
@@ -182,14 +181,14 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
               <ul>
                 {recentRecipes.map((recipe) => (
                   <li key={String(getItemId(recipe))}>
-                    <img
-                      src={recipeImage(recipe, 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=120&q=60', imageByFoodId)}
-                      alt={pickRecipeTitle(recipe)}
-                    />
+                    <span className="dashboard-list-icon" aria-hidden>
+                      <ChefHatIcon className="icon" />
+                    </span>
                     <div>
                       <strong>{pickRecipeTitle(recipe)}</strong>
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
+                    <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
                   </li>
                 ))}
                 {!recentRecipes.length && <li>No recipes yet.</li>}

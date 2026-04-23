@@ -78,20 +78,22 @@ export function TextDetail({ title, imageUrl, fields = [], sections = [], onDele
   return (
     <div className="card detail-card">
       <h3>{title}</h3>
-      {imageUrl ? <img src={imageUrl} alt={title} className="detail-image" /> : null}
-      <div className="detail-content">
-        {fields.map((field) => (
-          <p key={field.label}><strong>{field.label}:</strong> {field.value || '-'}</p>
-        ))}
-        {sections.map((section) => (
-          <div key={section.title} className="detail-section">
-            <strong>{section.title}</strong>
-            {!section.items.length ? <p className="muted">No data.</p> : null}
-            {section.items.map((item, index) => (
-              <p key={`${section.title}-${index}`} className="small-line">• {item}</p>
-            ))}
-          </div>
-        ))}
+      <div className="detail-body-scroll">
+        {imageUrl ? <img src={imageUrl} alt={title} className="detail-image" /> : null}
+        <div className="detail-content">
+          {fields.map((field) => (
+            <p key={field.label}><strong>{field.label}:</strong> {field.value || '-'}</p>
+          ))}
+          {sections.map((section) => (
+            <div key={section.title} className="detail-section">
+              <strong>{section.title}</strong>
+              {!section.items.length ? <p className="muted">No data.</p> : null}
+              {section.items.map((item, index) => (
+                <p key={`${section.title}-${index}`} className="small-line">• {item}</p>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
       <div className="detail-actions">
         {onUpdate ? <button className="secondary" onClick={onUpdate}>Update</button> : null}
