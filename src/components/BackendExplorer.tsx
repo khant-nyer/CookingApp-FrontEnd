@@ -12,13 +12,14 @@ import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
 
 
-function DashboardCard({ title, total, tone }: { title: string; total: number; tone: 'green' | 'amber' | 'orange' }) {
+function DashboardCard({ title, total, icon }: { title: string; total: number; icon: string }) {
   return (
-    <article className={`dashboard-card tone-${tone}`}>
+    <article className="dashboard-card">
       <div>
         <p className="dashboard-card-title">{title}</p>
         <strong className="dashboard-card-total">{total}</strong>
       </div>
+      <span className="dashboard-card-icon" aria-hidden>{icon}</span>
     </article>
   );
 }
@@ -27,6 +28,26 @@ function pickRecipeTitle(recipe: Recipe) {
   if (recipe.foodName) return recipe.foodName;
   if (recipe.description) return recipe.description.split(/[.!?]/)[0];
   return 'Untitled recipe';
+}
+
+
+function foodImageById(foods: Food[]) {
+  const imageById = new Map<string, string>();
+  foods.forEach((food) => {
+    const id = getItemId(food);
+    if (food.imageUrl && id !== '') {
+      imageById.set(String(id), food.imageUrl);
+    }
+  });
+  return imageById;
+}
+
+function recipeImage(recipe: Recipe, fallbackImage: string, imageByFoodId: Map<string, string>) {
+  if (typeof recipe.foodId === 'string' || typeof recipe.foodId === 'number') {
+    const linkedFoodImage = imageByFoodId.get(String(recipe.foodId));
+    if (linkedFoodImage) return linkedFoodImage;
+  }
+  return fallbackImage;
 }
 
 interface BackendExplorerProps {
@@ -136,6 +157,7 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
 
   const recentRecipes = entities.recipes.slice(0, 4);
   const latestFoods = entities.foods.slice(0, 4);
+  const imageByFoodId = foodImageById(entities.foods);
 
   return (
     <section>
@@ -149,9 +171,9 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
       {activeTab === 'dashboard' ? (
         <section className="dashboard-layout">
           <div className="dashboard-cards">
-            <DashboardCard title="Total Foods" total={totalFoods} tone="green" />
-            <DashboardCard title="Ingredients" total={totalIngredients} tone="amber" />
-            <DashboardCard title="Recipes" total={totalRecipes} tone="orange" />
+            <DashboardCard title="Total Foods" total={totalFoods} icon="🥗" />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon="🧂" />
+            <DashboardCard title="Recipes" total={totalRecipes} icon="👨‍🍳" />
           </div>
 
           <div className="dashboard-lists">
@@ -160,8 +182,14 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
               <ul>
                 {recentRecipes.map((recipe) => (
                   <li key={String(getItemId(recipe))}>
-                    <strong>{pickRecipeTitle(recipe)}</strong>
-                    <span>{recipe.description || 'No description available'}</span>
+                    <img
+                      src={recipeImage(recipe, 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=120&q=60', imageByFoodId)}
+                      alt={pickRecipeTitle(recipe)}
+                    />
+                    <div>
+                      <strong>{pickRecipeTitle(recipe)}</strong>
+                      <span>{recipe.description || 'No description available'}</span>
+                    </div>
                   </li>
                 ))}
                 {!recentRecipes.length && <li>No recipes yet.</li>}
@@ -173,8 +201,14 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
               <ul>
                 {latestFoods.map((food) => (
                   <li key={String(getItemId(food))}>
-                    <strong>{food.name || 'Unnamed food'}</strong>
-                    <span>{food.category || 'No category'}</span>
+                    <img
+                      src={food.imageUrl || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=60'}
+                      alt={food.name || 'Food image'}
+                    />
+                    <div>
+                      <strong>{food.name || 'Unnamed food'}</strong>
+                      <span>{food.category || 'No category'}</span>
+                    </div>
                   </li>
                 ))}
                 {!latestFoods.length && <li>No foods yet.</li>}
