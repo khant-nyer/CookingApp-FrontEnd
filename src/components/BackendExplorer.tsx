@@ -11,14 +11,53 @@ import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
 
-const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
+
+function DashboardCard({ title, total, icon }: { title: string; total: number; icon: string }) {
+  return (
+    <article className="dashboard-card">
+      <div>
+        <p className="dashboard-card-title">{title}</p>
+        <strong className="dashboard-card-total">{total}</strong>
+      </div>
+      <span className="dashboard-card-icon" aria-hidden>{icon}</span>
+    </article>
+  );
+}
+
+function pickRecipeTitle(recipe: Recipe) {
+  if (recipe.foodName) return recipe.foodName;
+  if (recipe.description) return recipe.description.split(/[.!?]/)[0];
+  return 'Untitled recipe';
+}
+
+
+function foodImageById(foods: Food[]) {
+  const imageById = new Map<string, string>();
+  foods.forEach((food) => {
+    const id = getItemId(food);
+    if (food.imageUrl && id !== '') {
+      imageById.set(String(id), food.imageUrl);
+    }
+  });
+  return imageById;
+}
+
+function recipeImage(recipe: Recipe, fallbackImage: string, imageByFoodId: Map<string, string>) {
+  if (typeof recipe.foodId === 'string' || typeof recipe.foodId === 'number') {
+    const linkedFoodImage = imageByFoodId.get(String(recipe.foodId));
+    if (linkedFoodImage) return linkedFoodImage;
+  }
+  return fallbackImage;
+}
 
 interface BackendExplorerProps {
   isAuthenticated: boolean;
   onRequireAuth: () => void;
+  activeTab?: TabKey;
+  onTabChange?: (tab: TabKey) => void;
 }
 
-export default function BackendExplorer({ isAuthenticated, onRequireAuth }: BackendExplorerProps) {
+export default function BackendExplorer({ isAuthenticated, onRequireAuth, activeTab: externalActiveTab, onTabChange }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -26,7 +65,7 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     selectedNutrient,
     setSelectedNutrient,
     setActiveTab,
-    activeTab,
+    activeTab: controllerActiveTab,
     loadTabData,
     loading,
     error,
@@ -45,13 +84,19 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     action();
   }, [isAuthenticated, onRequireAuth]);
 
-  const handleTabSwitch = useCallback((tab: TabKey) => {
-    setActiveTab(tab);
-  }, [setActiveTab]);
+  const activeTab = externalActiveTab ?? controllerActiveTab;
 
   const handleRefreshTab = useCallback(() => {
     void loadTabData(activeTab);
   }, [activeTab, loadTabData]);
+
+  const handleTabSwitch = useCallback((tab: TabKey) => {
+    if (onTabChange) {
+      onTabChange(tab);
+      return;
+    }
+    setActiveTab(tab);
+  }, [onTabChange, setActiveTab]);
 
   const foodsTabProps = useMemo(() => ({
     foods: entities.foods,
@@ -102,19 +147,76 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     selectedNutrient,
     setSelectedNutrient,
     nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
-    setActiveTab,
+    setActiveTab: handleTabSwitch,
     getItemId
-  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, setActiveTab]);
+  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, handleTabSwitch]);
+
+  const totalFoods = pagination.foods.totalElements || entities.foods.length;
+  const totalIngredients = pagination.ingredients.totalElements || entities.ingredients.length;
+  const totalRecipes = pagination.recipes.totalElements || entities.recipes.length;
+
+  const recentRecipes = entities.recipes.slice(0, 4);
+  const latestFoods = entities.foods.slice(0, 4);
+  const imageByFoodId = foodImageById(entities.foods);
 
   return (
     <section>
-      <nav className="nav-row">
-        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => handleTabSwitch(tab)}>{tab}</button>)}
+      <div className="content-toolbar">
         <button onClick={handleRefreshTab}>{loading ? 'Loading…' : 'Refresh tab'}</button>
-      </nav>
+      </div>
 
       {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
       {error && <p className="error">{error}</p>}
+
+      {activeTab === 'dashboard' ? (
+        <section className="dashboard-layout">
+          <div className="dashboard-cards">
+            <DashboardCard title="Total Foods" total={totalFoods} icon="🥗" />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon="🧂" />
+            <DashboardCard title="Recipes" total={totalRecipes} icon="👨‍🍳" />
+          </div>
+
+          <div className="dashboard-lists">
+            <article className="dashboard-list-card">
+              <h3>Recent Recipes</h3>
+              <ul>
+                {recentRecipes.map((recipe) => (
+                  <li key={String(getItemId(recipe))}>
+                    <img
+                      src={recipeImage(recipe, 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=120&q=60', imageByFoodId)}
+                      alt={pickRecipeTitle(recipe)}
+                    />
+                    <div>
+                      <strong>{pickRecipeTitle(recipe)}</strong>
+                      <span>{recipe.description || 'No description available'}</span>
+                    </div>
+                  </li>
+                ))}
+                {!recentRecipes.length && <li>No recipes yet.</li>}
+              </ul>
+            </article>
+
+            <article className="dashboard-list-card">
+              <h3>Latest Foods</h3>
+              <ul>
+                {latestFoods.map((food) => (
+                  <li key={String(getItemId(food))}>
+                    <img
+                      src={food.imageUrl || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=60'}
+                      alt={food.name || 'Food image'}
+                    />
+                    <div>
+                      <strong>{food.name || 'Unnamed food'}</strong>
+                      <span>{food.category || 'No category'}</span>
+                    </div>
+                  </li>
+                ))}
+                {!latestFoods.length && <li>No foods yet.</li>}
+              </ul>
+            </article>
+          </div>
+        </section>
+      ) : null}
 
       {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
 
