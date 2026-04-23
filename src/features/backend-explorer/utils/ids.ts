@@ -3,6 +3,9 @@ import type { Food, Identifiable, Recipe } from '../types';
 const CANDIDATE_ID_KEYS = ['id', '_id', 'foodId', 'ingredientId', 'recipeId'] as const;
 const RECIPE_ID_KEYS = ['id', '_id', 'recipeId'] as const;
 
+const CANDIDATE_ID_KEYS = ['id', '_id', 'foodId', 'ingredientId', 'recipeId'] as const;
+const RECIPE_ID_KEYS = ['id', '_id', 'recipeId'] as const;
+
 export function getItemId(item: Identifiable | null | undefined): string | number | undefined {
   if (!item) return undefined;
 
