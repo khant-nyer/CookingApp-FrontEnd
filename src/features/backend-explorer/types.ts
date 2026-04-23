@@ -2,7 +2,7 @@ import type { ChangeEvent, Dispatch, KeyboardEvent, SetStateAction } from 'react
 import type { FoodDto, IngredientDto, RecipeDto } from '../../services/apiTypes';
 
 export type EntityType = 'food' | 'ingredient' | 'recipe';
-export type TabKey = 'foods' | 'ingredients' | 'recipes' | 'nutrition';
+export type TabKey = 'dashboard' | 'foods' | 'ingredients' | 'recipes' | 'nutrition';
 
 export type Nullable<T> = T | null;
 export type Updater<T> = T | ((prev: T) => T);

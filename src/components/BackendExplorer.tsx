@@ -11,14 +11,32 @@ import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
 
-const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
+
+function DashboardCard({ title, total, tone }: { title: string; total: number; tone: 'green' | 'amber' | 'orange' }) {
+  return (
+    <article className={`dashboard-card tone-${tone}`}>
+      <div>
+        <p className="dashboard-card-title">{title}</p>
+        <strong className="dashboard-card-total">{total}</strong>
+      </div>
+    </article>
+  );
+}
+
+function pickRecipeTitle(recipe: Recipe) {
+  if (recipe.foodName) return recipe.foodName;
+  if (recipe.description) return recipe.description.split(/[.!?]/)[0];
+  return 'Untitled recipe';
+}
 
 interface BackendExplorerProps {
   isAuthenticated: boolean;
   onRequireAuth: () => void;
+  activeTab?: TabKey;
+  onTabChange?: (tab: TabKey) => void;
 }
 
-export default function BackendExplorer({ isAuthenticated, onRequireAuth }: BackendExplorerProps) {
+export default function BackendExplorer({ isAuthenticated, onRequireAuth, activeTab: externalActiveTab, onTabChange }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -26,7 +44,7 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     selectedNutrient,
     setSelectedNutrient,
     setActiveTab,
-    activeTab,
+    activeTab: controllerActiveTab,
     loadTabData,
     loading,
     error,
@@ -45,13 +63,19 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     action();
   }, [isAuthenticated, onRequireAuth]);
 
-  const handleTabSwitch = useCallback((tab: TabKey) => {
-    setActiveTab(tab);
-  }, [setActiveTab]);
+  const activeTab = externalActiveTab ?? controllerActiveTab;
 
   const handleRefreshTab = useCallback(() => {
     void loadTabData(activeTab);
   }, [activeTab, loadTabData]);
+
+  const handleTabSwitch = useCallback((tab: TabKey) => {
+    if (onTabChange) {
+      onTabChange(tab);
+      return;
+    }
+    setActiveTab(tab);
+  }, [onTabChange, setActiveTab]);
 
   const foodsTabProps = useMemo(() => ({
     foods: entities.foods,
@@ -102,19 +126,63 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     selectedNutrient,
     setSelectedNutrient,
     nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
-    setActiveTab,
+    setActiveTab: handleTabSwitch,
     getItemId
-  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, setActiveTab]);
+  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, handleTabSwitch]);
+
+  const totalFoods = pagination.foods.totalElements || entities.foods.length;
+  const totalIngredients = pagination.ingredients.totalElements || entities.ingredients.length;
+  const totalRecipes = pagination.recipes.totalElements || entities.recipes.length;
+
+  const recentRecipes = entities.recipes.slice(0, 4);
+  const latestFoods = entities.foods.slice(0, 4);
 
   return (
     <section>
-      <nav className="nav-row">
-        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => handleTabSwitch(tab)}>{tab}</button>)}
+      <div className="content-toolbar">
         <button onClick={handleRefreshTab}>{loading ? 'Loading…' : 'Refresh tab'}</button>
-      </nav>
+      </div>
 
       {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
       {error && <p className="error">{error}</p>}
+
+      {activeTab === 'dashboard' ? (
+        <section className="dashboard-layout">
+          <div className="dashboard-cards">
+            <DashboardCard title="Total Foods" total={totalFoods} tone="green" />
+            <DashboardCard title="Ingredients" total={totalIngredients} tone="amber" />
+            <DashboardCard title="Recipes" total={totalRecipes} tone="orange" />
+          </div>
+
+          <div className="dashboard-lists">
+            <article className="dashboard-list-card">
+              <h3>Recent Recipes</h3>
+              <ul>
+                {recentRecipes.map((recipe) => (
+                  <li key={String(getItemId(recipe))}>
+                    <strong>{pickRecipeTitle(recipe)}</strong>
+                    <span>{recipe.description || 'No description available'}</span>
+                  </li>
+                ))}
+                {!recentRecipes.length && <li>No recipes yet.</li>}
+              </ul>
+            </article>
+
+            <article className="dashboard-list-card">
+              <h3>Latest Foods</h3>
+              <ul>
+                {latestFoods.map((food) => (
+                  <li key={String(getItemId(food))}>
+                    <strong>{food.name || 'Unnamed food'}</strong>
+                    <span>{food.category || 'No category'}</span>
+                  </li>
+                ))}
+                {!latestFoods.length && <li>No foods yet.</li>}
+              </ul>
+            </article>
+          </div>
+        </section>
+      ) : null}
 
       {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
 
