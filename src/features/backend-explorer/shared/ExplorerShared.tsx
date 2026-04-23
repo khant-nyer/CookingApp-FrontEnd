@@ -83,7 +83,7 @@ export function TextDetail({ title, imageUrl, fields = [], sections = [], onDele
       ) : null}
       <div className="detail-content">
         {fields.map((field) => (
-          <p key={field.label}><strong>{field.label}:</strong> {field.value || '-'}</p>
+          <p key={field.label}><strong>{field.label}:</strong> {field.value ?? '-'}</p>
         ))}
         {sections.map((section) => (
           <div key={section.title} className="detail-section">
