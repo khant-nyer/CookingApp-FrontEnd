@@ -87,10 +87,6 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
 
-  const handleRefreshTab = useCallback(() => {
-    void loadTabData(activeTab);
-  }, [activeTab, loadTabData]);
-
   const handleTabSwitch = useCallback((tab: TabKey) => {
     if (onTabChange) {
       onTabChange(tab);
@@ -110,8 +106,9 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
     pagination: pagination.foods,
     onPageChange: (page: number) => loadTabData('foods', page),
     loading,
-    onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food))
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow.createSuccess, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+    onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food)),
+    onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food'))
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow]);
 
   const ingredientsTabProps = useMemo(() => ({
     ingredients: entities.ingredients,
@@ -158,16 +155,7 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth, active
   const recentRecipes = entities.recipes.slice(0, 4);
   const latestFoods = entities.foods.slice(0, 4);
   return (
-    <section>
-      <div className="content-toolbar">
-        <button onClick={handleRefreshTab}>{loading ? 'Loading…' : 'Refresh tab'}</button>
-        {activeTab === 'foods' ? (
-          <button type="button" onClick={() => runProtectedAction(() => createFlow.openCreateModal('food'))}>
-            Create Food
-          </button>
-        ) : null}
-      </div>
-
+    <section className="backend-explorer-scroll">
       {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
       {error && <p className="error">{error}</p>}
 
