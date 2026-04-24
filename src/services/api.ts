@@ -499,5 +499,12 @@ export const api = {
       },
       skipAuth: true
     });
+  },
+  verifyEmail(payload: { email: string; code: string }) {
+    return request('/api/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      skipAuth: true
+    });
   }
 };
