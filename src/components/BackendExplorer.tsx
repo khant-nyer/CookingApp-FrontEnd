@@ -174,7 +174,7 @@ export default function BackendExplorer({
       ? 'Search ingredients by name, category, or description'
       : activeTab === 'recipes'
         ? 'Search recipes by food, version, or description'
-        : 'Search nutrient ingredients by name or category';
+        : 'Search nutrients or ingredients by name/category';
 
   return (
     <section className="backend-explorer-scroll">

@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
-import { nutrientOptions } from '../constants/nutrients';
 import type { Ingredient, TabKey } from '../types';
 import { GalleryTile, NutritionIcon } from '../shared/ExplorerShared';
+import { filterNutrientCatalog } from '../utils/nutrients';
 
 interface NutritionTabProps {
   searchQuery?: string;
@@ -20,6 +20,8 @@ function NutritionTab({
   setActiveTab,
   getItemId
 }: NutritionTabProps) {
+  const filteredNutrients = useMemo(() => filterNutrientCatalog(searchQuery), [searchQuery]);
+
   const filteredNutrientIngredients = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
     if (!normalizedQuery) return nutrientFilteredIngredients;
@@ -36,10 +38,11 @@ function NutritionTab({
         <h3>Nutrients</h3>
         <p className="muted">Select a nutrient to view ingredients containing it.</p>
         <div className="nutrient-grid">
-          {nutrientOptions.map((nutrient) => (
-            <NutritionIcon key={nutrient} nutrient={nutrient} selected={nutrient === selectedNutrient} onClick={() => setSelectedNutrient(nutrient)} />
+          {filteredNutrients.map((nutrient) => (
+            <NutritionIcon key={nutrient.key} nutrient={nutrient.key} selected={nutrient.key === selectedNutrient} onClick={() => setSelectedNutrient(nutrient.key)} />
           ))}
         </div>
+        {!filteredNutrients.length ? <p className="muted">No nutrients found for this search.</p> : null}
       </div>
 
       <div className="card">

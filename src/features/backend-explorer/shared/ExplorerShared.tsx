@@ -9,6 +9,7 @@ import {
 import { unitOptions } from '../constants/units';
 import type { Ingredient, IngredientNutrition, InputChangeEvent, InputKeyboardEvent, PaginationInfo, RecipeIngredientItem } from '../types';
 import { getItemId } from '../utils/ids';
+import { filterNutrientCatalog } from '../utils/nutrients';
 
 interface GalleryTileProps {
   key?: string | number;
@@ -137,17 +138,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
 
   const normalizedQuery = query.trim().toLowerCase();
   const filtered = useMemo(() => {
-    if (!normalizedQuery) return nutrientCatalog;
-    return nutrientCatalog.filter((item) => {
-      const name = item.key.toLowerCase();
-      const noUnderscore = item.key.replace(/_/g, ' ').toLowerCase();
-      const short = (item.short || '').toLowerCase();
-      const aliases = (item.aliases || []).join(' ').toLowerCase();
-      return name.includes(normalizedQuery)
-        || noUnderscore.includes(normalizedQuery)
-        || short.includes(normalizedQuery)
-        || aliases.includes(normalizedQuery);
-    });
+    return filterNutrientCatalog(normalizedQuery);
   }, [normalizedQuery]);
 
   const groupFiltered = useMemo(() => {
