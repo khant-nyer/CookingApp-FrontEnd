@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
@@ -12,7 +12,13 @@ interface IconProps {
 }
 
 function MenuIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>;
+  return (
+    <img
+      src="https://cdn-icons-png.flaticon.com/512/7780/7780470.png"
+      alt="Chef hat menu icon"
+      className={className}
+    />
+  );
 }
 
 function ChefHatIcon({ className }: IconProps) {
@@ -88,13 +94,31 @@ export default function App() {
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() => (typeof window !== 'undefined' ? window.matchMedia('(max-width: 980px)').matches : false));
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => (typeof window !== 'undefined' ? window.matchMedia('(max-width: 980px)').matches : false));
   const [activeTab, setActiveTab] = useState<AppTabKey>('dashboard');
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
 
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(max-width: 980px)');
+
+    const updateMobileLayout = (event?: MediaQueryListEvent) => {
+      const matches = event ? event.matches : mediaQuery.matches;
+      setIsMobileView(matches);
+      if (matches) setIsSidebarCollapsed(true);
+    };
+
+    updateMobileLayout();
+    mediaQuery.addEventListener('change', updateMobileLayout);
+
+    return () => mediaQuery.removeEventListener('change', updateMobileLayout);
+  }, []);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -152,6 +176,7 @@ export default function App() {
                 onClick={() => {
                   setActiveTab(tab.key);
                   setFoodSearchQuery('');
+                  if (isMobileView) setIsSidebarCollapsed(true);
                 }}
               >
                 <Icon className="icon" />
@@ -165,7 +190,10 @@ export default function App() {
           <button
             type="button"
             className={activeTab === 'settings' ? 'sidebar-link active' : 'sidebar-link'}
-            onClick={() => setActiveTab('settings')}
+            onClick={() => {
+              setActiveTab('settings');
+              if (isMobileView) setIsSidebarCollapsed(true);
+            }}
           >
             <SettingsIcon className="icon" />
             <span>Settings</span>
@@ -209,6 +237,7 @@ export default function App() {
             onTabChange={(tab) => {
               setActiveTab(tab);
               setFoodSearchQuery('');
+              if (isMobileView) setIsSidebarCollapsed(true);
             }}
             foodSearchQuery={foodSearchQuery}
             onFoodSearchQueryChange={setFoodSearchQuery}
