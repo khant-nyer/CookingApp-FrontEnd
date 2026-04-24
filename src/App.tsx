@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
+import SettingsPage from './components/SettingsPage';
 import SessionExpiryModal from './components/SessionExpiryModal';
 import { useAuth } from './context/useAuth';
 import type { TabKey } from './features/backend-explorer/types';
@@ -62,6 +63,8 @@ const pageHeaderByTab: Record<TabKey, string> = {
   nutrition: 'Nutrition Lab'
 };
 
+type AppTabKey = TabKey | 'settings';
+
 export default function App() {
   const {
     isAuthenticated,
@@ -77,10 +80,12 @@ export default function App() {
   const [isExtendingSession, setIsExtendingSession] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [activeTab, setActiveTab] = useState<AppTabKey>('dashboard');
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
   const [logoutMessage, setLogoutMessage] = useState('');
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
+
+  const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -156,7 +161,11 @@ export default function App() {
             </button>
           )}
 
-          <button type="button" className="sidebar-link muted-link">
+          <button
+            type="button"
+            className={activeTab === 'settings' ? 'sidebar-link active' : 'sidebar-link muted-link'}
+            onClick={() => setActiveTab('settings')}
+          >
             <SettingsIcon className="icon" />
             <span>Settings</span>
           </button>
@@ -165,20 +174,27 @@ export default function App() {
 
       <section className="content-shell">
         <header className="page-header">
-          <h1>{pageHeaderByTab[activeTab]}</h1>
+          <h1>{pageHeader}</h1>
         </header>
 
-        <BackendExplorer
-          isAuthenticated={isAuthenticated}
-          onRequireAuth={() => setIsAuthModalOpen(true)}
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab);
-            setFoodSearchQuery('');
-          }}
-          foodSearchQuery={foodSearchQuery}
-          onFoodSearchQueryChange={setFoodSearchQuery}
-        />
+        {activeTab === 'settings' ? (
+          <SettingsPage
+            userName={user?.name || user?.email?.split('@')[0] || 'Chef User'}
+            email={user?.email || 'chef@example.com'}
+          />
+        ) : (
+          <BackendExplorer
+            isAuthenticated={isAuthenticated}
+            onRequireAuth={() => setIsAuthModalOpen(true)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setActiveTab(tab);
+              setFoodSearchQuery('');
+            }}
+            foodSearchQuery={foodSearchQuery}
+            onFoodSearchQueryChange={setFoodSearchQuery}
+          />
+        )}
       </section>
 
       {!isAuthenticated && isAuthModalOpen ? (
