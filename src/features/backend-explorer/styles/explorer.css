@@ -8,14 +8,14 @@
 
 .tab {
   background: #ffffff;
-  color: #c2410c;
+  color: #000;
   text-transform: capitalize;
   box-shadow: none;
 }
 
 .tab.active {
   background: #f97316;
-  color: #fff;
+  color: #000;
 }
 
 .tab:hover:not(:disabled),
@@ -206,9 +206,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.32rem;
-  background: #f1f8f7;
-  color: #0f5450;
-  border: 1px solid #d2e7e4;
+  background: #f2f8f7;
+  color: #134e49;
+  border: 1px solid #d5e5e2;
   padding: 0.28rem 0.5rem;
   border-radius: 999px;
   font-size: 0.72rem;
@@ -216,7 +216,7 @@
 }
 
 .chip:hover {
-  background: #e8f4f2;
+  background: #ecf5f4;
 }
 
 .chip-icon {
@@ -228,19 +228,19 @@
 }
 
 .chip-sub {
-  color: #6a8480;
+  color: #5f7673;
   font-size: 0.64rem;
   text-transform: capitalize;
 }
 
 .chip.selected {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #fff;
+  background: #f97316;
+  border-color: #f97316;
+  color: #000;
 }
 
 .chip.selected .chip-sub {
-  color: rgb(255 255 255 / 80%);
+  color: rgb(0 0 0 / 75%);
 }
 
 .picker-list-title {
@@ -289,7 +289,7 @@
   align-items: center;
   text-align: center;
   background: #fff;
-  color: #163a36;
+  color: #134e49;
   border: 1px solid #dce3e1;
   border-radius: 7px;
   padding: 0.35rem 0.25rem;
@@ -303,9 +303,9 @@
 }
 
 .picker-item.is-selected {
-  background: #0f766e;
-  color: #fff;
-  border-color: #0f766e;
+  background: #f97316;
+  color: #000;
+  border-color: #f97316;
 }
 
 .picker-item small {
@@ -314,7 +314,7 @@
 }
 
 .picker-item.is-selected small {
-  color: rgb(255 255 255 / 88%);
+  color: rgb(0 0 0 / 75%);
 }
 
 .picker-item span:first-child {

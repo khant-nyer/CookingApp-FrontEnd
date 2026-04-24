@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { nutrientOptions } from '../constants/nutrients';
 import type { Ingredient, TabKey } from '../types';
 import { GalleryTile, NutritionIcon } from '../shared/ExplorerShared';
+import { filterNutrientCatalogByQuery } from '../utils/nutrients';
 
 interface NutritionTabProps {
   searchQuery?: string;
@@ -20,15 +21,29 @@ function NutritionTab({
   setActiveTab,
   getItemId
 }: NutritionTabProps) {
+  const normalizedQuery = searchQuery.trim();
+  const queryMatchedNutrients = useMemo(
+    () => filterNutrientCatalogByQuery(normalizedQuery).map((item) => item.key),
+    [normalizedQuery]
+  );
+
+  const visibleNutrients = useMemo(() => {
+    if (!normalizedQuery) return nutrientOptions;
+    const matched = new Set(queryMatchedNutrients);
+    return nutrientOptions.filter((nutrient) => matched.has(nutrient));
+  }, [normalizedQuery, queryMatchedNutrients]);
+
+  const shouldFilterByIngredientText = normalizedQuery.length > 0 && !queryMatchedNutrients.length;
+
   const filteredNutrientIngredients = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-    if (!normalizedQuery) return nutrientFilteredIngredients;
+    const normalizedIngredientQuery = searchQuery.trim().toLowerCase();
+    if (!shouldFilterByIngredientText || !normalizedIngredientQuery) return nutrientFilteredIngredients;
     return nutrientFilteredIngredients.filter((ingredient) => {
       const name = (ingredient.name || '').toLowerCase();
       const category = (ingredient.category || '').toLowerCase();
-      return name.includes(normalizedQuery) || category.includes(normalizedQuery);
+      return name.includes(normalizedIngredientQuery) || category.includes(normalizedIngredientQuery);
     });
-  }, [nutrientFilteredIngredients, searchQuery]);
+  }, [nutrientFilteredIngredients, searchQuery, shouldFilterByIngredientText]);
 
   return (
     <div className="grid">
@@ -36,10 +51,11 @@ function NutritionTab({
         <h3>Nutrients</h3>
         <p className="muted">Select a nutrient to view ingredients containing it.</p>
         <div className="nutrient-grid">
-          {nutrientOptions.map((nutrient) => (
+          {visibleNutrients.map((nutrient) => (
             <NutritionIcon key={nutrient} nutrient={nutrient} selected={nutrient === selectedNutrient} onClick={() => setSelectedNutrient(nutrient)} />
           ))}
         </div>
+        {normalizedQuery && !visibleNutrients.length ? <p className="muted">No nutrients match this search.</p> : null}
       </div>
 
       <div className="card">
