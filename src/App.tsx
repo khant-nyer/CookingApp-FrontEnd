@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
+import SettingsPage from './components/SettingsPage';
 import SessionExpiryModal from './components/SessionExpiryModal';
 import { useAuth } from './context/useAuth';
 import type { TabKey } from './features/backend-explorer/types';
@@ -54,6 +55,25 @@ const sidebarTabs: Array<{ key: TabKey; label: string; icon: (props: IconProps) 
   { key: 'nutrition', label: 'Nutrition', icon: FlaskIcon }
 ];
 
+const pageHeaderByTab: Record<TabKey, string> = {
+  dashboard: 'Cooking Application',
+  foods: 'Food Menu',
+  ingredients: 'Ingredient Inventory',
+  recipes: 'Recipe Master',
+  nutrition: 'Nutrition Lab'
+};
+
+type AppTabKey = TabKey | 'settings';
+
+const pageSubheaderByTab: Record<AppTabKey, string> = {
+  dashboard: "Welcome back. Here's what's cooking today.",
+  foods: 'Browse and manage food categories and items.',
+  ingredients: 'Track your ingredient stock and details.',
+  recipes: 'Create and maintain your recipe collection.',
+  nutrition: 'Analyze nutrients and ingredient nutrition data.',
+  settings: 'Manage your profile and preference settings.'
+};
+
 export default function App() {
   const {
     isAuthenticated,
@@ -69,9 +89,12 @@ export default function App() {
   const [isExtendingSession, setIsExtendingSession] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [activeTab, setActiveTab] = useState<AppTabKey>('dashboard');
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
+
+  const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -90,6 +113,15 @@ export default function App() {
   function onDismissSessionWarning() {
     setSessionExtendError('');
     dismissExpiryWarning();
+  }
+
+  async function onLogout() {
+    await logout();
+    setIsLogoutConfirmOpen(false);
+  }
+
+  function openLogoutConfirm() {
+    setIsLogoutConfirmOpen(true);
   }
 
   return (
@@ -131,7 +163,7 @@ export default function App() {
 
         <div className="sidebar-footer">
           {isAuthenticated ? (
-            <button type="button" className="sidebar-link" onClick={() => void logout()}>
+            <button type="button" className="sidebar-link" onClick={openLogoutConfirm}>
               <LogoutIcon className="icon" />
               <span>Log out</span>
             </button>
@@ -142,7 +174,11 @@ export default function App() {
             </button>
           )}
 
-          <button type="button" className="sidebar-link muted-link">
+          <button
+            type="button"
+            className={activeTab === 'settings' ? 'sidebar-link active' : 'sidebar-link muted-link'}
+            onClick={() => setActiveTab('settings')}
+          >
             <SettingsIcon className="icon" />
             <span>Settings</span>
           </button>
@@ -151,20 +187,28 @@ export default function App() {
 
       <section className="content-shell">
         <header className="page-header">
-          <h1>Cooking Application</h1>
+          <h1>{pageHeader}</h1>
+          <p className="page-subheader">{pageSubheaderByTab[activeTab]}</p>
         </header>
 
-        <BackendExplorer
-          isAuthenticated={isAuthenticated}
-          onRequireAuth={() => setIsAuthModalOpen(true)}
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab);
-            setFoodSearchQuery('');
-          }}
-          foodSearchQuery={foodSearchQuery}
-          onFoodSearchQueryChange={setFoodSearchQuery}
-        />
+        {activeTab === 'settings' ? (
+          <SettingsPage
+            userName={user?.name || user?.email?.split('@')[0] || 'Chef User'}
+            email={user?.email || 'chef@example.com'}
+          />
+        ) : (
+          <BackendExplorer
+            isAuthenticated={isAuthenticated}
+            onRequireAuth={() => setIsAuthModalOpen(true)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setActiveTab(tab);
+              setFoodSearchQuery('');
+            }}
+            foodSearchQuery={foodSearchQuery}
+            onFoodSearchQueryChange={setFoodSearchQuery}
+          />
+        )}
       </section>
 
       {!isAuthenticated && isAuthModalOpen ? (
@@ -183,8 +227,21 @@ export default function App() {
         isExtending={isExtendingSession}
         onDismiss={onDismissSessionWarning}
         onExtendSession={onExtendSession}
-        onLogoutNow={logout}
+        onLogoutNow={onLogout}
       />
+
+      {isLogoutConfirmOpen ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setIsLogoutConfirmOpen(false)}>
+          <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="logout-success-title" onClick={(event) => event.stopPropagation()}>
+            <h2 id="logout-success-title">Confirm log out</h2>
+            <p>Are you sure you want to log out?</p>
+            <div className="detail-actions">
+              <button type="button" className="secondary" onClick={() => setIsLogoutConfirmOpen(false)}>Cancel</button>
+              <button type="button" className="danger" onClick={() => void onLogout()}>Log out</button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
