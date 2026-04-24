@@ -16,6 +16,7 @@ interface IngredientsTabProps {
   onPageChange: (page: number) => void;
   loading: boolean;
   onDeleteIngredient: (ingredient: Ingredient) => void;
+  allergyWarning?: string;
 }
 
 function IngredientsTab({
@@ -31,7 +32,8 @@ function IngredientsTab({
   pagination,
   onPageChange,
   loading,
-  onDeleteIngredient
+  onDeleteIngredient,
+  allergyWarning
 }: IngredientsTabProps) {
   const filteredIngredients = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -69,6 +71,7 @@ function IngredientsTab({
             { label: 'Description', value: selectedIngredient.description },
             { label: 'Serving', value: `${selectedIngredient.servingAmount || '-'} ${selectedIngredient.servingUnit || ''}` }
           ]}
+          alertText={allergyWarning}
           sections={[{ title: 'Nutritions', items: (selectedIngredient.nutritionList || []).map((n) => `${n.nutrient}: ${n.value} ${n.unit}`) }]}
           onDelete={() => onDeleteIngredient(selectedIngredient)}
           onUpdate={() => openIngredientUpdateModal(selectedIngredient)}

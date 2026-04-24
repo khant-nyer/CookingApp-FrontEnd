@@ -47,8 +47,8 @@ function pickRecipeTitle(recipe: Recipe) {
 }
 
 function pickRecipeVersion(recipe: Recipe) {
-  if (recipe.version && String(recipe.version).trim()) return `v${String(recipe.version).trim()}`;
-  return 'vN/A';
+  if (recipe.version && String(recipe.version).trim()) return String(recipe.version).trim();
+  return 'N/A';
 }
 
 interface BackendExplorerProps {
@@ -58,6 +58,7 @@ interface BackendExplorerProps {
   onTabChange?: (tab: TabKey) => void;
   foodSearchQuery?: string;
   onFoodSearchQueryChange?: (value: string) => void;
+  userAllergies?: string[];
 }
 
 export default function BackendExplorer({
@@ -66,7 +67,8 @@ export default function BackendExplorer({
   activeTab: externalActiveTab,
   onTabChange,
   foodSearchQuery,
-  onFoodSearchQueryChange
+  onFoodSearchQueryChange,
+  userAllergies
 }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
@@ -95,6 +97,8 @@ export default function BackendExplorer({
   }, [isAuthenticated, onRequireAuth]);
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
+  const hasSeafoodAllergy = (userAllergies || []).some((allergy) => allergy.trim().toLowerCase() === 'seafood');
+  const seafoodWarning = hasSeafoodAllergy ? 'Contains allergens: seafood' : '';
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
     if (onTabChange) {
@@ -118,8 +122,9 @@ export default function BackendExplorer({
     onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food)),
     onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food')),
     searchQuery: foodSearchQuery,
-    onSearchQueryChange: onFoodSearchQueryChange
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange]);
+    onSearchQueryChange: onFoodSearchQueryChange,
+    allergyWarning: seafoodWarning
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange, seafoodWarning]);
 
   const ingredientsTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,
@@ -134,8 +139,9 @@ export default function BackendExplorer({
     pagination: pagination.ingredients,
     onPageChange: (page: number) => loadTabData('ingredients', page),
     loading,
-    onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient))
-  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+    onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient)),
+    allergyWarning: seafoodWarning
+  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, seafoodWarning]);
 
   const recipesTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,
@@ -150,8 +156,9 @@ export default function BackendExplorer({
     pagination: pagination.recipes,
     onPageChange: (page: number) => loadTabData('recipes', page),
     loading,
-    onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe))
-  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+    onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe)),
+    allergyWarning: seafoodWarning
+  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, seafoodWarning]);
 
   const nutritionTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,

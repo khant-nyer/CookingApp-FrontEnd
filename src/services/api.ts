@@ -41,6 +41,16 @@ export interface CurrentUserDto {
   userName: string;
 }
 
+export interface UpdateCurrentUserPayload {
+  allergies: string[];
+  cognitoSub: string;
+  email: string;
+  id: number;
+  profileImageUrl: string | null;
+  role: string;
+  userName: string;
+}
+
 type TokenProvider = () => string | null;
 
 function readStoredToken() {
@@ -521,5 +531,11 @@ export const api = {
   },
   getCurrentUser() {
     return request<CurrentUserDto>('/api/users/me');
+  },
+  updateCurrentUser(payload: UpdateCurrentUserPayload) {
+    return request<CurrentUserDto>('/api/users/me', {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
   }
 };
