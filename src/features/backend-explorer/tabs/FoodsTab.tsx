@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import type { CreateSuccessState, Food, PaginationInfo } from '../types';
 import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
-import { getItemId } from '../utils/ids';
+import { getItemId as resolveItemId } from '../utils/ids';
 
 interface FoodsTabProps {
   searchQuery?: string;
@@ -92,7 +92,7 @@ function FoodsTab({
             {
               title: 'Recipes',
               items: (selectedFood.recipes || []).map((recipe) => {
-                const recipeId = getItemId(recipe);
+                const recipeId = resolveItemId(recipe);
                 return recipe.name || `Recipe #${recipeId ?? 'Unknown'}`;
               })
             }
