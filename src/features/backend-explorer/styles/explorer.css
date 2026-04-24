@@ -504,7 +504,8 @@ pre {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgb(16 33 31 / 45%);
+  background: rgb(124 45 18 / 36%);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -513,8 +514,10 @@ pre {
 }
 
 .modal-card {
-  background: #fff;
-  border-radius: 12px;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 30%);
+  border: 1px solid #fed7aa;
+  border-top: 4px solid #f97316;
+  border-radius: 14px;
   padding: 1rem;
   width: min(520px, 100%);
   position: relative;
@@ -522,7 +525,7 @@ pre {
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 20%);
+  box-shadow: 0 14px 36px rgb(124 45 18 / 25%);
 }
 
 .modal-close-icon {
@@ -530,7 +533,7 @@ pre {
   top: 0.75rem;
   right: 0.75rem;
   background: transparent;
-  color: #35504d;
+  color: #9a3412;
   border: none;
   font-size: 1.5rem;
   line-height: 1;
