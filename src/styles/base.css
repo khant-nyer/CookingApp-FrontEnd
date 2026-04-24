@@ -265,12 +265,13 @@ button:disabled {
   gap: 0.85rem;
   border: 0;
   background: transparent;
-  color: #35527b;
+  color: #c2410c;
   border-radius: 14px;
   padding: 0.85rem 1rem;
   font-size: 1rem;
   font-weight: 600;
   text-align: left;
+  box-shadow: none;
 }
 
 .sidebar-link .icon {
@@ -279,8 +280,13 @@ button:disabled {
 }
 
 .sidebar-link.active {
-  background: #1d4ed8;
+  background: #f97316;
   color: #fff;
+}
+
+.sidebar-link:hover:not(:disabled),
+.sidebar-link:focus-visible {
+  box-shadow: none;
 }
 
 .muted-link {

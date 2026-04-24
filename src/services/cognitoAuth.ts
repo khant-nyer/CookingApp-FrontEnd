@@ -95,6 +95,7 @@ export interface CognitoAuthResult {
   refreshToken?: string;
   email?: string;
   userId?: string;
+  userName?: string;
 }
 
 export async function loginWithCognito(email: string, password: string): Promise<CognitoAuthResult> {
@@ -129,7 +130,8 @@ export async function loginWithCognito(email: string, password: string): Promise
     idToken,
     refreshToken,
     email: payload?.email || email,
-    userId: payload?.sub
+    userId: payload?.sub,
+    userName: payload?.preferred_username || payload?.['cognito:username'] || payload?.name || payload?.given_name
   };
 }
 
