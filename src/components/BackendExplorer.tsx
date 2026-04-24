@@ -97,8 +97,9 @@ export default function BackendExplorer({
   }, [isAuthenticated, onRequireAuth]);
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
-  const hasSeafoodAllergy = (userAllergies || []).some((allergy) => allergy.trim().toLowerCase() === 'seafood');
-  const seafoodWarning = hasSeafoodAllergy ? 'Contains allergens: seafood' : '';
+  const seafoodWarning = (userAllergies || []).some((allergy) => allergy.trim().toLowerCase() === 'seafood')
+    ? 'Contains allergens: seafood'
+    : '';
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
     if (onTabChange) {
