@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../context/useAuth';
 import { api } from '../services/api';
 
 interface SettingsPageProps {
@@ -22,6 +23,7 @@ export default function SettingsPage({
   profileImageUrl,
   allergies: initialAllergies = []
 }: SettingsPageProps) {
+  const { refreshCurrentUser } = useAuth();
   const [allergyInput, setAllergyInput] = useState('');
   const [allergies, setAllergies] = useState<string[]>(initialAllergies);
   const [isSaving, setIsSaving] = useState(false);
@@ -68,6 +70,7 @@ export default function SettingsPage({
         role,
         userName
       });
+      await refreshCurrentUser();
       setSaveSuccess('Settings saved successfully.');
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'Failed to save settings.');

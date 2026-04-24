@@ -206,6 +206,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     [updateSession]
   );
 
+  const refreshCurrentUser = useCallback(async () => {
+    const profile = await api.getCurrentUser();
+    const nextUser = toAuthUser(profile);
+    setUser(nextUser);
+    persistUser(nextUser);
+  }, []);
+
   const register = useCallback(async (userName: string, email: string, password: string, profileImageUrl?: string) => {
     await api.register({
       email,
@@ -257,6 +264,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       confirmForgotPassword,
       dismissExpiryWarning,
       extendSession,
+      refreshCurrentUser,
       logout,
       isAuthenticated: Boolean(token)
     }),
@@ -273,6 +281,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       confirmForgotPassword,
       dismissExpiryWarning,
       extendSession,
+      refreshCurrentUser,
       logout
     ]
   );
