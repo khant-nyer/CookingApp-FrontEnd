@@ -687,15 +687,28 @@ button:disabled {
 @media (max-width: 760px) {
   .app-shell {
     overflow-x: hidden;
+    position: relative;
   }
 
   .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 40;
+    width: min(280px, 82vw);
+    min-width: 0;
+    box-shadow: 0 12px 32px rgb(15 23 42 / 24%);
+  }
+
+  .sidebar.collapsed {
     width: 72px;
     min-width: 72px;
     padding-inline: 0.6rem;
+    box-shadow: none;
   }
 
   .content-shell {
+    margin-left: 72px;
     padding: 0.9rem;
   }
 
@@ -731,37 +744,5 @@ button:disabled {
     grid-column: 2;
     justify-self: start;
     max-width: 100%;
-  }
-}
-
-@media (max-width: 760px) {
-  .app-shell {
-    overflow-x: hidden;
-  }
-
-  .sidebar {
-    width: 72px;
-    min-width: 72px;
-    padding-inline: 0.6rem;
-  }
-
-  .content-shell {
-    padding: 0.9rem;
-  }
-
-  .page-header h1 {
-    font-size: 1.9rem;
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-  }
-
-  .dashboard-list-card li {
-    align-items: flex-start;
-  }
-
-  .recipe-version-badge {
-    max-width: 40%;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
