@@ -430,7 +430,6 @@
 .detail-content {
   display: grid;
   gap: 0.35rem;
-  overflow: auto;
 }
 
 .detail-section {
@@ -483,15 +482,7 @@ pre {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-height: min(72vh, 760px);
   background: #fff;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.detail-card::-webkit-scrollbar {
-  display: none;
 }
 
 .detail-card pre {

@@ -20,7 +20,14 @@ body,
 }
 
 body {
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 .container {
@@ -163,9 +170,8 @@ button:disabled {
 
 .app-shell {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: #f1f4f8;
-  overflow: hidden;
 }
 
 .sidebar {
@@ -268,13 +274,11 @@ button:disabled {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .backend-explorer-scroll {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
   padding-bottom: 1rem;
 }
 
