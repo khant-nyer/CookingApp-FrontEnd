@@ -65,6 +65,15 @@ const pageHeaderByTab: Record<TabKey, string> = {
 
 type AppTabKey = TabKey | 'settings';
 
+const pageSubheaderByTab: Record<AppTabKey, string> = {
+  dashboard: "Welcome back. Here's what's cooking today.",
+  foods: 'Browse and manage food categories and items.',
+  ingredients: 'Track your ingredient stock and details.',
+  recipes: 'Create and maintain your recipe collection.',
+  nutrition: 'Analyze nutrients and ingredient nutrition data.',
+  settings: 'Manage your profile and preference settings.'
+};
+
 export default function App() {
   const {
     isAuthenticated,
@@ -82,7 +91,7 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTabKey>('dashboard');
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
-  const [logoutMessage, setLogoutMessage] = useState('');
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
 
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
@@ -108,7 +117,11 @@ export default function App() {
 
   async function onLogout() {
     await logout();
-    setLogoutMessage('You have successfully log out');
+    setIsLogoutConfirmOpen(false);
+  }
+
+  function openLogoutConfirm() {
+    setIsLogoutConfirmOpen(true);
   }
 
   return (
@@ -150,7 +163,7 @@ export default function App() {
 
         <div className="sidebar-footer">
           {isAuthenticated ? (
-            <button type="button" className="sidebar-link" onClick={() => void onLogout()}>
+            <button type="button" className="sidebar-link" onClick={openLogoutConfirm}>
               <LogoutIcon className="icon" />
               <span>Log out</span>
             </button>
@@ -175,6 +188,7 @@ export default function App() {
       <section className="content-shell">
         <header className="page-header">
           <h1>{pageHeader}</h1>
+          <p className="page-subheader">{pageSubheaderByTab[activeTab]}</p>
         </header>
 
         {activeTab === 'settings' ? (
@@ -216,12 +230,15 @@ export default function App() {
         onLogoutNow={onLogout}
       />
 
-      {logoutMessage ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setLogoutMessage('')}>
+      {isLogoutConfirmOpen ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setIsLogoutConfirmOpen(false)}>
           <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="logout-success-title" onClick={(event) => event.stopPropagation()}>
-            <h2 id="logout-success-title">Logged out</h2>
-            <p>{logoutMessage}</p>
-            <button type="button" onClick={() => setLogoutMessage('')}>Close</button>
+            <h2 id="logout-success-title">Confirm log out</h2>
+            <p>Are you sure you want to log out?</p>
+            <div className="detail-actions">
+              <button type="button" className="secondary" onClick={() => setIsLogoutConfirmOpen(false)}>Cancel</button>
+              <button type="button" className="danger" onClick={() => void onLogout()}>Log out</button>
+            </div>
           </section>
         </div>
       ) : null}
