@@ -171,7 +171,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const login = useCallback(
     async (email: string, password: string) => {
       const data = await loginWithCognito(email, password);
-      const nextUser = { email: data.email, userId: data.userId };
+      const nextUser = { email: data.email, userId: data.userId, name: data.userName };
 
       updateSession(
         { idToken: data.idToken, accessToken: data.accessToken, refreshToken: data.refreshToken ?? null },
