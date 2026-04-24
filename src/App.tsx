@@ -57,6 +57,7 @@ const sidebarTabs: Array<{ key: TabKey; label: string; icon: (props: IconProps) 
 export default function App() {
   const {
     isAuthenticated,
+    user,
     logout,
     isExpiryWarningOpen,
     secondsToExpiry,
@@ -70,6 +71,7 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
+  const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -102,7 +104,7 @@ export default function App() {
           >
             <MenuIcon className="icon" />
           </button>
-          <span className="brand-title">Culina</span>
+          <span className="brand-title">{sidebarTitle}</span>
         </div>
 
         <nav className="sidebar-nav" aria-label="Main navigation">
@@ -115,7 +117,10 @@ export default function App() {
                 key={`${tab.label}-${index}`}
                 type="button"
                 className={isActive ? 'sidebar-link active' : 'sidebar-link'}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  setFoodSearchQuery('');
+                }}
               >
                 <Icon className="icon" />
                 <span>{tab.label}</span>
@@ -153,7 +158,10 @@ export default function App() {
           isAuthenticated={isAuthenticated}
           onRequireAuth={() => setIsAuthModalOpen(true)}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            setFoodSearchQuery('');
+          }}
           foodSearchQuery={foodSearchQuery}
           onFoodSearchQueryChange={setFoodSearchQuery}
         />

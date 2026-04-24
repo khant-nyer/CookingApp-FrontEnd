@@ -32,6 +32,7 @@ describe('core utility behavior', () => {
     expect(getItemId({ foodId: 77 })).toBe(77);
     expect(getItemId({ ingredientId: 'ing-4' })).toBe('ing-4');
     expect(getItemId({ recipeId: 'recipe-9' })).toBe('recipe-9');
+    expect(getItemId({ id: '  ' })).toBeUndefined();
     expect(getItemId(null)).toBeUndefined();
   });
 

@@ -20,7 +20,14 @@ body,
 }
 
 body {
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 .container {
@@ -71,16 +78,25 @@ select {
 }
 
 button {
-  background: #0f766e;
+  background: #f97316;
   border: none;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 0.6rem 0.8rem;
   cursor: pointer;
+  box-shadow: 0 6px 14px rgb(249 115 22 / 24%);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow: 0 9px 18px rgb(249 115 22 / 32%);
 }
 
 button:disabled {
   opacity: 0.7;
+  box-shadow: none;
 }
 
 .error {
@@ -95,11 +111,27 @@ button:disabled {
 }
 
 .secondary {
-  background: #2f6fed;
+  background: #fb923c;
+  color: #fff;
 }
 
 .danger {
-  background: #b42318;
+  background: #b91c1c;
+}
+
+.cancel-btn {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  box-shadow: none;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  transform: none;
+  filter: none;
+  background: #f3f4f6;
+  color: #374151;
+  box-shadow: none;
 }
 
 @media (max-width: 1080px) {
@@ -142,10 +174,14 @@ button:disabled {
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  color: #35504d;
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: 999px;
+  background: #fed7aa;
+  border: 1px solid #f59e0b;
+  color: #7c2d12;
   padding: 0.2rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 72%), 0 3px 8px rgb(194 79 0 / 25%);
 }
 
 .link-btn {
@@ -163,9 +199,8 @@ button:disabled {
 
 .app-shell {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: #f1f4f8;
-  overflow: hidden;
 }
 
 .sidebar {
@@ -244,7 +279,7 @@ button:disabled {
 }
 
 .sidebar-link.active {
-  background: #ff6a00;
+  background: #1d4ed8;
   color: #fff;
 }
 
@@ -268,13 +303,11 @@ button:disabled {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .backend-explorer-scroll {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
   padding-bottom: 1rem;
 }
 
@@ -304,6 +337,11 @@ button:disabled {
   align-items: center;
   gap: 0.65rem;
   margin-bottom: 0.75rem;
+}
+
+.development-notice {
+  margin: 0 0 0.5rem;
+  color: #7c2d12;
 }
 
 

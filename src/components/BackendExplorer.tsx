@@ -122,6 +122,7 @@ export default function BackendExplorer({
   }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange]);
 
   const ingredientsTabProps = useMemo(() => ({
+    searchQuery: foodSearchQuery,
     ingredients: entities.ingredients,
     selectedId,
     setSelectedId,
@@ -134,9 +135,10 @@ export default function BackendExplorer({
     onPageChange: (page: number) => loadTabData('ingredients', page),
     loading,
     onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient))
-  }), [entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
 
   const recipesTabProps = useMemo(() => ({
+    searchQuery: foodSearchQuery,
     recipes: entities.recipes,
     foods: entities.foods,
     selectedId,
@@ -149,15 +151,16 @@ export default function BackendExplorer({
     onPageChange: (page: number) => loadTabData('recipes', page),
     loading,
     onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe))
-  }), [entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
 
   const nutritionTabProps = useMemo(() => ({
+    searchQuery: foodSearchQuery,
     selectedNutrient,
     setSelectedNutrient,
     nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
     setActiveTab: handleTabSwitch,
     getItemId
-  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, handleTabSwitch]);
+  }), [foodSearchQuery, selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, handleTabSwitch]);
 
   const totalFoods = pagination.foods.totalElements || entities.foods.length;
   const totalIngredients = pagination.ingredients.totalElements || entities.ingredients.length;
@@ -165,21 +168,32 @@ export default function BackendExplorer({
 
   const recentRecipes = entities.recipes.slice(0, 4);
   const latestFoods = entities.foods.slice(0, 4);
+  const searchPlaceholder = activeTab === 'foods'
+    ? 'Search foods by name, category, or creator'
+    : activeTab === 'ingredients'
+      ? 'Search ingredients by name, category, or description'
+      : activeTab === 'recipes'
+        ? 'Search recipes by food, version, or description'
+        : 'Search nutrient ingredients by name or category';
+
   return (
     <section className="backend-explorer-scroll">
-      <div className="explorer-search-row">
-        <input
-          type="search"
-          placeholder="Search foods by name, category, or creator"
-          value={foodSearchQuery || ''}
-          onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
-          aria-label="Search foods"
-        />
-      </div>
+      {activeTab !== 'dashboard' ? (
+        <div className="explorer-search-row">
+          <input
+            type="search"
+            placeholder={searchPlaceholder}
+            value={foodSearchQuery || ''}
+            onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
+            aria-label={searchPlaceholder}
+          />
+        </div>
+      ) : null}
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'dashboard' ? (
         <section className="dashboard-layout">
+          <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
           <div className="dashboard-cards">
             <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
             <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />

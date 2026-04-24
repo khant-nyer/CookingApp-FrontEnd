@@ -1,9 +1,10 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import type { CreateSuccessState, EntityType, Food, PaginationInfo, Recipe } from '../types';
 import { getRecipeTileId } from '../utils/ids';
 import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
 
 interface RecipesTabProps {
+  searchQuery?: string;
   recipes: Recipe[];
   foods: Food[];
   selectedId: string;
@@ -19,6 +20,7 @@ interface RecipesTabProps {
 }
 
 function RecipesTab({
+  searchQuery = '',
   recipes,
   foods,
   selectedId,
@@ -32,6 +34,17 @@ function RecipesTab({
   loading,
   onDeleteRecipe
 }: RecipesTabProps) {
+  const filteredRecipes = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return recipes;
+    return recipes.filter((recipe) => {
+      const foodName = (recipe.foodName || '').toLowerCase();
+      const version = (recipe.version || '').toLowerCase();
+      const description = (recipe.description || '').toLowerCase();
+      return foodName.includes(normalizedQuery) || version.includes(normalizedQuery) || description.includes(normalizedQuery);
+    });
+  }, [recipes, searchQuery]);
+
   return (
     <div className="grid">
       <div className="card">
@@ -39,12 +52,14 @@ function RecipesTab({
         {createSuccess.recipe ? <p className="success">{createSuccess.recipe}</p> : null}
         <h3>Gallery</h3>
         <div className="gallery-grid">
-          {recipes.map((recipe, index) => {
-            const id = getRecipeTileId(recipe, index);
+          {filteredRecipes.map((recipe) => {
+            const sourceIndex = recipes.findIndex((candidate) => candidate === recipe);
+            const id = getRecipeTileId(recipe, sourceIndex >= 0 ? sourceIndex : 0);
             const foodName = recipe.foodName || foods.find((food) => String(food.id) === String(recipe.foodId))?.name || 'Food';
             return <GalleryTile key={String(id)} imageUrl={undefined} fallbackText={foodName} subtitle={recipe.version || 'No version'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id))} />;
           })}
         </div>
+        {!filteredRecipes.length ? <p className="muted">No recipes found for this search.</p> : null}
         <PaginationControls pagination={pagination} onPageChange={onPageChange} disabled={loading} />
       </div>
 
