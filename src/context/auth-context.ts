@@ -1,7 +1,15 @@
 import { createContext } from 'react';
 
 export interface AuthUser {
+  id?: number;
+  userName?: string;
   email?: string;
+  emailVerified?: boolean;
+  accountStatus?: string;
+  role?: string;
+  profileImageUrl?: string;
+  cognitoSub?: string;
+  allergies?: string[];
   name?: string;
   userId?: string;
 }

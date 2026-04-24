@@ -65,6 +65,9 @@ export function createSubmitHandlers({
     },
     'verify-email': async () => {
       await actions.verifyEmail(form.email, form.code);
+      setSuccess('Email verified successfully. Please login.');
+      setMode('login');
+      setForm((prev) => ({ ...prev, code: '', password: '' }));
     },
     'forgot-password': async () => {
       await actions.forgotPassword(form.email);

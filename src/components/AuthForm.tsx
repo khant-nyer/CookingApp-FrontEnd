@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
@@ -30,6 +30,7 @@ const modeErrorContext: Record<AuthMode, 'login' | 'register' | 'verify-email' |
 };
 
 export default function AuthForm() {
+  const RESEND_COOLDOWN_SECONDS = 30;
   const { login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [form, setForm] = useState<AuthFormState>({
@@ -45,6 +46,15 @@ export default function AuthForm() {
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [resendCooldownSeconds, setResendCooldownSeconds] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldownSeconds <= 0) return undefined;
+    const timer = window.setTimeout(() => {
+      setResendCooldownSeconds((prev) => Math.max(0, prev - 1));
+    }, 1_000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldownSeconds]);
 
   function onChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
@@ -76,12 +86,14 @@ export default function AuthForm() {
   }
 
   async function onResendVerificationCode() {
+    if (resendCooldownSeconds > 0) return;
     setError('');
     setSuccess('');
 
     try {
       await resendVerificationCode(form.email);
       setSuccess('A new verification code has been sent.');
+      setResendCooldownSeconds(RESEND_COOLDOWN_SECONDS);
     } catch (resendError) {
       console.error('Resend verification failed', resendError);
       setError(getFriendlyAuthErrorMessage(resendError, 'resend-verification'));
@@ -147,8 +159,15 @@ export default function AuthForm() {
               Verification code
               <input name="code" value={form.code} onChange={onChange} required />
             </label>
-            <button type="button" className="link-btn" onClick={() => void onResendVerificationCode()}>
-              Resend verification code
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => void onResendVerificationCode()}
+              disabled={resendCooldownSeconds > 0}
+            >
+              {resendCooldownSeconds > 0
+                ? `Resend verification code (${resendCooldownSeconds}s)`
+                : 'Resend verification code'}
             </button>
           </>
         )}

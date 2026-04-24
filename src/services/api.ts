@@ -29,6 +29,18 @@ export type PaginatedEnvelope<T> = {
   totalPages?: number;
 };
 
+export interface CurrentUserDto {
+  accountStatus: string;
+  allergies: string[];
+  cognitoSub: string;
+  email: string;
+  emailVerified: boolean;
+  id: number;
+  profileImageUrl?: string;
+  role: string;
+  userName: string;
+}
+
 type TokenProvider = () => string | null;
 
 function readStoredToken() {
@@ -506,5 +518,8 @@ export const api = {
       body: JSON.stringify(payload),
       skipAuth: true
     });
+  },
+  getCurrentUser() {
+    return request<CurrentUserDto>('/api/users/me');
   }
 };

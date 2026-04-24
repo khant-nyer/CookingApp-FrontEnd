@@ -1,13 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface SettingsPageProps {
   userName: string;
   email: string;
+  accountStatus?: string;
+  role?: string;
+  profileImageUrl?: string;
+  allergies?: string[];
 }
 
-export default function SettingsPage({ userName, email }: SettingsPageProps) {
+export default function SettingsPage({
+  userName,
+  email,
+  accountStatus,
+  role,
+  profileImageUrl,
+  allergies: initialAllergies = []
+}: SettingsPageProps) {
   const [allergyInput, setAllergyInput] = useState('');
-  const [allergies, setAllergies] = useState<string[]>([]);
+  const [allergies, setAllergies] = useState<string[]>(initialAllergies);
+
+  useEffect(() => {
+    setAllergies(initialAllergies);
+  }, [initialAllergies]);
 
   function addAllergy() {
     const value = allergyInput.trim();
@@ -33,9 +48,25 @@ export default function SettingsPage({ userName, email }: SettingsPageProps) {
             Username
             <div className="settings-readonly">👤 {userName}</div>
           </label>
+          {profileImageUrl ? (
+            <label>
+              Profile image
+              <div className="settings-readonly">
+                <img src={profileImageUrl} alt={`${userName} profile`} width={56} height={56} />
+              </div>
+            </label>
+          ) : null}
           <label>
             Email Address
             <div className="settings-readonly">✉️ {email}</div>
+          </label>
+          <label>
+            Account Status
+            <div className="settings-readonly">{accountStatus || 'N/A'}</div>
+          </label>
+          <label>
+            Role
+            <div className="settings-readonly">{role || 'N/A'}</div>
           </label>
           <label className="settings-password-row">
             Password

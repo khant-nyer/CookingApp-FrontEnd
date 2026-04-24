@@ -96,6 +96,17 @@ describe('authFormLogic', () => {
     await handlers['verify-email']();
 
     expect(actions.verifyEmail).toHaveBeenCalledWith('chef@example.com', '123456');
+    expect(setSuccess).toHaveBeenCalledWith('Email verified successfully. Please login.');
+    expect(setMode).toHaveBeenCalledWith('login');
+    const updater = setForm.mock.calls[0]?.[0] as (prev: AuthFormState) => AuthFormState;
+    expect(updater(createForm())).toEqual({
+      userName: 'chef',
+      profileImageUrl: '',
+      email: 'chef@example.com',
+      password: '',
+      code: '',
+      newPassword: 'new-secret'
+    });
   });
 
   it('reset-password handler clears sensitive fields and returns to login', async () => {
