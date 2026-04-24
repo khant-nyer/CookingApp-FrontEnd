@@ -29,19 +29,6 @@ const modeErrorContext: Record<AuthMode, 'login' | 'register' | 'verify-email' |
   'reset-password': 'reset-password'
 };
 
-function PasswordVisibilityIcon({ visible }: { visible: boolean }) {
-  return (
-    <span className="password-toggle-icon-wrap" aria-hidden="true">
-      <img
-        src="https://www.flaticon.com/free-icon/show-password_6803345"
-        alt=""
-        className="password-toggle-icon"
-      />
-      {visible ? null : <span className="password-toggle-slash" />}
-    </span>
-  );
-}
-
 export default function AuthForm() {
   const { login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
@@ -150,7 +137,7 @@ export default function AuthForm() {
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                <PasswordVisibilityIcon visible={showPassword} />
+                <strong>{showPassword ? 'Hide' : 'View'}</strong>
               </button>
             </div>
           </label>
@@ -191,7 +178,7 @@ export default function AuthForm() {
                   onClick={() => setShowNewPassword((prev) => !prev)}
                   aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
                 >
-                  <PasswordVisibilityIcon visible={showNewPassword} />
+                  <strong>{showNewPassword ? 'Hide' : 'View'}</strong>
                 </button>
               </div>
             </label>

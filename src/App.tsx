@@ -54,6 +54,14 @@ const sidebarTabs: Array<{ key: TabKey; label: string; icon: (props: IconProps) 
   { key: 'nutrition', label: 'Nutrition', icon: FlaskIcon }
 ];
 
+const pageHeaderByTab: Record<TabKey, string> = {
+  dashboard: 'Cooking Application',
+  foods: 'Food Menu',
+  ingredients: 'Ingredient Inventory',
+  recipes: 'Recipe Master',
+  nutrition: 'Nutrition Lab'
+};
+
 export default function App() {
   const {
     isAuthenticated,
@@ -157,7 +165,7 @@ export default function App() {
 
       <section className="content-shell">
         <header className="page-header">
-          <h1>Cooking Application</h1>
+          <h1>{pageHeaderByTab[activeTab]}</h1>
         </header>
 
         <BackendExplorer
