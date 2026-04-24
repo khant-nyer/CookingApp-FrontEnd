@@ -6,8 +6,7 @@ export interface IdentifiableDto {
   recipeId?: string | number;
 }
 
-export interface FoodRecipeRefDto {
-  id?: string | number;
+export interface FoodRecipeRefDto extends IdentifiableDto {
   name?: string;
 }
 

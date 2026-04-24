@@ -167,19 +167,22 @@ export default function BackendExplorer({
   const latestFoods = entities.foods.slice(0, 4);
   return (
     <section className="backend-explorer-scroll">
-      <div className="explorer-search-row">
-        <input
-          type="search"
-          placeholder="Search foods by name, category, or creator"
-          value={foodSearchQuery || ''}
-          onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
-          aria-label="Search foods"
-        />
-      </div>
+      {activeTab !== 'dashboard' ? (
+        <div className="explorer-search-row">
+          <input
+            type="search"
+            placeholder="Search foods by name, category, or creator"
+            value={foodSearchQuery || ''}
+            onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
+            aria-label="Search foods"
+          />
+        </div>
+      ) : null}
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'dashboard' ? (
         <section className="dashboard-layout">
+          <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
           <div className="dashboard-cards">
             <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
             <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />
