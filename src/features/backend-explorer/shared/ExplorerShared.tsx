@@ -68,16 +68,18 @@ export function PaginationControls({ pagination, onPageChange, disabled = false 
 interface TextDetailProps {
   title: string;
   imageUrl?: string;
+  alertText?: string;
   fields?: Array<{ label: string; value?: string | number }>;
   sections?: Array<{ title: string; items: string[] }>;
   onDelete: () => void;
   onUpdate?: () => void;
 }
 
-export function TextDetail({ title, imageUrl, fields = [], sections = [], onDelete, onUpdate }: TextDetailProps) {
+export function TextDetail({ title, imageUrl, alertText, fields = [], sections = [], onDelete, onUpdate }: TextDetailProps) {
   return (
     <div className="card detail-card">
       <h3>{title}</h3>
+      {alertText ? <p className="detail-alert-text">{alertText}</p> : null}
       {imageUrl ? (
         <img src={imageUrl} alt={title} className="detail-image" />
       ) : null}
