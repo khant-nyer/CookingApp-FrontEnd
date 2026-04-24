@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
@@ -30,6 +30,7 @@ const modeErrorContext: Record<AuthMode, 'login' | 'register' | 'verify-email' |
 };
 
 export default function AuthForm() {
+  const RESEND_COOLDOWN_SECONDS = 30;
   const { login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [form, setForm] = useState<AuthFormState>({
@@ -45,6 +46,15 @@ export default function AuthForm() {
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [resendCooldownSeconds, setResendCooldownSeconds] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldownSeconds <= 0) return undefined;
+    const timer = window.setTimeout(() => {
+      setResendCooldownSeconds((prev) => Math.max(0, prev - 1));
+    }, 1_000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldownSeconds]);
 
   function onChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
@@ -76,12 +86,14 @@ export default function AuthForm() {
   }
 
   async function onResendVerificationCode() {
+    if (resendCooldownSeconds > 0) return;
     setError('');
     setSuccess('');
 
     try {
       await resendVerificationCode(form.email);
       setSuccess('A new verification code has been sent.');
+      setResendCooldownSeconds(RESEND_COOLDOWN_SECONDS);
     } catch (resendError) {
       console.error('Resend verification failed', resendError);
       setError(getFriendlyAuthErrorMessage(resendError, 'resend-verification'));
@@ -92,19 +104,19 @@ export default function AuthForm() {
     <section>
       <h2>{modeHeading[mode]}</h2>
       <form onSubmit={onSubmit} className="form">
-        {(mode === 'register' || mode === 'verify-email') && (
+        {mode === 'register' && (
           <label>
             Username
-            <input name="userName" value={form.userName} onChange={onChange} required={mode === 'register'} disabled={mode === 'verify-email'} />
+            <input name="userName" value={form.userName} onChange={onChange} required />
           </label>
         )}
 
         <label>
           Email
-          <input name="email" value={form.email} onChange={onChange} type="email" required disabled={mode === 'verify-email'} />
+          <input name="email" value={form.email} onChange={onChange} type="email" required />
         </label>
 
-        {(mode === 'register' || mode === 'verify-email') && (
+        {mode === 'register' && (
           <label>
             Profile image URL
             <input
@@ -112,13 +124,12 @@ export default function AuthForm() {
               value={form.profileImageUrl}
               onChange={onChange}
               type="url"
-              disabled={mode === 'verify-email'}
               placeholder="https://example.com/avatar.png"
             />
           </label>
         )}
 
-        {(mode === 'login' || mode === 'register' || mode === 'verify-email') && (
+        {(mode === 'login' || mode === 'register') && (
           <label>
             Password
             <div className="password-input-wrap">
@@ -129,7 +140,6 @@ export default function AuthForm() {
                 type={showPassword ? 'text' : 'password'}
                 minLength={6}
                 required
-                disabled={mode === 'verify-email'}
               />
               <button
                 type="button"
@@ -137,7 +147,7 @@ export default function AuthForm() {
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? '🙈' : '👁'}
+                <strong>{showPassword ? 'Hide' : 'View'}</strong>
               </button>
             </div>
           </label>
@@ -149,8 +159,15 @@ export default function AuthForm() {
               Verification code
               <input name="code" value={form.code} onChange={onChange} required />
             </label>
-            <button type="button" className="link-btn" onClick={() => void onResendVerificationCode()}>
-              Resend verification code
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => void onResendVerificationCode()}
+              disabled={resendCooldownSeconds > 0}
+            >
+              {resendCooldownSeconds > 0
+                ? `Resend verification code (${resendCooldownSeconds}s)`
+                : 'Resend verification code'}
             </button>
           </>
         )}
@@ -178,7 +195,7 @@ export default function AuthForm() {
                   onClick={() => setShowNewPassword((prev) => !prev)}
                   aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
                 >
-                  {showNewPassword ? '🙈' : '👁'}
+                  <strong>{showNewPassword ? 'Hide' : 'View'}</strong>
                 </button>
               </div>
             </label>

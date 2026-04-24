@@ -18,7 +18,7 @@ function DeleteConfirmModal({ deleteModal, errorMessage, onCancel, onConfirm }: 
         <p>{deleteModal.message}</p>
         {errorMessage ? <p className="error">{errorMessage}</p> : null}
         <div className="detail-actions">
-          <button onClick={onCancel}>Cancel</button>
+          <button className="cancel-btn" onClick={onCancel}>Cancel</button>
           <button className="danger" onClick={onConfirm}>Delete</button>
         </div>
       </div>

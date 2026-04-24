@@ -7,14 +7,20 @@
 }
 
 .tab {
-  background: #d7eeeb;
-  color: #134e49;
+  background: #ffffff;
+  color: #000;
   text-transform: capitalize;
+  box-shadow: none;
 }
 
 .tab.active {
-  background: #0f766e;
-  color: #fff;
+  background: #f97316;
+  color: #000;
+}
+
+.tab:hover:not(:disabled),
+.tab:focus-visible {
+  box-shadow: none;
 }
 
 .inline-builder {
@@ -79,17 +85,34 @@
   gap: 0.75rem;
 }
 
+.foods-gallery-header {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.foods-tab-grid .card {
+  border: 1px solid #dde5f0;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+}
+
+.foods-gallery-card h3,
+.detail-card h3 {
+  color: #041a45;
+}
+
 .gallery-tile {
-  border: 1px solid #dce3e1;
+  border: 1px solid #dde5f0;
   background: #fff;
-  border-radius: 10px;
-  padding: 0.45rem;
+  border-radius: 12px;
+  padding: 0.5rem;
   text-align: left;
 }
 
 .gallery-tile.selected {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 2px rgb(15 118 110 / 20%);
+  border-color: #ff6a00;
+  box-shadow: 0 0 0 2px rgb(255 106 0 / 20%);
 }
 
 .gallery-image,
@@ -97,8 +120,8 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 8px;
-  border: 1px solid #dde9e7;
-  background: #f8fbfa;
+  border: 1px solid #edf2f8;
+  background: #f9fbff;
 }
 
 .gallery-image {
@@ -118,12 +141,12 @@
 .gallery-caption {
   margin-top: 0.4rem;
   font-weight: 600;
-  color: #1f3a37;
+  color: #0b2b55;
 }
 
 .gallery-subtitle {
   font-size: 0.8rem;
-  color: #637977;
+  color: #6c7d98;
 }
 
 .summary-card-grid {
@@ -135,6 +158,14 @@
 .nutrient-picker {
   display: grid;
   gap: 0.55rem;
+}
+
+
+.nutrient-picker button:focus-visible,
+.nutrient-picker input:focus-visible,
+.nutrient-picker select:focus-visible {
+  outline: 2px solid #f97316;
+  outline-offset: 1px;
 }
 
 .picker-top-row {
@@ -175,9 +206,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.32rem;
-  background: #f1f8f7;
-  color: #0f5450;
-  border: 1px solid #d2e7e4;
+  background: #f2f8f7;
+  color: #134e49;
+  border: 1px solid #d5e5e2;
   padding: 0.28rem 0.5rem;
   border-radius: 999px;
   font-size: 0.72rem;
@@ -185,7 +216,7 @@
 }
 
 .chip:hover {
-  background: #e8f4f2;
+  background: #ecf5f4;
 }
 
 .chip-icon {
@@ -197,19 +228,19 @@
 }
 
 .chip-sub {
-  color: #6a8480;
+  color: #5f7673;
   font-size: 0.64rem;
   text-transform: capitalize;
 }
 
 .chip.selected {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #fff;
+  background: #f97316;
+  border-color: #f97316;
+  color: #000;
 }
 
 .chip.selected .chip-sub {
-  color: rgb(255 255 255 / 80%);
+  color: rgb(0 0 0 / 75%);
 }
 
 .picker-list-title {
@@ -258,7 +289,7 @@
   align-items: center;
   text-align: center;
   background: #fff;
-  color: #163a36;
+  color: #134e49;
   border: 1px solid #dce3e1;
   border-radius: 7px;
   padding: 0.35rem 0.25rem;
@@ -267,14 +298,14 @@
 }
 
 .picker-item.highlighted {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 1px rgb(15 118 110 / 30%);
+  border-color: #f97316;
+  box-shadow: 0 0 0 1px rgb(249 115 22 / 30%);
 }
 
 .picker-item.is-selected {
-  background: #0f766e;
-  color: #fff;
-  border-color: #0f766e;
+  background: #f97316;
+  color: #000;
+  border-color: #f97316;
 }
 
 .picker-item small {
@@ -283,7 +314,7 @@
 }
 
 .picker-item.is-selected small {
-  color: rgb(255 255 255 / 88%);
+  color: rgb(0 0 0 / 75%);
 }
 
 .picker-item span:first-child {
@@ -403,16 +434,16 @@
 
 .detail-image {
   width: 100%;
-  max-height: 220px;
+  max-width: 100%;
+  max-height: 420px;
   object-fit: cover;
   border-radius: 10px;
-  border: 1px solid #dde9e7;
+  border: 1px solid #dde5f0;
 }
 
 .detail-content {
   display: grid;
   gap: 0.35rem;
-  overflow: auto;
 }
 
 .detail-section {
@@ -437,10 +468,11 @@
   min-height: 74px;
   gap: 0.2rem;
   padding: 0.45rem;
+  box-shadow: none;
 }
 
 .nutrient-pill.selected {
-  background: #0f766e;
+  background: #f97316;
   color: #fff;
 }
 
@@ -465,7 +497,7 @@ pre {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-height: min(72vh, 760px);
+  background: #fff;
 }
 
 .detail-card pre {
@@ -479,10 +511,16 @@ pre {
   gap: 0.5rem;
 }
 
+.foods-detail-placeholder {
+  border: 1px dashed #ccd7ea;
+  color: #6c7d98;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgb(16 33 31 / 45%);
+  background: rgb(15 23 42 / 30%);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -492,7 +530,8 @@ pre {
 
 .modal-card {
   background: #fff;
-  border-radius: 12px;
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
   padding: 1rem;
   width: min(520px, 100%);
   position: relative;
@@ -500,7 +539,7 @@ pre {
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 20%);
+  box-shadow: 0 14px 36px rgb(15 23 42 / 18%);
 }
 
 .modal-close-icon {
@@ -508,7 +547,7 @@ pre {
   top: 0.75rem;
   right: 0.75rem;
   background: transparent;
-  color: #35504d;
+  color: #334155;
   border: none;
   font-size: 1.5rem;
   line-height: 1;

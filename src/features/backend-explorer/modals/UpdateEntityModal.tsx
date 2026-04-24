@@ -189,7 +189,7 @@ export default function UpdateEntityModal({
 
         {errorMessage ? <p className="error">{errorMessage}</p> : null}
         <div className="detail-actions">
-          <button onClick={() => setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null })}>Cancel</button>
+          <button className="cancel-btn" onClick={() => setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null })}>Cancel</button>
           <button className="secondary" onClick={confirmUpdate}>Update</button>
         </div>
       </div>

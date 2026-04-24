@@ -29,7 +29,7 @@ export default function SessionExpiryModal({
         {errorMessage && <p className="error">{errorMessage}</p>}
 
         <div className="detail-actions">
-          <button type="button" className="secondary" onClick={() => void onDismiss()} disabled={isExtending}>
+          <button type="button" className="cancel-btn" onClick={() => void onDismiss()} disabled={isExtending}>
             Dismiss
           </button>
           <button type="button" className="danger" onClick={() => void onLogoutNow()} disabled={isExtending}>

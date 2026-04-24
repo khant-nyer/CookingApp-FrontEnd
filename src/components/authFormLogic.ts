@@ -12,7 +12,7 @@ export interface AuthFormState {
 export interface AuthFormActions {
   login: (email: string, password: string) => Promise<void>;
   register: (userName: string, email: string, password: string, profileImageUrl?: string) => Promise<void>;
-  verifyEmail: (email: string, code: string, password: string) => Promise<void>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
 }
@@ -64,7 +64,10 @@ export function createSubmitHandlers({
       setMode('verify-email');
     },
     'verify-email': async () => {
-      await actions.verifyEmail(form.email, form.code, form.password);
+      await actions.verifyEmail(form.email, form.code);
+      setSuccess('Email verified successfully. Please login.');
+      setMode('login');
+      setForm((prev) => ({ ...prev, code: '', password: '' }));
     },
     'forgot-password': async () => {
       await actions.forgotPassword(form.email);

@@ -1,10 +1,12 @@
 export interface IdentifiableDto {
   id?: string | number;
   _id?: string | number;
+  foodId?: string | number;
+  ingredientId?: string | number;
+  recipeId?: string | number;
 }
 
-export interface FoodRecipeRefDto {
-  id?: string | number;
+export interface FoodRecipeRefDto extends IdentifiableDto {
   name?: string;
 }
 
@@ -12,6 +14,10 @@ export interface FoodDto extends IdentifiableDto {
   name?: string;
   category?: string;
   imageUrl?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+  recipeCount?: number;
   recipes?: FoodRecipeRefDto[];
 }
 

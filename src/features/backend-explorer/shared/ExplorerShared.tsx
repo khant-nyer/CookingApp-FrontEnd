@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  nutrientCatalog,
   nutrientGroups,
   nutrientIcons,
   nutrientOptions,
@@ -9,6 +8,7 @@ import {
 import { unitOptions } from '../constants/units';
 import type { Ingredient, IngredientNutrition, InputChangeEvent, InputKeyboardEvent, PaginationInfo, RecipeIngredientItem } from '../types';
 import { getItemId } from '../utils/ids';
+import { filterNutrientCatalogByQuery } from '../utils/nutrients';
 
 interface GalleryTileProps {
   key?: string | number;
@@ -78,10 +78,12 @@ export function TextDetail({ title, imageUrl, fields = [], sections = [], onDele
   return (
     <div className="card detail-card">
       <h3>{title}</h3>
-      {imageUrl ? <img src={imageUrl} alt={title} className="detail-image" /> : null}
+      {imageUrl ? (
+        <img src={imageUrl} alt={title} className="detail-image" />
+      ) : null}
       <div className="detail-content">
         {fields.map((field) => (
-          <p key={field.label}><strong>{field.label}:</strong> {field.value || '-'}</p>
+          <p key={field.label}><strong>{field.label}:</strong> {field.value ?? '-'}</p>
         ))}
         {sections.map((section) => (
           <div key={section.title} className="detail-section">
@@ -135,17 +137,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
 
   const normalizedQuery = query.trim().toLowerCase();
   const filtered = useMemo(() => {
-    if (!normalizedQuery) return nutrientCatalog;
-    return nutrientCatalog.filter((item) => {
-      const name = item.key.toLowerCase();
-      const noUnderscore = item.key.replace(/_/g, ' ').toLowerCase();
-      const short = (item.short || '').toLowerCase();
-      const aliases = (item.aliases || []).join(' ').toLowerCase();
-      return name.includes(normalizedQuery)
-        || noUnderscore.includes(normalizedQuery)
-        || short.includes(normalizedQuery)
-        || aliases.includes(normalizedQuery);
-    });
+    return filterNutrientCatalogByQuery(normalizedQuery);
   }, [normalizedQuery]);
 
   const groupFiltered = useMemo(() => {

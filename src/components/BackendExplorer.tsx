@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
@@ -11,14 +12,62 @@ import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
 
-const tabs: TabKey[] = ['foods', 'ingredients', 'recipes', 'nutrition'];
+interface IconProps {
+  className?: string;
+}
+
+function ChefHatIcon({ className }: IconProps) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6.8 10.2A4.5 4.5 0 0 1 8 2a5.8 5.8 0 0 1 4 1.7A5.8 5.8 0 0 1 16 2a4.5 4.5 0 0 1 1.2 8.2" /><path d="M4 10h16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4z" /><line x1="7" y1="20" x2="17" y2="20" /></svg>;
+}
+
+function BowlIcon({ className }: IconProps) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 13h16a8 8 0 0 1-16 0z" /><path d="M9 9c.4-1.3 1.4-2.2 3-2.5" /><path d="M14.5 7c1 .1 1.8.6 2.3 1.6" /><line x1="12" y1="3" x2="12" y2="6" /></svg>;
+}
+
+function UtensilsIcon({ className }: IconProps) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 3v7a3 3 0 0 0 3 3v8" /><path d="M7 3v7" /><path d="M10 3v7" /><path d="M15 3l5 5-3 3-5-5" /><path d="M13 11l-3 3" /><path d="M17 14l4 4" /></svg>;
+}
+
+function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
+  return (
+    <article className="dashboard-card">
+      <div>
+        <p className="dashboard-card-title">{title}</p>
+        <strong className="dashboard-card-total">{total}</strong>
+      </div>
+      <span className="dashboard-card-icon" aria-hidden>{icon}</span>
+    </article>
+  );
+}
+
+function pickRecipeTitle(recipe: Recipe) {
+  if (recipe.foodName) return recipe.foodName;
+  if (recipe.description) return recipe.description.split(/[.!?]/)[0];
+  return 'Untitled recipe';
+}
+
+function pickRecipeVersion(recipe: Recipe) {
+  if (recipe.version && String(recipe.version).trim()) return `v${String(recipe.version).trim()}`;
+  return 'vN/A';
+}
 
 interface BackendExplorerProps {
   isAuthenticated: boolean;
   onRequireAuth: () => void;
+  activeTab?: TabKey;
+  onTabChange?: (tab: TabKey) => void;
+  foodSearchQuery?: string;
+  onFoodSearchQueryChange?: (value: string) => void;
 }
 
-export default function BackendExplorer({ isAuthenticated, onRequireAuth }: BackendExplorerProps) {
+export default function BackendExplorer({
+  isAuthenticated,
+  onRequireAuth,
+  activeTab: externalActiveTab,
+  onTabChange,
+  foodSearchQuery,
+  onFoodSearchQueryChange
+}: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -26,7 +75,7 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     selectedNutrient,
     setSelectedNutrient,
     setActiveTab,
-    activeTab,
+    activeTab: controllerActiveTab,
     loadTabData,
     loading,
     error,
@@ -45,13 +94,15 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     action();
   }, [isAuthenticated, onRequireAuth]);
 
-  const handleTabSwitch = useCallback((tab: TabKey) => {
-    setActiveTab(tab);
-  }, [setActiveTab]);
+  const activeTab = externalActiveTab ?? controllerActiveTab;
 
-  const handleRefreshTab = useCallback(() => {
-    void loadTabData(activeTab);
-  }, [activeTab, loadTabData]);
+  const handleTabSwitch = useCallback((tab: TabKey) => {
+    if (onTabChange) {
+      onTabChange(tab);
+      return;
+    }
+    setActiveTab(tab);
+  }, [onTabChange, setActiveTab]);
 
   const foodsTabProps = useMemo(() => ({
     foods: entities.foods,
@@ -59,16 +110,19 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     setSelectedId,
     selectedFood: entities.selectedFood,
     createSuccess: createFlow.createSuccess,
-    openCreateModal: (type: EntityType) => runProtectedAction(() => createFlow.openCreateModal(type)),
     openFoodUpdateModal: (food: Food) => runProtectedAction(() => updateFlow.openFoodUpdateModal(food)),
     getItemId,
     pagination: pagination.foods,
     onPageChange: (page: number) => loadTabData('foods', page),
     loading,
-    onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food))
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, createFlow, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+    onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food)),
+    onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food')),
+    searchQuery: foodSearchQuery,
+    onSearchQueryChange: onFoodSearchQueryChange
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange]);
 
   const ingredientsTabProps = useMemo(() => ({
+    searchQuery: foodSearchQuery,
     ingredients: entities.ingredients,
     selectedId,
     setSelectedId,
@@ -81,9 +135,10 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     onPageChange: (page: number) => loadTabData('ingredients', page),
     loading,
     onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient))
-  }), [entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
 
   const recipesTabProps = useMemo(() => ({
+    searchQuery: foodSearchQuery,
     recipes: entities.recipes,
     foods: entities.foods,
     selectedId,
@@ -96,25 +151,96 @@ export default function BackendExplorer({ isAuthenticated, onRequireAuth }: Back
     onPageChange: (page: number) => loadTabData('recipes', page),
     loading,
     onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe))
-  }), [entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
 
   const nutritionTabProps = useMemo(() => ({
+    searchQuery: foodSearchQuery,
     selectedNutrient,
     setSelectedNutrient,
     nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
-    setActiveTab,
+    setActiveTab: handleTabSwitch,
     getItemId
-  }), [selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, setActiveTab]);
+  }), [foodSearchQuery, selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, handleTabSwitch]);
+
+  const totalFoods = pagination.foods.totalElements || entities.foods.length;
+  const totalIngredients = pagination.ingredients.totalElements || entities.ingredients.length;
+  const totalRecipes = pagination.recipes.totalElements || entities.recipes.length;
+
+  const recentRecipes = entities.recipes.slice(0, 4);
+  const latestFoods = entities.foods.slice(0, 4);
+  const searchPlaceholder = activeTab === 'foods'
+    ? 'Search foods by name, category, or creator'
+    : activeTab === 'ingredients'
+      ? 'Search ingredients by name, category, or description'
+      : activeTab === 'recipes'
+        ? 'Search recipes by food, version, or description'
+        : 'Search nutrient ingredients by name or category';
 
   return (
-    <section>
-      <nav className="nav-row">
-        {tabs.map((tab) => <button key={tab} className={tab === activeTab ? 'tab active' : 'tab'} onClick={() => handleTabSwitch(tab)}>{tab}</button>)}
-        <button onClick={handleRefreshTab}>{loading ? 'Loading…' : 'Refresh tab'}</button>
-      </nav>
-
-      {!isAuthenticated && <p className="muted guest-dev-notice">This application is still under development, updates coming soon.</p>}
+    <section className="backend-explorer-scroll">
+      {activeTab !== 'dashboard' ? (
+        <div className="explorer-search-row">
+          <input
+            type="search"
+            placeholder={searchPlaceholder}
+            value={foodSearchQuery || ''}
+            onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
+            aria-label={searchPlaceholder}
+          />
+        </div>
+      ) : null}
       {error && <p className="error">{error}</p>}
+
+      {activeTab === 'dashboard' ? (
+        <section className="dashboard-layout">
+          <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
+          <div className="dashboard-cards">
+            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />
+            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} />
+          </div>
+
+          <div className="dashboard-lists">
+            <article className="dashboard-list-card">
+              <h3>Recent Recipes</h3>
+              <ul>
+                {recentRecipes.map((recipe) => (
+                  <li key={String(getItemId(recipe))}>
+                    <span className="dashboard-list-icon" aria-hidden>
+                      <ChefHatIcon className="icon" />
+                    </span>
+                    <div>
+                      <strong>{pickRecipeTitle(recipe)}</strong>
+                      <span>{recipe.description || 'No description available'}</span>
+                    </div>
+                    <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
+                  </li>
+                ))}
+                {!recentRecipes.length && <li>No recipes yet.</li>}
+              </ul>
+            </article>
+
+            <article className="dashboard-list-card">
+              <h3>Latest Foods</h3>
+              <ul>
+                {latestFoods.map((food) => (
+                  <li key={String(getItemId(food))}>
+                    <img
+                      src={food.imageUrl || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=60'}
+                      alt={food.name || 'Food image'}
+                    />
+                    <div>
+                      <strong>{food.name || 'Unnamed food'}</strong>
+                      <span>{food.category || 'No category'}</span>
+                    </div>
+                  </li>
+                ))}
+                {!latestFoods.length && <li>No foods yet.</li>}
+              </ul>
+            </article>
+          </div>
+        </section>
+      ) : null}
 
       {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
 

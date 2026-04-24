@@ -29,6 +29,10 @@ describe('core utility behavior', () => {
   it('reads entity id from id/_id', () => {
     expect(getItemId({ id: 10 })).toBe(10);
     expect(getItemId({ _id: 'abc' })).toBe('abc');
+    expect(getItemId({ foodId: 77 })).toBe(77);
+    expect(getItemId({ ingredientId: 'ing-4' })).toBe('ing-4');
+    expect(getItemId({ recipeId: 'recipe-9' })).toBe('recipe-9');
+    expect(getItemId({ id: '  ' })).toBeUndefined();
     expect(getItemId(null)).toBeUndefined();
   });
 
