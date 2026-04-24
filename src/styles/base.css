@@ -197,6 +197,18 @@ button:disabled {
   text-decoration: underline;
 }
 
+.password-toggle-btn strong {
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+}
+
+.password-toggle-btn:hover:not(:disabled) {
+  transform: translateY(-50%);
+  filter: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 72%), 0 3px 8px rgb(194 79 0 / 25%);
+}
+
 .link-btn {
   border: none;
   background: transparent;
