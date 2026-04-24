@@ -65,7 +65,7 @@ export default function SettingsPage({ userName, email }: SettingsPageProps) {
         {allergies.length ? (
           <div className="settings-allergy-list">
             {allergies.map((allergy) => (
-              <button key={allergy} type="button" className="chip" onClick={() => removeAllergy(allergy)}>
+              <button key={allergy} type="button" className="settings-allergy-pill" onClick={() => removeAllergy(allergy)}>
                 {allergy} ×
               </button>
             ))}

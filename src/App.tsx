@@ -162,8 +162,17 @@ export default function App() {
         </nav>
 
         <div className="sidebar-footer">
+          <button
+            type="button"
+            className={activeTab === 'settings' ? 'sidebar-link active' : 'sidebar-link'}
+            onClick={() => setActiveTab('settings')}
+          >
+            <SettingsIcon className="icon" />
+            <span>Settings</span>
+          </button>
+
           {isAuthenticated ? (
-            <button type="button" className="sidebar-link" onClick={openLogoutConfirm}>
+            <button type="button" className="sidebar-link logout-link" onClick={openLogoutConfirm}>
               <LogoutIcon className="icon" />
               <span>Log out</span>
             </button>
@@ -174,14 +183,6 @@ export default function App() {
             </button>
           )}
 
-          <button
-            type="button"
-            className={activeTab === 'settings' ? 'sidebar-link active' : 'sidebar-link muted-link'}
-            onClick={() => setActiveTab('settings')}
-          >
-            <SettingsIcon className="icon" />
-            <span>Settings</span>
-          </button>
         </div>
       </aside>
 
@@ -236,7 +237,7 @@ export default function App() {
             <h2 id="logout-success-title">Confirm log out</h2>
             <p>Are you sure you want to log out?</p>
             <div className="detail-actions">
-              <button type="button" className="secondary" onClick={() => setIsLogoutConfirmOpen(false)}>Cancel</button>
+              <button type="button" className="cancel-btn" onClick={() => setIsLogoutConfirmOpen(false)}>Cancel</button>
               <button type="button" className="danger" onClick={() => void onLogout()}>Log out</button>
             </div>
           </section>

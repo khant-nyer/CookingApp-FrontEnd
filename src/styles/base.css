@@ -116,7 +116,16 @@ button:disabled {
 }
 
 .danger {
-  background: #b91c1c;
+  background: transparent;
+  color: #b91c1c;
+  border: 1px solid #b91c1c;
+  box-shadow: none;
+}
+
+.danger:hover:not(:disabled) {
+  background: rgb(185 28 28 / 8%);
+  filter: none;
+  box-shadow: none;
 }
 
 .cancel-btn {
@@ -312,6 +321,17 @@ button:disabled {
   color: #6c7d98;
 }
 
+.logout-link {
+  color: #b91c1c;
+  border: 1px solid #b91c1c;
+}
+
+.logout-link:hover:not(:disabled),
+.logout-link:focus-visible {
+  background: rgb(185 28 28 / 8%);
+  color: #b91c1c;
+}
+
 .sidebar.collapsed .brand-title,
 .sidebar.collapsed .sidebar-link span {
   display: none;
@@ -435,6 +455,24 @@ button:disabled {
   gap: 0.5rem;
 }
 
+.settings-allergy-pill {
+  background: #fff4f0;
+  border: 1px solid #f6b8a8;
+  color: #9a3412;
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.settings-allergy-pill:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  filter: none;
+  background: #fee6de;
+}
+
 .settings-save-row {
   position: fixed;
   right: 2.2rem;
@@ -476,7 +514,7 @@ button:disabled {
 .page-header p {
   margin: 0.5rem 0 1.5rem;
   color: #5c7698;
-  font-size: 1.4rem;
+  font-size: 0.95rem;
 }
 
 .content-toolbar {
