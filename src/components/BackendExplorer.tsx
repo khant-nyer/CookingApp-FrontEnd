@@ -47,8 +47,8 @@ function pickRecipeTitle(recipe: Recipe) {
 }
 
 function pickRecipeVersion(recipe: Recipe) {
-  if (recipe.version && String(recipe.version).trim()) return `v${String(recipe.version).trim()}`;
-  return 'vN/A';
+  if (recipe.version && String(recipe.version).trim()) return String(recipe.version).trim();
+  return 'N/A';
 }
 
 interface BackendExplorerProps {
