@@ -79,6 +79,25 @@ describe('authFormLogic', () => {
     expect(setMode).toHaveBeenCalledWith('reset-password');
   });
 
+  it('verify-email handler submits email and code only', async () => {
+    const actions = createActions();
+    const setSuccess = vi.fn();
+    const setMode = vi.fn();
+    const setForm = vi.fn();
+
+    const handlers = createSubmitHandlers({
+      form: createForm(),
+      actions,
+      setSuccess,
+      setMode,
+      setForm
+    });
+
+    await handlers['verify-email']();
+
+    expect(actions.verifyEmail).toHaveBeenCalledWith('chef@example.com', '123456');
+  });
+
   it('reset-password handler clears sensitive fields and returns to login', async () => {
     const actions = createActions();
     const setSuccess = vi.fn();

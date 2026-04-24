@@ -92,19 +92,19 @@ export default function AuthForm() {
     <section>
       <h2>{modeHeading[mode]}</h2>
       <form onSubmit={onSubmit} className="form">
-        {(mode === 'register' || mode === 'verify-email') && (
+        {mode === 'register' && (
           <label>
             Username
-            <input name="userName" value={form.userName} onChange={onChange} required={mode === 'register'} disabled={mode === 'verify-email'} />
+            <input name="userName" value={form.userName} onChange={onChange} required />
           </label>
         )}
 
         <label>
           Email
-          <input name="email" value={form.email} onChange={onChange} type="email" required disabled={mode === 'verify-email'} />
+          <input name="email" value={form.email} onChange={onChange} type="email" required />
         </label>
 
-        {(mode === 'register' || mode === 'verify-email') && (
+        {mode === 'register' && (
           <label>
             Profile image URL
             <input
@@ -112,13 +112,12 @@ export default function AuthForm() {
               value={form.profileImageUrl}
               onChange={onChange}
               type="url"
-              disabled={mode === 'verify-email'}
               placeholder="https://example.com/avatar.png"
             />
           </label>
         )}
 
-        {(mode === 'login' || mode === 'register' || mode === 'verify-email') && (
+        {(mode === 'login' || mode === 'register') && (
           <label>
             Password
             <div className="password-input-wrap">
@@ -129,7 +128,6 @@ export default function AuthForm() {
                 type={showPassword ? 'text' : 'password'}
                 minLength={6}
                 required
-                disabled={mode === 'verify-email'}
               />
               <button
                 type="button"

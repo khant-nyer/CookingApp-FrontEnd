@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { api, setApiTokenProvider } from '../services/api';
 import {
-  confirmEmailVerification,
   confirmForgotPassword as confirmForgotPasswordWithCognito,
   isExpiredSessionError,
   loginWithCognito,
@@ -190,13 +189,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
     });
   }, []);
 
-  const verifyEmail = useCallback(
-    async (email: string, code: string, password: string) => {
-      await confirmEmailVerification(email, code);
-      await login(email, password);
-    },
-    [login]
-  );
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    await api.verifyEmail({ email, code });
+  }, []);
 
   const resendVerificationCode = useCallback(async (email: string) => {
     await resendEmailVerificationCode(email);
