@@ -20,7 +20,14 @@ body,
 }
 
 body {
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 .container {
@@ -71,16 +78,25 @@ select {
 }
 
 button {
-  background: #0f766e;
+  background: linear-gradient(135deg, #ff8a1f 0%, #f97316 55%, #ea580c 100%);
   border: none;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 0.6rem 0.8rem;
   cursor: pointer;
+  box-shadow: 0 6px 14px rgb(249 115 22 / 28%);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow: 0 9px 18px rgb(249 115 22 / 32%);
 }
 
 button:disabled {
   opacity: 0.7;
+  box-shadow: none;
 }
 
 .error {
@@ -95,11 +111,12 @@ button:disabled {
 }
 
 .secondary {
-  background: #2f6fed;
+  background: linear-gradient(135deg, #ffbe85 0%, #fb923c 100%);
+  color: #7c2d12;
 }
 
 .danger {
-  background: #b42318;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
 }
 
 @media (max-width: 1080px) {
@@ -142,10 +159,14 @@ button:disabled {
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  color: #35504d;
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 25%, #fff6ec 0%, #ffd4b5 45%, #fb923c 100%);
+  border: 1px solid #f59e0b;
+  color: #7c2d12;
   padding: 0.2rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 72%), 0 3px 8px rgb(194 79 0 / 25%);
 }
 
 .link-btn {
@@ -163,9 +184,8 @@ button:disabled {
 
 .app-shell {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: #f1f4f8;
-  overflow: hidden;
 }
 
 .sidebar {
@@ -268,13 +288,11 @@ button:disabled {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .backend-explorer-scroll {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
   padding-bottom: 1rem;
 }
 

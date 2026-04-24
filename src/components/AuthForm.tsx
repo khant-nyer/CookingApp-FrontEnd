@@ -29,6 +29,29 @@ const modeErrorContext: Record<AuthMode, 'login' | 'register' | 'verify-email' |
   'reset-password': 'reset-password'
 };
 
+function PasswordVisibilityIcon({ visible }: { visible: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <defs>
+        <linearGradient id="eyeShell" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffd9b8" />
+          <stop offset="100%" stopColor="#ff7a1a" />
+        </linearGradient>
+        <radialGradient id="eyeOrb" cx="45%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="55%" stopColor="#ffd4b0" />
+          <stop offset="100%" stopColor="#f97316" />
+        </radialGradient>
+      </defs>
+      <path d="M2.2 12c2.2-4 5.7-6 9.8-6 4.1 0 7.6 2 9.8 6-2.2 4-5.7 6-9.8 6-4.1 0-7.6-2-9.8-6z" fill="url(#eyeShell)" stroke="#c24f00" strokeWidth="1.2" />
+      <circle cx="12" cy="12" r="4.2" fill="url(#eyeOrb)" />
+      <circle cx="12" cy="12" r="2.2" fill="#7c2d12" />
+      <circle cx="11.2" cy="11.2" r="0.9" fill="#fff7ed" />
+      {visible ? null : <path d="M4 4l16 16" stroke="#7c2d12" strokeWidth="1.8" strokeLinecap="round" />}
+    </svg>
+  );
+}
+
 export default function AuthForm() {
   const { login, register, verifyEmail, resendVerificationCode, forgotPassword, confirmForgotPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
@@ -137,7 +160,7 @@ export default function AuthForm() {
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? '🙈' : '👁'}
+                <PasswordVisibilityIcon visible={showPassword} />
               </button>
             </div>
           </label>
@@ -178,7 +201,7 @@ export default function AuthForm() {
                   onClick={() => setShowNewPassword((prev) => !prev)}
                   aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
                 >
-                  {showNewPassword ? '🙈' : '👁'}
+                  <PasswordVisibilityIcon visible={showNewPassword} />
                 </button>
               </div>
             </label>
