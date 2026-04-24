@@ -18,6 +18,7 @@ interface FoodsTabProps {
   loading: boolean;
   onDeleteFood: (food: Food) => void;
   onCreateFood: () => void;
+  allergyAlertText?: string;
 }
 
 function FoodsTab({
@@ -33,6 +34,7 @@ function FoodsTab({
   loading,
   onDeleteFood,
   onCreateFood,
+  allergyAlertText,
   searchQuery: controlledSearchQuery,
   onSearchQueryChange
 }: FoodsTabProps) {
@@ -83,6 +85,7 @@ function FoodsTab({
         <TextDetail
           title={selectedFood.name || 'Food details'}
           imageUrl={selectedFood.imageUrl}
+          alertText={allergyAlertText}
           fields={[
             { label: 'Category', value: selectedFood.category },
             { label: 'Created by', value: selectedFood.createdBy },

@@ -28,13 +28,12 @@ function UtensilsIcon({ className }: IconProps) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 3v7a3 3 0 0 0 3 3v8" /><path d="M7 3v7" /><path d="M10 3v7" /><path d="M15 3l5 5-3 3-5-5" /><path d="M13 11l-3 3" /><path d="M17 14l4 4" /></svg>;
 }
 
-function DashboardCard({ title, total, icon, allergenAlert }: { title: string; total: number; icon: ReactNode; allergenAlert?: string }) {
+function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
   return (
     <article className="dashboard-card">
       <div>
         <p className="dashboard-card-title">{title}</p>
         <strong className="dashboard-card-total">{total}</strong>
-        {allergenAlert ? <p className="dashboard-card-alert">{allergenAlert}</p> : null}
       </div>
       <span className="dashboard-card-icon" aria-hidden>{icon}</span>
     </article>
@@ -98,6 +97,22 @@ export default function BackendExplorer({
   }, [isAuthenticated, onRequireAuth]);
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
+  const normalizedAllergies = useMemo(() => {
+    return (userAllergies || [])
+      .map((allergy) => allergy.trim().toLowerCase())
+      .filter(Boolean);
+  }, [userAllergies]);
+
+  const buildAllergyAwarenessText = useCallback((searchableValues: Array<string | undefined>) => {
+    if (!normalizedAllergies.length) return undefined;
+    const searchableText = searchableValues
+      .map((value) => String(value || '').toLowerCase())
+      .join(' ');
+    if (!searchableText.trim()) return undefined;
+    const matchedAllergies = normalizedAllergies.filter((allergy) => searchableText.includes(allergy));
+    if (!matchedAllergies.length) return undefined;
+    return `Allergy awareness: contains ${Array.from(new Set(matchedAllergies)).join(', ')}`;
+  }, [normalizedAllergies]);
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
     if (onTabChange) {
@@ -121,8 +136,13 @@ export default function BackendExplorer({
     onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food)),
     onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food')),
     searchQuery: foodSearchQuery,
-    onSearchQueryChange: onFoodSearchQueryChange
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange]);
+    onSearchQueryChange: onFoodSearchQueryChange,
+    allergyAlertText: buildAllergyAwarenessText([
+      entities.selectedFood?.name,
+      entities.selectedFood?.category,
+      ...(entities.selectedFood?.recipes || []).map((recipe) => recipe.name)
+    ])
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange, buildAllergyAwarenessText]);
 
   const ingredientsTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,
@@ -137,8 +157,13 @@ export default function BackendExplorer({
     pagination: pagination.ingredients,
     onPageChange: (page: number) => loadTabData('ingredients', page),
     loading,
-    onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient))
-  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+    onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient)),
+    allergyAlertText: buildAllergyAwarenessText([
+      entities.selectedIngredient?.name,
+      entities.selectedIngredient?.category,
+      entities.selectedIngredient?.description
+    ])
+  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText]);
 
   const recipesTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,
@@ -153,8 +178,13 @@ export default function BackendExplorer({
     pagination: pagination.recipes,
     onPageChange: (page: number) => loadTabData('recipes', page),
     loading,
-    onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe))
-  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+    onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe)),
+    allergyAlertText: buildAllergyAwarenessText([
+      entities.selectedRecipe?.foodName,
+      entities.selectedRecipe?.description,
+      ...(entities.selectedRecipe?.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
+    ])
+  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText]);
 
   const nutritionTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,
@@ -168,8 +198,6 @@ export default function BackendExplorer({
   const totalFoods = pagination.foods.totalElements || entities.foods.length;
   const totalIngredients = pagination.ingredients.totalElements || entities.ingredients.length;
   const totalRecipes = pagination.recipes.totalElements || entities.recipes.length;
-  const hasSeafoodAllergy = (userAllergies || []).some((allergy) => allergy.trim().toLowerCase() === 'seafood');
-  const seafoodWarning = hasSeafoodAllergy ? 'Contains allergens: seafood' : undefined;
 
   const recentRecipes = entities.recipes.slice(0, 4);
   const latestFoods = entities.foods.slice(0, 4);
@@ -200,9 +228,9 @@ export default function BackendExplorer({
         <section className="dashboard-layout">
           <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
           <div className="dashboard-cards">
-            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} allergenAlert={seafoodWarning} />
-            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} allergenAlert={seafoodWarning} />
-            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} allergenAlert={seafoodWarning} />
+            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />
+            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} />
           </div>
 
           <div className="dashboard-lists">
