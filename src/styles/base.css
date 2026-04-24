@@ -582,6 +582,13 @@ button:disabled {
   color: #031b4f;
 }
 
+.dashboard-card-alert {
+  margin: 0.4rem 0 0;
+  color: #b91c1c;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 .dashboard-card-icon {
   width: 58px;
   height: 58px;

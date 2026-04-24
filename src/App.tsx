@@ -243,6 +243,7 @@ export default function App() {
             }}
             foodSearchQuery={foodSearchQuery}
             onFoodSearchQueryChange={setFoodSearchQuery}
+            userAllergies={user?.allergies}
           />
         )}
       </section>
