@@ -58,6 +58,7 @@ interface BackendExplorerProps {
   onTabChange?: (tab: TabKey) => void;
   foodSearchQuery?: string;
   onFoodSearchQueryChange?: (value: string) => void;
+  userAllergies?: string[];
 }
 
 export default function BackendExplorer({
@@ -66,7 +67,8 @@ export default function BackendExplorer({
   activeTab: externalActiveTab,
   onTabChange,
   foodSearchQuery,
-  onFoodSearchQueryChange
+  onFoodSearchQueryChange,
+  userAllergies
 }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
@@ -95,6 +97,22 @@ export default function BackendExplorer({
   }, [isAuthenticated, onRequireAuth]);
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
+  const normalizedAllergies = useMemo(() => {
+    return (userAllergies || [])
+      .map((allergy) => allergy.trim().toLowerCase())
+      .filter(Boolean);
+  }, [userAllergies]);
+
+  const buildAllergyAwarenessText = useCallback((searchableValues: Array<string | undefined>) => {
+    if (!normalizedAllergies.length) return undefined;
+    const searchableText = searchableValues
+      .map((value) => String(value || '').toLowerCase())
+      .join(' ');
+    if (!searchableText.trim()) return undefined;
+    const matchedAllergies = normalizedAllergies.filter((allergy) => searchableText.includes(allergy));
+    if (!matchedAllergies.length) return undefined;
+    return `Allergy awareness: contains ${Array.from(new Set(matchedAllergies)).join(', ')}`;
+  }, [normalizedAllergies]);
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
     if (onTabChange) {
@@ -118,8 +136,13 @@ export default function BackendExplorer({
     onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food)),
     onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food')),
     searchQuery: foodSearchQuery,
-    onSearchQueryChange: onFoodSearchQueryChange
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange]);
+    onSearchQueryChange: onFoodSearchQueryChange,
+    allergyAlertText: buildAllergyAwarenessText([
+      entities.selectedFood?.name,
+      entities.selectedFood?.category,
+      ...(entities.selectedFood?.recipes || []).map((recipe) => recipe.name)
+    ])
+  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange, buildAllergyAwarenessText]);
 
   const ingredientsTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,
@@ -134,8 +157,13 @@ export default function BackendExplorer({
     pagination: pagination.ingredients,
     onPageChange: (page: number) => loadTabData('ingredients', page),
     loading,
-    onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient))
-  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+    onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient)),
+    allergyAlertText: buildAllergyAwarenessText([
+      entities.selectedIngredient?.name,
+      entities.selectedIngredient?.category,
+      entities.selectedIngredient?.description
+    ])
+  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText]);
 
   const recipesTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,
@@ -150,8 +178,13 @@ export default function BackendExplorer({
     pagination: pagination.recipes,
     onPageChange: (page: number) => loadTabData('recipes', page),
     loading,
-    onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe))
-  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow]);
+    onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe)),
+    allergyAlertText: buildAllergyAwarenessText([
+      entities.selectedRecipe?.foodName,
+      entities.selectedRecipe?.description,
+      ...(entities.selectedRecipe?.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
+    ])
+  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText]);
 
   const nutritionTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,

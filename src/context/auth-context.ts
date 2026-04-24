@@ -27,6 +27,7 @@ export interface AuthContextValue {
   confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   dismissExpiryWarning: () => void;
   extendSession: () => Promise<void>;
+  refreshCurrentUser: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }

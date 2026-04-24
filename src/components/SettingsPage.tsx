@@ -1,24 +1,34 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../context/useAuth';
+import { api } from '../services/api';
 
 interface SettingsPageProps {
+  id?: number;
   userName: string;
   email: string;
-  accountStatus?: string;
+  cognitoSub?: string;
   role?: string;
   profileImageUrl?: string;
   allergies?: string[];
+  accountStatus?: string;
 }
 
 export default function SettingsPage({
   userName,
   email,
+  cognitoSub,
   accountStatus,
   role,
+  id,
   profileImageUrl,
   allergies: initialAllergies = []
 }: SettingsPageProps) {
+  const { refreshCurrentUser } = useAuth();
   const [allergyInput, setAllergyInput] = useState('');
   const [allergies, setAllergies] = useState<string[]>(initialAllergies);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState('');
 
   useEffect(() => {
     setAllergies(initialAllergies);
@@ -37,6 +47,36 @@ export default function SettingsPage({
 
   function removeAllergy(allergy: string) {
     setAllergies((prev) => prev.filter((item) => item !== allergy));
+  }
+
+  async function saveChanges() {
+    if (!id || !cognitoSub || !email || !userName || !role) {
+      setSaveSuccess('');
+      setSaveError('Missing required user profile fields. Please sign in again.');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError('');
+    setSaveSuccess('');
+
+    try {
+      await api.updateCurrentUser({
+        allergies,
+        cognitoSub,
+        email,
+        id,
+        profileImageUrl: profileImageUrl || null,
+        role,
+        userName
+      });
+      await refreshCurrentUser();
+      setSaveSuccess('Settings saved successfully.');
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to save settings.');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -106,8 +146,13 @@ export default function SettingsPage({
         )}
       </article>
 
+      {saveError ? <p className="error">{saveError}</p> : null}
+      {saveSuccess ? <p className="success">{saveSuccess}</p> : null}
+
       <div className="settings-save-row">
-        <button type="button">💾 Save Changes</button>
+        <button type="button" onClick={() => void saveChanges()} disabled={isSaving}>
+          {isSaving ? 'Saving...' : '💾 Save Changes'}
+        </button>
       </div>
     </section>
   );
