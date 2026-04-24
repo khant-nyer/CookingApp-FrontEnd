@@ -28,12 +28,13 @@ function UtensilsIcon({ className }: IconProps) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 3v7a3 3 0 0 0 3 3v8" /><path d="M7 3v7" /><path d="M10 3v7" /><path d="M15 3l5 5-3 3-5-5" /><path d="M13 11l-3 3" /><path d="M17 14l4 4" /></svg>;
 }
 
-function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
+function DashboardCard({ title, total, icon, allergenAlert }: { title: string; total: number; icon: ReactNode; allergenAlert?: string }) {
   return (
     <article className="dashboard-card">
       <div>
         <p className="dashboard-card-title">{title}</p>
         <strong className="dashboard-card-total">{total}</strong>
+        {allergenAlert ? <p className="dashboard-card-alert">{allergenAlert}</p> : null}
       </div>
       <span className="dashboard-card-icon" aria-hidden>{icon}</span>
     </article>
@@ -47,8 +48,8 @@ function pickRecipeTitle(recipe: Recipe) {
 }
 
 function pickRecipeVersion(recipe: Recipe) {
-  if (recipe.version && String(recipe.version).trim()) return `v${String(recipe.version).trim()}`;
-  return 'vN/A';
+  if (recipe.version && String(recipe.version).trim()) return String(recipe.version).trim();
+  return 'N/A';
 }
 
 interface BackendExplorerProps {
@@ -58,6 +59,7 @@ interface BackendExplorerProps {
   onTabChange?: (tab: TabKey) => void;
   foodSearchQuery?: string;
   onFoodSearchQueryChange?: (value: string) => void;
+  userAllergies?: string[];
 }
 
 export default function BackendExplorer({
@@ -66,7 +68,8 @@ export default function BackendExplorer({
   activeTab: externalActiveTab,
   onTabChange,
   foodSearchQuery,
-  onFoodSearchQueryChange
+  onFoodSearchQueryChange,
+  userAllergies
 }: BackendExplorerProps) {
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
@@ -165,6 +168,8 @@ export default function BackendExplorer({
   const totalFoods = pagination.foods.totalElements || entities.foods.length;
   const totalIngredients = pagination.ingredients.totalElements || entities.ingredients.length;
   const totalRecipes = pagination.recipes.totalElements || entities.recipes.length;
+  const hasSeafoodAllergy = (userAllergies || []).some((allergy) => allergy.trim().toLowerCase() === 'seafood');
+  const seafoodWarning = hasSeafoodAllergy ? 'Contains allergens: seafood' : undefined;
 
   const recentRecipes = entities.recipes.slice(0, 4);
   const latestFoods = entities.foods.slice(0, 4);
@@ -195,9 +200,9 @@ export default function BackendExplorer({
         <section className="dashboard-layout">
           <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
           <div className="dashboard-cards">
-            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
-            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />
-            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} />
+            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} allergenAlert={seafoodWarning} />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} allergenAlert={seafoodWarning} />
+            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} allergenAlert={seafoodWarning} />
           </div>
 
           <div className="dashboard-lists">
