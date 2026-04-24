@@ -194,8 +194,12 @@ export default function App() {
 
         {activeTab === 'settings' ? (
           <SettingsPage
-            userName={user?.name || user?.email?.split('@')[0] || 'Chef User'}
+            userName={user?.userName || user?.name || user?.email?.split('@')[0] || 'Chef User'}
             email={user?.email || 'chef@example.com'}
+            accountStatus={user?.accountStatus}
+            role={user?.role}
+            profileImageUrl={user?.profileImageUrl}
+            allergies={user?.allergies}
           />
         ) : (
           <BackendExplorer
@@ -213,7 +217,7 @@ export default function App() {
       </section>
 
       {!isAuthenticated && isAuthModalOpen ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setIsAuthModalOpen(false)}>
+        <div className="modal-backdrop" role="presentation">
           <section className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="modal-close-icon" aria-label="Close sign in modal" onClick={() => setIsAuthModalOpen(false)}>×</button>
             <AuthForm />
