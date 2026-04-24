@@ -7,14 +7,20 @@
 }
 
 .tab {
-  background: #d7eeeb;
-  color: #134e49;
+  background: #ffffff;
+  color: #c2410c;
   text-transform: capitalize;
+  box-shadow: none;
 }
 
 .tab.active {
-  background: #0f766e;
+  background: #f97316;
   color: #fff;
+}
+
+.tab:hover:not(:disabled),
+.tab:focus-visible {
+  box-shadow: none;
 }
 
 .inline-builder {
@@ -154,6 +160,14 @@
   gap: 0.55rem;
 }
 
+
+.nutrient-picker button:focus-visible,
+.nutrient-picker input:focus-visible,
+.nutrient-picker select:focus-visible {
+  outline: 2px solid #f97316;
+  outline-offset: 1px;
+}
+
 .picker-top-row {
   display: grid;
   grid-template-columns: minmax(220px, 1.3fr) minmax(220px, 1fr);
@@ -284,8 +298,8 @@
 }
 
 .picker-item.highlighted {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 1px rgb(15 118 110 / 30%);
+  border-color: #f97316;
+  box-shadow: 0 0 0 1px rgb(249 115 22 / 30%);
 }
 
 .picker-item.is-selected {
@@ -454,10 +468,11 @@
   min-height: 74px;
   gap: 0.2rem;
   padding: 0.45rem;
+  box-shadow: none;
 }
 
 .nutrient-pill.selected {
-  background: #0f766e;
+  background: #f97316;
   color: #fff;
 }
 
@@ -504,7 +519,7 @@ pre {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgb(124 45 18 / 36%);
+  background: rgb(15 23 42 / 30%);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -515,7 +530,7 @@ pre {
 
 .modal-card {
   background: #fff;
-  border: 1px solid #fed7aa;
+  border: 1px solid #dbe4ef;
   border-radius: 14px;
   padding: 1rem;
   width: min(520px, 100%);
@@ -524,7 +539,7 @@ pre {
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  box-shadow: 0 14px 36px rgb(124 45 18 / 25%);
+  box-shadow: 0 14px 36px rgb(15 23 42 / 18%);
 }
 
 .modal-close-icon {
@@ -532,7 +547,7 @@ pre {
   top: 0.75rem;
   right: 0.75rem;
   background: transparent;
-  color: #9a3412;
+  color: #334155;
   border: none;
   font-size: 1.5rem;
   line-height: 1;
