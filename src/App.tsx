@@ -71,6 +71,7 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
+  const [logoutMessage, setLogoutMessage] = useState('');
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
 
   async function onExtendSession() {
@@ -90,6 +91,11 @@ export default function App() {
   function onDismissSessionWarning() {
     setSessionExtendError('');
     dismissExpiryWarning();
+  }
+
+  async function onLogout() {
+    await logout();
+    setLogoutMessage('You have successfully log out');
   }
 
   return (
@@ -131,7 +137,7 @@ export default function App() {
 
         <div className="sidebar-footer">
           {isAuthenticated ? (
-            <button type="button" className="sidebar-link" onClick={() => void logout()}>
+            <button type="button" className="sidebar-link" onClick={() => void onLogout()}>
               <LogoutIcon className="icon" />
               <span>Log out</span>
             </button>
@@ -183,8 +189,18 @@ export default function App() {
         isExtending={isExtendingSession}
         onDismiss={onDismissSessionWarning}
         onExtendSession={onExtendSession}
-        onLogoutNow={logout}
+        onLogoutNow={onLogout}
       />
+
+      {logoutMessage ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setLogoutMessage('')}>
+          <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="logout-success-title" onClick={(event) => event.stopPropagation()}>
+            <h2 id="logout-success-title">Logged out</h2>
+            <p>{logoutMessage}</p>
+            <button type="button" onClick={() => setLogoutMessage('')}>Close</button>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
