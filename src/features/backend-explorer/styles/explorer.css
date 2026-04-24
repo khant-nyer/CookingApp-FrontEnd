@@ -504,7 +504,8 @@ pre {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgb(16 33 31 / 45%);
+  background: rgb(124 45 18 / 36%);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
