@@ -1,4 +1,5 @@
 import { nutrientAliasToKey } from '../constants/nutrients';
+import { nutrientCatalog } from '../constants/nutrients';
 
 interface NutritionEntryInput {
   nutrient: string;
@@ -36,4 +37,20 @@ export function normalizeNutritionEntry(entry: NutritionEntryInput): NormalizedN
     value,
     unit: entry.unit?.trim() || 'G'
   };
+}
+
+export function filterNutrientCatalogByQuery(query: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return nutrientCatalog;
+
+  return nutrientCatalog.filter((item) => {
+    const name = item.key.toLowerCase();
+    const noUnderscore = item.key.replace(/_/g, ' ').toLowerCase();
+    const short = (item.short || '').toLowerCase();
+    const aliases = (item.aliases || []).join(' ').toLowerCase();
+    return name.includes(normalizedQuery)
+      || noUnderscore.includes(normalizedQuery)
+      || short.includes(normalizedQuery)
+      || aliases.includes(normalizedQuery);
+  });
 }
