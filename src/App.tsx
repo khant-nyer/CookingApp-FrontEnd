@@ -194,8 +194,12 @@ export default function App() {
 
         {activeTab === 'settings' ? (
           <SettingsPage
-            userName={user?.name || user?.email?.split('@')[0] || 'Chef User'}
+            userName={user?.userName || user?.name || user?.email?.split('@')[0] || 'Chef User'}
             email={user?.email || 'chef@example.com'}
+            accountStatus={user?.accountStatus}
+            role={user?.role}
+            profileImageUrl={user?.profileImageUrl}
+            allergies={user?.allergies}
           />
         ) : (
           <BackendExplorer

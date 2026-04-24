@@ -111,6 +111,31 @@ describe('api hardening behavior', () => {
     expect(headers.Authorization).toBeUndefined();
   });
 
+  it('requests current user profile from backend after authentication', async () => {
+    setApiTokenProvider(() => 'token-abc');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      accountStatus: 'ACTIVE',
+      allergies: [],
+      cognitoSub: 'sub-1',
+      email: 'chef@example.com',
+      emailVerified: true,
+      id: 6,
+      profileImageUrl: 'https://example.com/avatar.png',
+      role: 'USER',
+      userName: 'chef1'
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+
+    await api.getCurrentUser();
+
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain('/api/users/me');
+    const requestInit = fetchSpy.mock.calls[0]?.[1] as RequestInit;
+    const headers = requestInit.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer token-abc');
+  });
+
   it('adds registration idempotency header with expected format', async () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.3245);
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true }), {

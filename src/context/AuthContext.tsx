@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { api, setApiTokenProvider } from '../services/api';
 import {
-  confirmEmailVerification,
   confirmForgotPassword as confirmForgotPasswordWithCognito,
   isExpiredSessionError,
   loginWithCognito,
@@ -45,6 +44,32 @@ const TOKEN_VALIDATION_CONFIG = {
   userPoolClientId: USER_POOL_CLIENT_ID,
   expectedIssuer: EXPECTED_ISSUER
 };
+
+function toAuthUser(payload: {
+  id: number;
+  userName: string;
+  email: string;
+  emailVerified: boolean;
+  accountStatus: string;
+  role: string;
+  profileImageUrl?: string;
+  cognitoSub: string;
+  allergies: string[];
+}): AuthUser {
+  return {
+    id: payload.id,
+    userName: payload.userName,
+    name: payload.userName,
+    email: payload.email,
+    emailVerified: payload.emailVerified,
+    accountStatus: payload.accountStatus,
+    role: payload.role,
+    profileImageUrl: payload.profileImageUrl,
+    cognitoSub: payload.cognitoSub,
+    allergies: payload.allergies,
+    userId: payload.cognitoSub
+  };
+}
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const bootstrappedSession = useMemo(
@@ -171,12 +196,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const login = useCallback(
     async (email: string, password: string) => {
       const data = await loginWithCognito(email, password);
-      const nextUser = { email: data.email, userId: data.userId, name: data.userName };
+      updateSession({ idToken: data.idToken, accessToken: data.accessToken, refreshToken: data.refreshToken ?? null });
 
-      updateSession(
-        { idToken: data.idToken, accessToken: data.accessToken, refreshToken: data.refreshToken ?? null },
-        nextUser
-      );
+      const profile = await api.getCurrentUser();
+      const nextUser = toAuthUser(profile);
+      setUser(nextUser);
+      persistUser(nextUser);
     },
     [updateSession]
   );
@@ -190,13 +215,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
     });
   }, []);
 
-  const verifyEmail = useCallback(
-    async (email: string, code: string, password: string) => {
-      await confirmEmailVerification(email, code);
-      await login(email, password);
-    },
-    [login]
-  );
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    await api.verifyEmail({ email, code });
+  }, []);
 
   const resendVerificationCode = useCallback(async (email: string) => {
     await resendEmailVerificationCode(email);
