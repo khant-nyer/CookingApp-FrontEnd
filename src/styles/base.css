@@ -712,6 +712,10 @@ button:disabled {
     box-shadow: none;
   }
 
+  .sidebar.collapsed .brand-icon {
+    margin-left: 0;
+  }
+
   .content-shell {
     margin-left: 72px;
     padding: 0.9rem;

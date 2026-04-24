@@ -222,8 +222,10 @@ export default function App() {
 
         {activeTab === 'settings' ? (
           <SettingsPage
+            id={user?.id}
             userName={user?.userName || user?.name || user?.email?.split('@')[0] || 'Chef User'}
             email={user?.email || 'chef@example.com'}
+            cognitoSub={user?.cognitoSub}
             accountStatus={user?.accountStatus}
             role={user?.role}
             profileImageUrl={user?.profileImageUrl}
