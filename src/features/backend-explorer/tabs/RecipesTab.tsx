@@ -17,6 +17,7 @@ interface RecipesTabProps {
   onPageChange: (page: number) => void;
   loading: boolean;
   onDeleteRecipe: (recipe: Recipe) => void;
+  allergyAlertText?: string;
 }
 
 function RecipesTab({
@@ -32,7 +33,8 @@ function RecipesTab({
   pagination,
   onPageChange,
   loading,
-  onDeleteRecipe
+  onDeleteRecipe,
+  allergyAlertText
 }: RecipesTabProps) {
   const filteredRecipes = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -66,6 +68,7 @@ function RecipesTab({
       {selectedRecipe ? (
         <TextDetail
           title={`${selectedRecipe.foodName || 'Recipe'} ${selectedRecipe.version ? `(${selectedRecipe.version})` : ''}`}
+          alertText={allergyAlertText}
           fields={[{ label: 'Food', value: selectedRecipe.foodName }, { label: 'Version', value: selectedRecipe.version }, { label: 'Description', value: selectedRecipe.description }]}
           sections={[
             { title: 'Ingredients', items: (selectedRecipe.ingredients || []).map((item) => `${item.ingredientName || item.ingredientId}: ${item.quantity} ${item.unit}${item.note ? ` (${item.note})` : ''}`) },
