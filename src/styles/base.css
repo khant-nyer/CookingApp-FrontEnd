@@ -78,13 +78,13 @@ select {
 }
 
 button {
-  background: linear-gradient(135deg, #ff8a1f 0%, #f97316 55%, #ea580c 100%);
+  background: #f97316;
   border: none;
   color: white;
   border-radius: 10px;
   padding: 0.6rem 0.8rem;
   cursor: pointer;
-  box-shadow: 0 6px 14px rgb(249 115 22 / 28%);
+  box-shadow: 0 6px 14px rgb(249 115 22 / 24%);
   transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
 
@@ -111,12 +111,27 @@ button:disabled {
 }
 
 .secondary {
-  background: linear-gradient(135deg, #ffbe85 0%, #fb923c 100%);
-  color: #7c2d12;
+  background: #fb923c;
+  color: #fff;
 }
 
 .danger {
-  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  background: #b91c1c;
+}
+
+.cancel-btn {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  box-shadow: none;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  transform: none;
+  filter: none;
+  background: #f3f4f6;
+  color: #374151;
+  box-shadow: none;
 }
 
 @media (max-width: 1080px) {
@@ -162,7 +177,7 @@ button:disabled {
   min-width: 2rem;
   min-height: 2rem;
   border-radius: 999px;
-  background: radial-gradient(circle at 35% 25%, #fff6ec 0%, #ffd4b5 45%, #fb923c 100%);
+  background: #fed7aa;
   border: 1px solid #f59e0b;
   color: #7c2d12;
   padding: 0.2rem;
@@ -322,6 +337,11 @@ button:disabled {
   align-items: center;
   gap: 0.65rem;
   margin-bottom: 0.75rem;
+}
+
+.development-notice {
+  margin: 0 0 0.5rem;
+  color: #7c2d12;
 }
 
 
