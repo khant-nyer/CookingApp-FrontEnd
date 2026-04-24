@@ -12,7 +12,13 @@ interface IconProps {
 }
 
 function MenuIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>;
+  return (
+    <img
+      src="https://cdn-icons-png.flaticon.com/512/7780/7780470.png"
+      alt="Chef hat menu icon"
+      className={className}
+    />
+  );
 }
 
 function ChefHatIcon({ className }: IconProps) {

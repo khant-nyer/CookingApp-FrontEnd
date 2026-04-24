@@ -266,6 +266,13 @@ button:disabled {
   box-shadow: 0 8px 20px rgb(255 106 0 / 32%);
 }
 
+.brand-icon .icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
 .brand-title {
   font-size: 1.85rem;
   font-weight: 700;
