@@ -245,7 +245,7 @@ button:disabled {
 }
 
 .sidebar.collapsed .brand-icon {
-  margin-left: 0.35rem;
+  margin-left: 0;
 }
 
 .sidebar-head {
@@ -309,8 +309,14 @@ button:disabled {
 }
 
 .sidebar-link .icon {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  display: block;
+}
+
+.sidebar-link img.icon {
+  filter: brightness(0) saturate(100%);
 }
 
 .sidebar-link.active {
@@ -323,6 +329,13 @@ button:disabled {
   background: #f97316;
   color: #fff;
   box-shadow: none;
+}
+
+
+.sidebar-link.active img.icon,
+.sidebar-link:hover:not(:disabled) img.icon,
+.sidebar-link:focus-visible img.icon {
+  filter: brightness(0) saturate(100%) invert(1);
 }
 
 .muted-link {
@@ -343,6 +356,10 @@ button:disabled {
 .sidebar.collapsed .brand-title,
 .sidebar.collapsed .sidebar-link span {
   display: none;
+}
+
+.sidebar.collapsed .sidebar-head {
+  justify-content: center;
 }
 
 .sidebar.collapsed .sidebar-link {
@@ -590,18 +607,19 @@ button:disabled {
 }
 
 .dashboard-card-icon {
-  width: 58px;
-  height: 58px;
+  width: 76px;
+  height: 76px;
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: #fff3ea;
-  color: #ff6a00;
 }
 
 .dashboard-card-icon .icon {
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  padding: 0;
 }
 
 
@@ -639,7 +657,7 @@ button:disabled {
   gap: 0.8rem;
 }
 
-.dashboard-list-card li img {
+.dashboard-list-card li > img {
   width: 56px;
   height: 56px;
   border-radius: 12px;
@@ -659,8 +677,11 @@ button:disabled {
 }
 
 .dashboard-list-card .dashboard-list-icon .icon {
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  padding: 7px;
 }
 
 .dashboard-list-card li div {

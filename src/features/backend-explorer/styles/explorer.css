@@ -451,6 +451,46 @@
   color: #b91c1c;
 }
 
+.allergy-warning {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.allergy-warning-toggle {
+  width: auto;
+  height: auto;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  background: transparent;
+  color: #b91c1c;
+  border: 0;
+  box-shadow: none;
+}
+
+.allergy-warning-toggle .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.dashboard-list-card .allergy-warning {
+  justify-items: center;
+}
+
+.allergy-warning-dashboard .allergy-warning-message {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-4px);
+  transition: max-height 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.allergy-warning-dashboard .allergy-warning-message.revealed {
+  max-height: 72px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .detail-section {
   margin-top: 0.25rem;
 }
