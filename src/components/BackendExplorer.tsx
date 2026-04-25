@@ -18,16 +18,29 @@ interface IconProps {
   className?: string;
 }
 
+interface ImageIconProps extends IconProps {
+  src: string;
+  fallbackSrc: string;
+}
+
+function ImageIcon({ className, src, fallbackSrc }: ImageIconProps) {
+  return (
+    <img
+      src={src}
+      alt=""
+      className={className}
+      aria-hidden
+      onError={(event) => {
+        if (event.currentTarget.src !== fallbackSrc) {
+          event.currentTarget.src = fallbackSrc;
+        }
+      }}
+    />
+  );
+}
+
 function ChefHatIcon({ className }: IconProps) {
-  return <img src={iconAssets.recipe} alt="" className={className} aria-hidden />;
-}
-
-function BowlIcon({ className }: IconProps) {
-  return <img src={iconAssets.food} alt="" className={className} aria-hidden />;
-}
-
-function UtensilsIcon({ className }: IconProps) {
-  return <img src={iconAssets.ingredient} alt="" className={className} aria-hidden />;
+  return <ImageIcon src={iconAssets.recipe} fallbackSrc={iconAssets.recipeSummaryFallback} className={className} />;
 }
 
 function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
@@ -40,6 +53,18 @@ function DashboardCard({ title, total, icon }: { title: string; total: number; i
       <span className="dashboard-card-icon" aria-hidden>{icon}</span>
     </article>
   );
+}
+
+function FoodSummaryAnimatedIcon({ className }: IconProps) {
+  return <ImageIcon src={iconAssets.foodSummaryAnimated} fallbackSrc={iconAssets.foodSummaryFallback} className={className} />;
+}
+
+function IngredientSummaryAnimatedIcon({ className }: IconProps) {
+  return <ImageIcon src={iconAssets.ingredientSummaryAnimated} fallbackSrc={iconAssets.ingredientSummaryFallback} className={className} />;
+}
+
+function RecipeSummaryAnimatedIcon({ className }: IconProps) {
+  return <ImageIcon src={iconAssets.recipeSummaryAnimated} fallbackSrc={iconAssets.recipeSummaryFallback} className={className} />;
 }
 
 function pickRecipeTitle(recipe: Recipe) {
@@ -230,9 +255,9 @@ export default function BackendExplorer({
         <section className="dashboard-layout">
           <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
           <div className="dashboard-cards">
-            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
-            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />
-            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} />
+            <DashboardCard title="Total Foods" total={totalFoods} icon={<FoodSummaryAnimatedIcon className="icon" />} />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon={<IngredientSummaryAnimatedIcon className="icon" />} />
+            <DashboardCard title="Recipes" total={totalRecipes} icon={<RecipeSummaryAnimatedIcon className="icon" />} />
           </div>
 
           <div className="dashboard-lists">
