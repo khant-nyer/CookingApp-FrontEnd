@@ -11,6 +11,7 @@ import IngredientsTab from '../features/backend-explorer/tabs/IngredientsTab';
 import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
+import { AllergyWarningToggle } from '../features/backend-explorer/shared/ExplorerShared';
 
 interface IconProps {
   className?: string;
@@ -246,6 +247,13 @@ export default function BackendExplorer({
                       <strong>{pickRecipeTitle(recipe)}</strong>
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
+                    <AllergyWarningToggle
+                      alertText={buildAllergyAwarenessText([
+                        recipe.foodName,
+                        recipe.description,
+                        ...(recipe.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
+                      ])}
+                    />
                     <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
                   </li>
                 ))}
@@ -266,6 +274,13 @@ export default function BackendExplorer({
                       <strong>{food.name || 'Unnamed food'}</strong>
                       <span>{food.category || 'No category'}</span>
                     </div>
+                    <AllergyWarningToggle
+                      alertText={buildAllergyAwarenessText([
+                        food.name,
+                        food.category,
+                        ...(food.recipes || []).map((recipe) => recipe.name)
+                      ])}
+                    />
                   </li>
                 ))}
                 {!latestFoods.length && <li>No foods yet.</li>}

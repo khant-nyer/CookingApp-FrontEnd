@@ -75,11 +75,44 @@ interface TextDetailProps {
   onUpdate?: () => void;
 }
 
+interface WarningIconProps {
+  className?: string;
+}
+
+export function WarningIcon({ className }: WarningIconProps) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.3 3.9 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><line x1="12" y1="9" x2="12" y2="13" /><circle cx="12" cy="17" r="1" /></svg>;
+}
+
+interface AllergyWarningToggleProps {
+  alertText?: string;
+}
+
+export function AllergyWarningToggle({ alertText }: AllergyWarningToggleProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!alertText) return null;
+
+  return (
+    <div className="allergy-warning">
+      <button
+        type="button"
+        className="allergy-warning-toggle"
+        aria-expanded={isOpen}
+        aria-label={isOpen ? 'Hide allergy warning' : 'Show allergy warning'}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        <WarningIcon className="icon" />
+      </button>
+      {isOpen ? <p className="detail-alert-text">{alertText}</p> : null}
+    </div>
+  );
+}
+
 export function TextDetail({ title, imageUrl, alertText, fields = [], sections = [], onDelete, onUpdate }: TextDetailProps) {
   return (
     <div className="card detail-card">
       <h3>{title}</h3>
-      {alertText ? <p className="detail-alert-text">{alertText}</p> : null}
+      <AllergyWarningToggle alertText={alertText} />
       {imageUrl ? (
         <img src={imageUrl} alt={title} className="detail-image" />
       ) : null}
