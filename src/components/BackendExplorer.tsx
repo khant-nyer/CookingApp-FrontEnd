@@ -22,14 +22,6 @@ function ChefHatIcon({ className }: IconProps) {
   return <img src={iconAssets.recipe} alt="" className={className} aria-hidden />;
 }
 
-function BowlIcon({ className }: IconProps) {
-  return <img src={iconAssets.food} alt="" className={className} aria-hidden />;
-}
-
-function UtensilsIcon({ className }: IconProps) {
-  return <img src={iconAssets.ingredient} alt="" className={className} aria-hidden />;
-}
-
 function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
   return (
     <article className="dashboard-card">
@@ -40,6 +32,18 @@ function DashboardCard({ title, total, icon }: { title: string; total: number; i
       <span className="dashboard-card-icon" aria-hidden>{icon}</span>
     </article>
   );
+}
+
+function FoodSummaryAnimatedIcon({ className }: IconProps) {
+  return <img src={iconAssets.foodSummaryAnimated} alt="" className={className} aria-hidden />;
+}
+
+function IngredientSummaryAnimatedIcon({ className }: IconProps) {
+  return <img src={iconAssets.ingredientSummaryAnimated} alt="" className={className} aria-hidden />;
+}
+
+function RecipeSummaryAnimatedIcon({ className }: IconProps) {
+  return <img src={iconAssets.recipeSummaryAnimated} alt="" className={className} aria-hidden />;
 }
 
 function pickRecipeTitle(recipe: Recipe) {
@@ -230,9 +234,9 @@ export default function BackendExplorer({
         <section className="dashboard-layout">
           <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
           <div className="dashboard-cards">
-            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
-            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />
-            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} />
+            <DashboardCard title="Total Foods" total={totalFoods} icon={<FoodSummaryAnimatedIcon className="icon" />} />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon={<IngredientSummaryAnimatedIcon className="icon" />} />
+            <DashboardCard title="Recipes" total={totalRecipes} icon={<RecipeSummaryAnimatedIcon className="icon" />} />
           </div>
 
           <div className="dashboard-lists">
