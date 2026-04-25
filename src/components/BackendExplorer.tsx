@@ -248,6 +248,7 @@ export default function BackendExplorer({
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
                     <AllergyWarningToggle
+                      variant="dashboard"
                       alertText={buildAllergyAwarenessText([
                         recipe.foodName,
                         recipe.description,
@@ -275,6 +276,7 @@ export default function BackendExplorer({
                       <span>{food.category || 'No category'}</span>
                     </div>
                     <AllergyWarningToggle
+                      variant="dashboard"
                       alertText={buildAllergyAwarenessText([
                         food.name,
                         food.category,
