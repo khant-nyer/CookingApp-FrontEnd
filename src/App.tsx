@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
@@ -81,6 +82,10 @@ const pageSubheaderByTab: Record<AppTabKey, string> = {
   settings: 'Manage your profile and preference settings.'
 };
 
+const STARTUP_VIDEO_URL = 'https://pixabay.com/videos/kitchen-food-preparation-delicious-337140/';
+const VIDEO_HOLD_MS = 2300;
+const ZOOM_DURATION_MS = 900;
+
 export default function App() {
   const {
     isAuthenticated,
@@ -100,6 +105,15 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<AppTabKey>('dashboard');
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [showStartupIntro, setShowStartupIntro] = useState(true);
+  const [isStartupZooming, setIsStartupZooming] = useState(false);
+  const [isStartupVideoBlocked, setIsStartupVideoBlocked] = useState(false);
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    height: typeof window !== 'undefined' ? window.innerHeight : 720
+  }));
+  const [brandIconRect, setBrandIconRect] = useState<DOMRect | null>(null);
+  const brandIconRef = useRef<HTMLButtonElement | null>(null);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
 
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
@@ -120,6 +134,56 @@ export default function App() {
 
     return () => mediaQuery.removeEventListener('change', updateMobileLayout);
   }, []);
+
+  useEffect(() => {
+    if (!showStartupIntro || typeof window === 'undefined') return undefined;
+
+    const startZoomTimer = window.setTimeout(() => {
+      setIsStartupZooming(true);
+    }, VIDEO_HOLD_MS);
+    const finishIntroTimer = window.setTimeout(() => {
+      setShowStartupIntro(false);
+      setIsStartupZooming(false);
+    }, VIDEO_HOLD_MS + ZOOM_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(startZoomTimer);
+      window.clearTimeout(finishIntroTimer);
+    };
+  }, [showStartupIntro]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const updateViewport = () => {
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
+
+  useEffect(() => {
+    if (!showStartupIntro || typeof window === 'undefined') return undefined;
+
+    const updateBrandIconRect = () => {
+      const rect = brandIconRef.current?.getBoundingClientRect();
+      setBrandIconRect(rect ?? null);
+    };
+
+    updateBrandIconRect();
+    window.addEventListener('resize', updateBrandIconRect);
+    window.addEventListener('scroll', updateBrandIconRect, true);
+
+    return () => {
+      window.removeEventListener('resize', updateBrandIconRect);
+      window.removeEventListener('scroll', updateBrandIconRect, true);
+    };
+  }, [showStartupIntro, isSidebarCollapsed]);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -158,6 +222,7 @@ export default function App() {
             className="brand-icon"
             aria-label="Toggle sidebar"
             onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+            ref={brandIconRef}
           >
             <MenuIcon className="icon" />
           </button>
@@ -280,6 +345,52 @@ export default function App() {
           </section>
         </div>
       ) : null}
+
+      <AnimatePresence>
+        {showStartupIntro ? (
+          <motion.div
+            className="startup-intro-backdrop"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+          >
+            <motion.div
+              className="startup-intro-stage"
+              initial={{ x: 0, y: 0, scaleX: 1, scaleY: 1, borderRadius: 0 }}
+              animate={isStartupZooming ? {
+                x: ((brandIconRect?.left ?? 24) + (brandIconRect?.width ?? 48) / 2) - viewport.width / 2,
+                y: ((brandIconRect?.top ?? 24) + (brandIconRect?.height ?? 48) / 2) - viewport.height / 2,
+                scaleX: (brandIconRect?.width ?? 48) / viewport.width,
+                scaleY: (brandIconRect?.height ?? 48) / viewport.height,
+                borderRadius: 14
+              } : {
+                x: 0,
+                y: 0,
+                scaleX: 1,
+                scaleY: 1,
+                borderRadius: 0
+              }}
+              transition={{ duration: ZOOM_DURATION_MS / 1000, ease: [0.2, 0.65, 0.1, 1] }}
+              style={{ width: viewport.width, height: viewport.height }}
+            >
+              {!isStartupVideoBlocked ? (
+                <iframe
+                  className="startup-intro-media"
+                  title="Kitchen preparation intro video"
+                  src={STARTUP_VIDEO_URL}
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  onError={() => setIsStartupVideoBlocked(true)}
+                />
+              ) : (
+                <div className="startup-intro-fallback">
+                  <img src={iconAssets.menuChefHat} alt="" aria-hidden />
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </main>
   );
 }

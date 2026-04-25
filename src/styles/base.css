@@ -226,6 +226,45 @@ button:disabled {
   overflow: hidden;
 }
 
+.startup-intro-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  pointer-events: none;
+}
+
+.startup-intro-stage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgb(2 6 23 / 35%);
+  transform-origin: center;
+  background: #0f172a;
+}
+
+.startup-intro-media {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.startup-intro-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 25% 20%, rgb(251 146 60 / 28%), transparent 55%),
+    radial-gradient(circle at 78% 80%, rgb(249 115 22 / 38%), transparent 48%),
+    linear-gradient(135deg, #10211f 0%, #0b2b55 100%);
+}
+
+.startup-intro-fallback img {
+  width: clamp(88px, 15vw, 180px);
+  filter: brightness(0) invert(1);
+}
+
 .sidebar {
   width: 280px;
   background: #ffffff;
