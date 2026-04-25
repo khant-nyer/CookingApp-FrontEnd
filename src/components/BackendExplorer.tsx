@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
@@ -26,6 +26,32 @@ function BowlIcon({ className }: IconProps) {
 
 function UtensilsIcon({ className }: IconProps) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 3v7a3 3 0 0 0 3 3v8" /><path d="M7 3v7" /><path d="M10 3v7" /><path d="M15 3l5 5-3 3-5-5" /><path d="M13 11l-3 3" /><path d="M17 14l4 4" /></svg>;
+}
+
+function WarningIcon({ className }: IconProps) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.3 3.9 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><line x1="12" y1="9" x2="12" y2="13" /><circle cx="12" cy="17" r="1" /></svg>;
+}
+
+function DashboardAllergyAlert({ alertText }: { alertText?: string }) {
+  const [revealed, setRevealed] = useState(false);
+
+  if (!alertText) return null;
+
+  return (
+    <div className={revealed ? 'dashboard-allergy dashboard-allergy-revealed' : 'dashboard-allergy'}>
+      {!revealed ? (
+        <button
+          type="button"
+          className="dashboard-allergy-trigger"
+          aria-label="Show allergy warning"
+          onClick={() => setRevealed(true)}
+        >
+          <WarningIcon className="icon" />
+        </button>
+      ) : null}
+      <p className={revealed ? 'dashboard-allergy-text visible' : 'dashboard-allergy-text'}>{alertText}</p>
+    </div>
+  );
 }
 
 function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
@@ -246,6 +272,13 @@ export default function BackendExplorer({
                       <strong>{pickRecipeTitle(recipe)}</strong>
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
+                    <DashboardAllergyAlert
+                      alertText={buildAllergyAwarenessText([
+                        recipe.foodName,
+                        recipe.description,
+                        ...(recipe.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
+                      ])}
+                    />
                     <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
                   </li>
                 ))}
@@ -266,6 +299,13 @@ export default function BackendExplorer({
                       <strong>{food.name || 'Unnamed food'}</strong>
                       <span>{food.category || 'No category'}</span>
                     </div>
+                    <DashboardAllergyAlert
+                      alertText={buildAllergyAwarenessText([
+                        food.name,
+                        food.category,
+                        ...(food.recipes || []).map((recipe) => recipe.name)
+                      ])}
+                    />
                   </li>
                 ))}
                 {!latestFoods.length && <li>No foods yet.</li>}
