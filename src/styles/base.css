@@ -311,6 +311,8 @@ button:disabled {
 .sidebar-link .icon {
   width: 22px;
   height: 22px;
+  object-fit: contain;
+  display: block;
 }
 
 .sidebar-link.active {
@@ -600,8 +602,11 @@ button:disabled {
 }
 
 .dashboard-card-icon .icon {
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  padding: 8px;
 }
 
 
@@ -639,7 +644,7 @@ button:disabled {
   gap: 0.8rem;
 }
 
-.dashboard-list-card li img {
+.dashboard-list-card li > img {
   width: 56px;
   height: 56px;
   border-radius: 12px;
@@ -659,8 +664,11 @@ button:disabled {
 }
 
 .dashboard-list-card .dashboard-list-icon .icon {
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  padding: 7px;
 }
 
 .dashboard-list-card li div {

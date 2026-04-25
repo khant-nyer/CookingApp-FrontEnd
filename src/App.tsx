@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
+import { iconAssets } from './components/iconAssets';
 import SettingsPage from './components/SettingsPage';
 import SessionExpiryModal from './components/SessionExpiryModal';
 import { useAuth } from './context/useAuth';
@@ -14,15 +15,11 @@ interface IconProps {
 function MenuIcon({ className }: IconProps) {
   return (
     <img
-      src="https://cdn-icons-png.flaticon.com/512/7780/7780470.png"
+      src={iconAssets.menuChefHat}
       alt="Chef hat menu icon"
       className={className}
     />
   );
-}
-
-function ChefHatIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6.8 10.2A4.5 4.5 0 0 1 8 2a5.8 5.8 0 0 1 4 1.7A5.8 5.8 0 0 1 16 2a4.5 4.5 0 0 1 1.2 8.2" /><path d="M4 10h16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4z" /><line x1="7" y1="20" x2="17" y2="20" /></svg>;
 }
 
 function GridIcon({ className }: IconProps) {
@@ -30,15 +27,19 @@ function GridIcon({ className }: IconProps) {
 }
 
 function BowlIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 13h16a8 8 0 0 1-16 0z" /><path d="M9 9c.4-1.3 1.4-2.2 3-2.5" /><path d="M14.5 7c1 .1 1.8.6 2.3 1.6" /><line x1="12" y1="3" x2="12" y2="6" /></svg>;
+  return <img src={iconAssets.sidebarMeal} alt="" className={className} aria-hidden />;
 }
 
 function UtensilsIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 3v7a3 3 0 0 0 3 3v8" /><path d="M7 3v7" /><path d="M10 3v7" /><path d="M15 3l5 5-3 3-5-5" /><path d="M13 11l-3 3" /><path d="M17 14l4 4" /></svg>;
+  return <img src={iconAssets.sidebarMeal} alt="" className={className} aria-hidden />;
+}
+
+function ChefHatIcon({ className }: IconProps) {
+  return <img src={iconAssets.sidebarMeal} alt="" className={className} aria-hidden />;
 }
 
 function FlaskIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 2v6l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V2" /><path d="M8 13h8" /></svg>;
+  return <img src={iconAssets.sidebarMeal} alt="" className={className} aria-hidden />;
 }
 
 function LogoutIcon({ className }: IconProps) {

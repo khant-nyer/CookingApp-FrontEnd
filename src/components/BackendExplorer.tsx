@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
+import { iconAssets } from './iconAssets';
 import CreateEntityModal from '../features/backend-explorer/modals/CreateEntityModal';
 import DeleteConfirmModal from '../features/backend-explorer/modals/DeleteConfirmModal';
 import UpdateEntityModal from '../features/backend-explorer/modals/UpdateEntityModal';
@@ -18,15 +19,27 @@ interface IconProps {
 }
 
 function ChefHatIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6.8 10.2A4.5 4.5 0 0 1 8 2a5.8 5.8 0 0 1 4 1.7A5.8 5.8 0 0 1 16 2a4.5 4.5 0 0 1 1.2 8.2" /><path d="M4 10h16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4z" /><line x1="7" y1="20" x2="17" y2="20" /></svg>;
+  return <img src={iconAssets.sidebarMeal} alt="" className={className} aria-hidden />;
 }
 
 function BowlIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 13h16a8 8 0 0 1-16 0z" /><path d="M9 9c.4-1.3 1.4-2.2 3-2.5" /><path d="M14.5 7c1 .1 1.8.6 2.3 1.6" /><line x1="12" y1="3" x2="12" y2="6" /></svg>;
+  return <img src={iconAssets.sidebarMeal} alt="" className={className} aria-hidden />;
 }
 
 function UtensilsIcon({ className }: IconProps) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 3v7a3 3 0 0 0 3 3v8" /><path d="M7 3v7" /><path d="M10 3v7" /><path d="M15 3l5 5-3 3-5-5" /><path d="M13 11l-3 3" /><path d="M17 14l4 4" /></svg>;
+  return <img src={iconAssets.sidebarMeal} alt="" className={className} aria-hidden />;
+}
+
+function SummaryFoodIcon({ className }: IconProps) {
+  return <img src={iconAssets.summaryFood} alt="" className={className} aria-hidden />;
+}
+
+function SummaryIngredientIcon({ className }: IconProps) {
+  return <img src={iconAssets.summaryIngredient} alt="" className={className} aria-hidden />;
+}
+
+function SummaryRecipeIcon({ className }: IconProps) {
+  return <img src={iconAssets.summaryRecipe} alt="" className={className} aria-hidden />;
 }
 
 function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
@@ -229,9 +242,9 @@ export default function BackendExplorer({
         <section className="dashboard-layout">
           <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
           <div className="dashboard-cards">
-            <DashboardCard title="Total Foods" total={totalFoods} icon={<BowlIcon className="icon" />} />
-            <DashboardCard title="Ingredients" total={totalIngredients} icon={<UtensilsIcon className="icon" />} />
-            <DashboardCard title="Recipes" total={totalRecipes} icon={<ChefHatIcon className="icon" />} />
+            <DashboardCard title="Total Foods" total={totalFoods} icon={<SummaryFoodIcon className="icon" />} />
+            <DashboardCard title="Ingredients" total={totalIngredients} icon={<SummaryIngredientIcon className="icon" />} />
+            <DashboardCard title="Recipes" total={totalRecipes} icon={<SummaryRecipeIcon className="icon" />} />
           </div>
 
           <div className="dashboard-lists">
@@ -248,6 +261,7 @@ export default function BackendExplorer({
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
                     <AllergyWarningToggle
+                      variant="dashboard"
                       alertText={buildAllergyAwarenessText([
                         recipe.foodName,
                         recipe.description,
@@ -275,6 +289,7 @@ export default function BackendExplorer({
                       <span>{food.category || 'No category'}</span>
                     </div>
                     <AllergyWarningToggle
+                      variant="dashboard"
                       alertText={buildAllergyAwarenessText([
                         food.name,
                         food.category,
