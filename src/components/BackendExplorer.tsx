@@ -11,6 +11,7 @@ import IngredientsTab from '../features/backend-explorer/tabs/IngredientsTab';
 import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
 import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
+import { AllergyWarningToggle } from '../features/backend-explorer/shared/ExplorerShared';
 
 interface IconProps {
   className?: string;
