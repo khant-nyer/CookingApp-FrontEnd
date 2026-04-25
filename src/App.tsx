@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
 import { iconAssets } from './components/iconAssets';
@@ -11,6 +12,10 @@ import type { TabKey } from './features/backend-explorer/types';
 interface IconProps {
   className?: string;
 }
+
+type IntroStage = 'video' | 'zoom' | 'done';
+
+const STARTUP_VIDEO_URL = 'https://cdn.pixabay.com/video/2025/06/17/337140_large.mp4';
 
 function MenuIcon({ className }: IconProps) {
   return (
@@ -92,6 +97,11 @@ export default function App() {
     extendSession
   } = useAuth();
 
+  const shouldReduceMotion = useReducedMotion();
+  const brandIconRef = useRef<HTMLButtonElement>(null);
+  const [introStage, setIntroStage] = useState<IntroStage>('video');
+  const [introViewport, setIntroViewport] = useState({ width: 0, height: 0 });
+  const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -104,6 +114,26 @@ export default function App() {
 
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
 
+  const captureIntroFrame = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    setIntroViewport({ width: window.innerWidth, height: window.innerHeight });
+
+    const rect = brandIconRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    setIntroTargetRect({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    captureIntroFrame();
+  }, [captureIntroFrame]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -113,13 +143,32 @@ export default function App() {
       const matches = event ? event.matches : mediaQuery.matches;
       setIsMobileView(matches);
       if (matches) setIsSidebarCollapsed(true);
+      captureIntroFrame();
     };
 
     updateMobileLayout();
+    window.addEventListener('resize', captureIntroFrame);
     mediaQuery.addEventListener('change', updateMobileLayout);
 
-    return () => mediaQuery.removeEventListener('change', updateMobileLayout);
-  }, []);
+    return () => {
+      window.removeEventListener('resize', captureIntroFrame);
+      mediaQuery.removeEventListener('change', updateMobileLayout);
+    };
+  }, [captureIntroFrame]);
+
+  function finishIntro() {
+    setIntroStage('done');
+  }
+
+  function triggerIntroZoom() {
+    if (shouldReduceMotion) {
+      finishIntro();
+      return;
+    }
+
+    captureIntroFrame();
+    setIntroStage('zoom');
+  }
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -154,6 +203,7 @@ export default function App() {
       <aside className={isSidebarCollapsed ? 'sidebar collapsed' : 'sidebar'}>
         <div className="sidebar-head">
           <button
+            ref={brandIconRef}
             type="button"
             className="brand-icon"
             aria-label="Toggle sidebar"
@@ -248,6 +298,49 @@ export default function App() {
           />
         )}
       </section>
+
+      {introStage !== 'done' ? (
+        <motion.div
+          className="startup-splash"
+          initial={false}
+          animate={introStage === 'video' ? {
+            top: 0,
+            left: 0,
+            width: introViewport.width,
+            height: introViewport.height,
+            borderRadius: 0,
+            boxShadow: '0 0 0 rgba(0,0,0,0)'
+          } : {
+            top: introTargetRect.top,
+            left: introTargetRect.left,
+            width: introTargetRect.width,
+            height: introTargetRect.height,
+            borderRadius: 14,
+            boxShadow: '0 16px 30px rgba(0,0,0,0.26)'
+          }}
+          transition={introStage === 'zoom'
+            ? { type: 'spring', stiffness: 170, damping: 18, mass: 0.85 }
+            : { duration: 0.01 }}
+          onAnimationComplete={() => {
+            if (introStage === 'zoom') finishIntro();
+          }}
+          aria-hidden
+        >
+          <video
+            className="startup-video"
+            src={STARTUP_VIDEO_URL}
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            onEnded={triggerIntroZoom}
+            onError={finishIntro}
+          />
+          {introStage === 'video' ? (
+            <button type="button" className="startup-skip" onClick={triggerIntroZoom}>Skip intro</button>
+          ) : null}
+        </motion.div>
+      ) : null}
 
       {!isAuthenticated && isAuthModalOpen ? (
         <div className="modal-backdrop" role="presentation">
