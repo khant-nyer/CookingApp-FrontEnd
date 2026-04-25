@@ -85,25 +85,37 @@ export function WarningIcon({ className }: WarningIconProps) {
 
 interface AllergyWarningToggleProps {
   alertText?: string;
+  variant?: 'dashboard' | 'detail';
 }
 
-export function AllergyWarningToggle({ alertText }: AllergyWarningToggleProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyWarningToggleProps) {
+  const [isRevealed, setIsRevealed] = useState(false);
 
   if (!alertText) return null;
 
+  if (variant === 'detail') {
+    return (
+      <div className="allergy-warning allergy-warning-detail">
+        <p className="detail-alert-text">{alertText}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="allergy-warning">
-      <button
-        type="button"
-        className="allergy-warning-toggle"
-        aria-expanded={isOpen}
-        aria-label={isOpen ? 'Hide allergy warning' : 'Show allergy warning'}
-        onClick={() => setIsOpen((prev) => !prev)}
-      >
-        <WarningIcon className="icon" />
-      </button>
-      {isOpen ? <p className="detail-alert-text">{alertText}</p> : null}
+    <div className="allergy-warning allergy-warning-dashboard">
+      {!isRevealed ? (
+        <button
+          type="button"
+          className="allergy-warning-toggle"
+          aria-label="Show allergy warning"
+          onClick={() => setIsRevealed(true)}
+        >
+          <WarningIcon className="icon" />
+        </button>
+      ) : null}
+      <p className={isRevealed ? 'detail-alert-text allergy-warning-message revealed' : 'detail-alert-text allergy-warning-message'}>
+        {alertText}
+      </p>
     </div>
   );
 }
