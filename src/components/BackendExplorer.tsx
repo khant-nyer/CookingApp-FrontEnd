@@ -253,7 +253,7 @@ export default function BackendExplorer({
 
       {activeTab === 'dashboard' ? (
         <section className="dashboard-layout">
-          <p className="development-notice"><strong>This application is still under development, update is coming soon.</strong></p>
+          <p className="development-notice"><strong>App under development—update coming soon. All features are currently functional. Please create an account to explore. Hi recruiters: please message me on LinkedIn or via email for login credentials if you prefer not to sign up.</strong></p>
           <div className="dashboard-cards">
             <DashboardCard title="Total Foods" total={totalFoods} icon={<FoodSummaryAnimatedIcon className="icon" />} />
             <DashboardCard title="Ingredients" total={totalIngredients} icon={<IngredientSummaryAnimatedIcon className="icon" />} />
