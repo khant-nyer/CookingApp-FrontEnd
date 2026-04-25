@@ -309,10 +309,11 @@ button:disabled {
 }
 
 .sidebar-link .icon {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000);
 }
 
 .sidebar-link.active {
@@ -325,6 +326,13 @@ button:disabled {
   background: #f97316;
   color: #fff;
   box-shadow: none;
+}
+
+
+.sidebar-link.active .icon,
+.sidebar-link:hover:not(:disabled) .icon,
+.sidebar-link:focus-visible .icon {
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff);
 }
 
 .muted-link {
@@ -345,6 +353,10 @@ button:disabled {
 .sidebar.collapsed .brand-title,
 .sidebar.collapsed .sidebar-link span {
   display: none;
+}
+
+.sidebar.collapsed .sidebar-head {
+  justify-content: center;
 }
 
 .sidebar.collapsed .sidebar-link {
