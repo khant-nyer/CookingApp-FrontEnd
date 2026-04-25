@@ -15,7 +15,10 @@ interface IconProps {
 
 type IntroStage = 'video' | 'zoom' | 'done';
 
-const STARTUP_VIDEO_URL = 'https://cdn.pixabay.com/video/2025/06/17/337140_large.mp4';
+const STARTUP_VIDEO_SOURCES = [
+  'https://cdn.pixabay.com/video/2025/06/17/337140_large.mp4',
+  'https://cdn.coverr.co/videos/coverr-sizzling-pan-1579/1080p.mp4'
+] as const;
 
 function MenuIcon({ className }: IconProps) {
   return (
@@ -100,6 +103,8 @@ export default function App() {
   const shouldReduceMotion = useReducedMotion();
   const brandIconRef = useRef<HTMLButtonElement>(null);
   const [introStage, setIntroStage] = useState<IntroStage>('video');
+  const [introVideoIndex, setIntroVideoIndex] = useState(0);
+  const [isIntroVideoUnavailable, setIsIntroVideoUnavailable] = useState(false);
   const [introViewport, setIntroViewport] = useState({ width: 0, height: 0 });
   const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
@@ -168,6 +173,15 @@ export default function App() {
 
     captureIntroFrame();
     setIntroStage('zoom');
+  }
+
+  function onIntroVideoError() {
+    setIntroVideoIndex((previousIndex) => {
+      const hasNextSource = previousIndex < STARTUP_VIDEO_SOURCES.length - 1;
+      if (hasNextSource) return previousIndex + 1;
+      setIsIntroVideoUnavailable(true);
+      return previousIndex;
+    });
   }
 
   async function onExtendSession() {
@@ -328,15 +342,21 @@ export default function App() {
         >
           <video
             className="startup-video"
-            src={STARTUP_VIDEO_URL}
+            src={STARTUP_VIDEO_SOURCES[introVideoIndex]}
             autoPlay
             muted
             playsInline
             preload="auto"
             onEnded={triggerIntroZoom}
-            onError={finishIntro}
+            onError={onIntroVideoError}
           />
-          {introStage === 'video' ? (
+          {isIntroVideoUnavailable ? (
+            <div className="startup-video-fallback">
+              <p>Intro video is unavailable right now.</p>
+              <button type="button" className="startup-fallback-continue" onClick={triggerIntroZoom}>Continue</button>
+            </div>
+          ) : null}
+          {introStage === 'video' && !isIntroVideoUnavailable ? (
             <button type="button" className="startup-skip" onClick={triggerIntroZoom}>Skip intro</button>
           ) : null}
         </motion.div>
