@@ -22,14 +22,6 @@ function ChefHatIcon({ className }: IconProps) {
   return <img src={iconAssets.recipe} alt="" className={className} aria-hidden />;
 }
 
-function BowlIcon({ className }: IconProps) {
-  return <img src={iconAssets.food} alt="" className={className} aria-hidden />;
-}
-
-function UtensilsIcon({ className }: IconProps) {
-  return <img src={iconAssets.ingredient} alt="" className={className} aria-hidden />;
-}
-
 function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
   return (
     <article className="dashboard-card">
