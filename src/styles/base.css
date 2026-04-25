@@ -592,13 +592,11 @@ button:disabled {
 }
 
 .dashboard-card-icon {
-  width: 58px;
-  height: 58px;
+  width: 76px;
+  height: 76px;
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: #fff3ea;
-  color: #ff6a00;
 }
 
 .dashboard-card-icon .icon {
@@ -606,7 +604,7 @@ button:disabled {
   height: 100%;
   object-fit: contain;
   display: block;
-  padding: 8px;
+  padding: 0;
 }
 
 
