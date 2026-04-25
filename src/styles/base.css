@@ -783,3 +783,35 @@ button:disabled {
     max-width: 100%;
   }
 }
+
+.startup-splash {
+  position: fixed;
+  z-index: 1200;
+  overflow: hidden;
+  background: #000;
+}
+
+.startup-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.startup-skip {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  background: rgb(15 23 42 / 78%);
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 34%);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  box-shadow: none;
+}
+
+.startup-skip:hover:not(:disabled) {
+  transform: none;
+  filter: brightness(1.06);
+  box-shadow: none;
+}
