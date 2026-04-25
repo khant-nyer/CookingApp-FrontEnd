@@ -245,7 +245,7 @@ button:disabled {
 }
 
 .sidebar.collapsed .brand-icon {
-  margin-left: 0.35rem;
+  margin-left: 0;
 }
 
 .sidebar-head {
@@ -313,7 +313,10 @@ button:disabled {
   height: 26px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000);
+}
+
+.sidebar-link img.icon {
+  filter: brightness(0) saturate(100%);
 }
 
 .sidebar-link.active {
@@ -329,10 +332,10 @@ button:disabled {
 }
 
 
-.sidebar-link.active .icon,
-.sidebar-link:hover:not(:disabled) .icon,
-.sidebar-link:focus-visible .icon {
-  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff);
+.sidebar-link.active img.icon,
+.sidebar-link:hover:not(:disabled) img.icon,
+.sidebar-link:focus-visible img.icon {
+  filter: brightness(0) saturate(100%) invert(1);
 }
 
 .muted-link {
