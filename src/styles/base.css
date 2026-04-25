@@ -311,6 +311,8 @@ button:disabled {
 .sidebar-link .icon {
   width: 22px;
   height: 22px;
+  object-fit: contain;
+  display: block;
 }
 
 .sidebar-link.active {
@@ -602,6 +604,8 @@ button:disabled {
 .dashboard-card-icon .icon {
   width: 28px;
   height: 28px;
+  object-fit: contain;
+  display: block;
 }
 
 
@@ -661,6 +665,8 @@ button:disabled {
 .dashboard-list-card .dashboard-list-icon .icon {
   width: 28px;
   height: 28px;
+  object-fit: contain;
+  display: block;
 }
 
 .dashboard-list-card li div {
