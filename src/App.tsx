@@ -16,6 +16,7 @@ interface IconProps {
 type IntroStage = 'video' | 'zoom' | 'done';
 
 const STARTUP_LOTTIE_SOURCE = 'https://lottie.host/d89022a6-abe0-4609-90af-bfb256395a95/fB0RggP14C.lottie';
+const INTRO_PLAYED_STORAGE_KEY = 'cooking-app-intro-played';
 
 function MenuIcon({ className }: IconProps) {
   return <img src={iconAssets.menuChefHat} alt="" className={className} aria-hidden />;
@@ -94,7 +95,10 @@ export default function App() {
   const shouldReduceMotion = useReducedMotion();
   const brandIconRef = useRef<HTMLButtonElement>(null);
   const introAnimationRef = useRef<HTMLElement>(null);
-  const [introStage, setIntroStage] = useState<IntroStage>('video');
+  const [introStage, setIntroStage] = useState<IntroStage>(() => {
+    if (typeof window === 'undefined') return 'video';
+    return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true' ? 'done' : 'video';
+  });
   const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
   const introFallbackTimerRef = useRef<number | null>(null);
   const [introViewport, setIntroViewport] = useState({ width: 0, height: 0 });
@@ -154,6 +158,9 @@ export default function App() {
   }, [captureIntroFrame]);
 
   function finishIntro() {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(INTRO_PLAYED_STORAGE_KEY, 'true');
+    }
     setIntroStage('done');
   }
 
