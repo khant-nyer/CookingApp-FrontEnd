@@ -731,19 +731,46 @@ button:disabled {
 
   .sidebar {
     position: fixed;
-    left: 0;
-    top: 0;
+    left: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 40;
     width: min(280px, 82vw);
     min-width: 0;
+    height: auto;
+    max-height: calc(100vh - 1.2rem);
+    overflow-y: auto;
+    border-radius: 999px;
     box-shadow: 0 12px 32px rgb(15 23 42 / 24%);
+    transition: width 220ms ease, border-radius 220ms ease, box-shadow 220ms ease;
+  }
+
+  .sidebar-footer {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
   }
 
   .sidebar.collapsed {
     width: 72px;
     min-width: 72px;
-    padding-inline: 0.6rem;
-    box-shadow: none;
+    padding: 0.9rem 0.45rem;
+    border-radius: 999px;
+    box-shadow: 0 12px 24px rgb(15 23 42 / 16%);
+  }
+
+  .sidebar.collapsed .sidebar-head {
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .sidebar-nav,
+  .sidebar.collapsed .sidebar-footer {
+    gap: 0;
+  }
+
+  .sidebar.collapsed .sidebar-link {
+    border-radius: 999px;
+    min-height: 48px;
   }
 
   .sidebar.collapsed .brand-icon {
@@ -751,7 +778,7 @@ button:disabled {
   }
 
   .content-shell {
-    margin-left: 72px;
+    margin-left: 84px;
     padding: 0.9rem;
   }
 
