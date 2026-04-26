@@ -392,6 +392,9 @@ button:disabled {
 .sidebar.collapsed .sidebar-link {
   justify-content: center;
   padding-inline: 0;
+  gap: 0;
+  width: 52px;
+  align-self: center;
 }
 
 .content-shell {
