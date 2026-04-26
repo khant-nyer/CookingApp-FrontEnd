@@ -355,14 +355,16 @@ export default function App() {
             width: introViewport.width,
             height: introViewport.height,
             borderRadius: 0,
-            boxShadow: '0 0 0 rgba(0,0,0,0)'
+            boxShadow: '0 0 0 rgba(0,0,0,0)',
+            backgroundColor: '#ffffff'
           } : {
             top: introTargetRect.top,
             left: introTargetRect.left,
             width: introTargetRect.width,
             height: introTargetRect.height,
             borderRadius: 14,
-            boxShadow: '0 16px 30px rgba(0,0,0,0.26)'
+            boxShadow: '0 16px 30px rgba(0,0,0,0.26)',
+            backgroundColor: '#ff6a00'
           }}
           transition={introStage === 'zoom'
             ? { type: 'spring', stiffness: 170, damping: 18, mass: 0.85 }
