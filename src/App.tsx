@@ -15,19 +15,15 @@ interface IconProps {
 
 type IntroStage = 'video' | 'zoom' | 'done';
 
-const STARTUP_LOTTIE_SOURCES = [
-  'https://assets2.lottiefiles.com/packages/lf20_o11imak8ra.json',
-  'https://assets10.lottiefiles.com/packages/lf20_o11imak8ra.json',
-  'https://assets2.lottiefiles.com/packages/lf20_O11imAk8Ra.json'
-] as const;
+const STARTUP_LOTTIE_SOURCE = 'https://lottie.host/d89022a6-abe0-4609-90af-bfb256395a95/fB0RggP14C.lottie';
 
 function MenuIcon({ className }: IconProps) {
   return (
-    <img
-      src={iconAssets.menuChefHat}
-      alt="Chef hat menu icon"
-      className={className}
-    />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M7 11a3.6 3.6 0 0 1 0-7.2c.86 0 1.66.3 2.29.8a4.7 4.7 0 0 1 8.81 2.32A3.3 3.3 0 1 1 17 13H7a2.1 2.1 0 1 1 0-4.2" />
+      <path d="M8 13v2.2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V13" />
+      <path d="M9 20h6" />
+    </svg>
   );
 }
 
@@ -105,8 +101,8 @@ export default function App() {
   const brandIconRef = useRef<HTMLButtonElement>(null);
   const introAnimationRef = useRef<HTMLElement>(null);
   const [introStage, setIntroStage] = useState<IntroStage>('video');
-  const [introAnimationSourceIndex, setIntroAnimationSourceIndex] = useState(0);
   const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
+  const introFallbackTimerRef = useRef<number | null>(null);
   const [introViewport, setIntroViewport] = useState({ width: 0, height: 0 });
   const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
@@ -168,6 +164,11 @@ export default function App() {
   }
 
   const triggerIntroZoom = useCallback(() => {
+    if (introFallbackTimerRef.current !== null && typeof window !== 'undefined') {
+      window.clearTimeout(introFallbackTimerRef.current);
+      introFallbackTimerRef.current = null;
+    }
+
     if (shouldReduceMotion) {
       finishIntro();
       return;
@@ -177,19 +178,38 @@ export default function App() {
     setIntroStage('zoom');
   }, [captureIntroFrame, shouldReduceMotion]);
 
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const isLottieRegistered = Boolean(window.customElements.get('dotlottie-player'));
+    if (isLottieRegistered) return;
+
+    setIsIntroAnimationHidden(true);
+    introFallbackTimerRef.current = window.setTimeout(() => {
+      triggerIntroZoom();
+    }, 1200);
+
+    return () => {
+      if (introFallbackTimerRef.current !== null) {
+        window.clearTimeout(introFallbackTimerRef.current);
+        introFallbackTimerRef.current = null;
+      }
+    };
+  }, [triggerIntroZoom]);
+
   useEffect(() => {
     const animationElement = introAnimationRef.current;
     if (!animationElement) return;
 
     const onAnimationComplete = () => triggerIntroZoom();
     const onAnimationError = () => {
-      setIntroAnimationSourceIndex((previousIndex) => {
-        const hasNextSource = previousIndex < STARTUP_LOTTIE_SOURCES.length - 1;
-        if (hasNextSource) return previousIndex + 1;
-        setIsIntroAnimationHidden(true);
-        triggerIntroZoom();
-        return previousIndex;
-      });
+      setIsIntroAnimationHidden(true);
+      if (typeof window !== 'undefined') {
+        introFallbackTimerRef.current = window.setTimeout(() => {
+          triggerIntroZoom();
+        }, 1200);
+      }
     };
 
     animationElement.addEventListener('complete', onAnimationComplete);
@@ -198,6 +218,10 @@ export default function App() {
     return () => {
       animationElement.removeEventListener('complete', onAnimationComplete);
       animationElement.removeEventListener('error', onAnimationError);
+      if (introFallbackTimerRef.current !== null && typeof window !== 'undefined') {
+        window.clearTimeout(introFallbackTimerRef.current);
+        introFallbackTimerRef.current = null;
+      }
     };
   }, [triggerIntroZoom]);
 
@@ -358,10 +382,10 @@ export default function App() {
           aria-hidden
         >
           {!isIntroAnimationHidden ? (
-            <lottie-player
+            <dotlottie-player
               ref={introAnimationRef}
               className="startup-animation"
-              src={STARTUP_LOTTIE_SOURCES[introAnimationSourceIndex]}
+              src={STARTUP_LOTTIE_SOURCE}
               autoplay
             />
           ) : (
