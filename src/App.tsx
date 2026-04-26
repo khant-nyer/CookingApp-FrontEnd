@@ -15,7 +15,11 @@ interface IconProps {
 
 type IntroStage = 'video' | 'zoom' | 'done';
 
-const STARTUP_LOTTIE_SOURCE = 'https://assets2.lottiefiles.com/packages/lf20_O11imAk8Ra.json';
+const STARTUP_LOTTIE_SOURCES = [
+  'https://assets2.lottiefiles.com/packages/lf20_o11imak8ra.json',
+  'https://assets10.lottiefiles.com/packages/lf20_o11imak8ra.json',
+  'https://assets2.lottiefiles.com/packages/lf20_O11imAk8Ra.json'
+] as const;
 
 function MenuIcon({ className }: IconProps) {
   return (
@@ -101,6 +105,8 @@ export default function App() {
   const brandIconRef = useRef<HTMLButtonElement>(null);
   const introAnimationRef = useRef<HTMLElement>(null);
   const [introStage, setIntroStage] = useState<IntroStage>('video');
+  const [introAnimationSourceIndex, setIntroAnimationSourceIndex] = useState(0);
+  const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
   const [introViewport, setIntroViewport] = useState({ width: 0, height: 0 });
   const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
@@ -176,10 +182,22 @@ export default function App() {
     if (!animationElement) return;
 
     const onAnimationComplete = () => triggerIntroZoom();
+    const onAnimationError = () => {
+      setIntroAnimationSourceIndex((previousIndex) => {
+        const hasNextSource = previousIndex < STARTUP_LOTTIE_SOURCES.length - 1;
+        if (hasNextSource) return previousIndex + 1;
+        setIsIntroAnimationHidden(true);
+        triggerIntroZoom();
+        return previousIndex;
+      });
+    };
+
     animationElement.addEventListener('complete', onAnimationComplete);
+    animationElement.addEventListener('error', onAnimationError);
 
     return () => {
       animationElement.removeEventListener('complete', onAnimationComplete);
+      animationElement.removeEventListener('error', onAnimationError);
     };
   }, [triggerIntroZoom]);
 
@@ -339,12 +357,16 @@ export default function App() {
           }}
           aria-hidden
         >
-          <lottie-player
-            ref={introAnimationRef}
-            className="startup-animation"
-            src={STARTUP_LOTTIE_SOURCE}
-            autoplay
-          />
+          {!isIntroAnimationHidden ? (
+            <lottie-player
+              ref={introAnimationRef}
+              className="startup-animation"
+              src={STARTUP_LOTTIE_SOURCES[introAnimationSourceIndex]}
+              autoplay
+            />
+          ) : (
+            <div className="startup-animation startup-animation-fallback" />
+          )}
           {introStage === 'video' ? (
             <button type="button" className="startup-skip" onClick={triggerIntroZoom}>Skip intro</button>
           ) : null}
