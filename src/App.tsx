@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
 import { iconAssets } from './components/iconAssets';
@@ -12,14 +13,13 @@ interface IconProps {
   className?: string;
 }
 
+type IntroStage = 'video' | 'zoom' | 'done';
+
+const STARTUP_LOTTIE_SOURCE = 'https://lottie.host/d89022a6-abe0-4609-90af-bfb256395a95/fB0RggP14C.lottie';
+const INTRO_PLAYED_STORAGE_KEY = 'cooking-app-intro-played';
+
 function MenuIcon({ className }: IconProps) {
-  return (
-    <img
-      src={iconAssets.menuChefHat}
-      alt="Chef hat menu icon"
-      className={className}
-    />
-  );
+  return <img src={iconAssets.menuChefHat} alt="" className={className} aria-hidden />;
 }
 
 function GridIcon({ className }: IconProps) {
@@ -92,6 +92,16 @@ export default function App() {
     extendSession
   } = useAuth();
 
+  const shouldReduceMotion = useReducedMotion();
+  const brandIconRef = useRef<HTMLButtonElement>(null);
+  const introAnimationRef = useRef<HTMLElement>(null);
+  const [introStage, setIntroStage] = useState<IntroStage>(() => {
+    if (typeof window === 'undefined') return 'video';
+    return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true' ? 'done' : 'video';
+  });
+  const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
+  const introFallbackTimerRef = useRef<number | null>(null);
+  const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -104,6 +114,24 @@ export default function App() {
 
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
 
+  const captureIntroFrame = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const rect = brandIconRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    setIntroTargetRect({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    captureIntroFrame();
+  }, [captureIntroFrame]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -113,13 +141,84 @@ export default function App() {
       const matches = event ? event.matches : mediaQuery.matches;
       setIsMobileView(matches);
       if (matches) setIsSidebarCollapsed(true);
+      captureIntroFrame();
     };
 
     updateMobileLayout();
+    window.addEventListener('resize', captureIntroFrame);
     mediaQuery.addEventListener('change', updateMobileLayout);
 
-    return () => mediaQuery.removeEventListener('change', updateMobileLayout);
+    return () => {
+      window.removeEventListener('resize', captureIntroFrame);
+      mediaQuery.removeEventListener('change', updateMobileLayout);
+    };
+  }, [captureIntroFrame]);
+
+  function finishIntro() {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(INTRO_PLAYED_STORAGE_KEY, 'true');
+    }
+    setIntroStage('done');
+  }
+
+  const clearIntroFallbackTimer = useCallback(() => {
+    if (introFallbackTimerRef.current !== null && typeof window !== 'undefined') {
+      window.clearTimeout(introFallbackTimerRef.current);
+      introFallbackTimerRef.current = null;
+    }
   }, []);
+
+  const triggerIntroZoom = useCallback(() => {
+    clearIntroFallbackTimer();
+
+    if (shouldReduceMotion) {
+      finishIntro();
+      return;
+    }
+
+    captureIntroFrame();
+    setIntroStage('zoom');
+  }, [captureIntroFrame, clearIntroFallbackTimer, shouldReduceMotion]);
+
+  const scheduleIntroFallback = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    clearIntroFallbackTimer();
+    introFallbackTimerRef.current = window.setTimeout(() => {
+      triggerIntroZoom();
+    }, 1200);
+  }, [clearIntroFallbackTimer, triggerIntroZoom]);
+
+  useEffect(() => {
+    if (introStage !== 'video') return;
+
+    if (typeof window === 'undefined') return;
+
+    const animationElement = introAnimationRef.current;
+    const isLottieRegistered = Boolean(window.customElements.get('dotlottie-player'));
+
+    if (!isLottieRegistered || !animationElement) {
+      setIsIntroAnimationHidden(true);
+      scheduleIntroFallback();
+      return () => {
+        clearIntroFallbackTimer();
+      };
+    }
+
+    const onAnimationComplete = () => triggerIntroZoom();
+    const onAnimationError = () => {
+      setIsIntroAnimationHidden(true);
+      scheduleIntroFallback();
+    };
+
+    animationElement.addEventListener('complete', onAnimationComplete);
+    animationElement.addEventListener('error', onAnimationError);
+
+    return () => {
+      animationElement.removeEventListener('complete', onAnimationComplete);
+      animationElement.removeEventListener('error', onAnimationError);
+      clearIntroFallbackTimer();
+    };
+  }, [clearIntroFallbackTimer, introStage, scheduleIntroFallback, triggerIntroZoom]);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -154,6 +253,7 @@ export default function App() {
       <aside className={isSidebarCollapsed ? 'sidebar collapsed' : 'sidebar'}>
         <div className="sidebar-head">
           <button
+            ref={brandIconRef}
             type="button"
             className="brand-icon"
             aria-label="Toggle sidebar"
@@ -248,6 +348,51 @@ export default function App() {
           />
         )}
       </section>
+
+      {introStage !== 'done' ? (
+        <motion.div
+          className="startup-splash"
+          initial={false}
+          animate={introStage === 'video' ? {
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            borderRadius: 0,
+            boxShadow: '0 0 0 rgba(0,0,0,0)',
+            backgroundColor: '#ffffff'
+          } : {
+            top: introTargetRect.top,
+            left: introTargetRect.left,
+            width: introTargetRect.width,
+            height: introTargetRect.height,
+            borderRadius: 14,
+            boxShadow: '0 16px 30px rgba(0,0,0,0.26)',
+            backgroundColor: '#ff6a00'
+          }}
+          transition={introStage === 'zoom'
+            ? { type: 'spring', stiffness: 170, damping: 18, mass: 0.85 }
+            : { duration: 0.01 }}
+          onAnimationComplete={() => {
+            if (introStage === 'zoom') finishIntro();
+          }}
+          aria-hidden
+        >
+          {!isIntroAnimationHidden ? (
+            <dotlottie-player
+              ref={introAnimationRef}
+              className="startup-animation"
+              src={STARTUP_LOTTIE_SOURCE}
+              autoplay
+            />
+          ) : (
+            <div className="startup-animation startup-animation-fallback" />
+          )}
+          {introStage === 'video' ? (
+            <button type="button" className="startup-skip" onClick={triggerIntroZoom}>Skip intro</button>
+          ) : null}
+        </motion.div>
+      ) : null}
 
       {!isAuthenticated && isAuthModalOpen ? (
         <div className="modal-backdrop" role="presentation">
