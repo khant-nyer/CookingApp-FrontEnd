@@ -101,7 +101,6 @@ export default function App() {
   });
   const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
   const introFallbackTimerRef = useRef<number | null>(null);
-  const [introViewport, setIntroViewport] = useState({ width: 0, height: 0 });
   const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
@@ -117,8 +116,6 @@ export default function App() {
 
   const captureIntroFrame = useCallback(() => {
     if (typeof window === 'undefined') return;
-
-    setIntroViewport({ width: window.innerWidth, height: window.innerHeight });
 
     const rect = brandIconRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -359,8 +356,8 @@ export default function App() {
           animate={introStage === 'video' ? {
             top: 0,
             left: 0,
-            width: introViewport.width,
-            height: introViewport.height,
+            width: '100vw',
+            height: '100vh',
             borderRadius: 0,
             boxShadow: '0 0 0 rgba(0,0,0,0)',
             backgroundColor: '#ffffff'
