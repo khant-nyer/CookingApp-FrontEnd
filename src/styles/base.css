@@ -267,11 +267,13 @@ button:disabled {
 }
 
 .brand-icon .icon {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
+  object-position: center;
   display: block;
-  filter: brightness(0) invert(1);
+  color: #fff;
+  filter: none;
 }
 
 .brand-title {
@@ -788,14 +790,14 @@ button:disabled {
   position: fixed;
   z-index: 1200;
   overflow: hidden;
-  background: #000;
+  background: #fff;
 }
 
 .startup-animation {
   width: 100%;
   height: 100%;
   display: block;
-  background: radial-gradient(circle at 50% 20%, #111827 0%, #020617 100%);
+  background: #fff;
 }
 
 .startup-animation-fallback {
