@@ -100,6 +100,10 @@ export default function App() {
     return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true' ? 'done' : 'video';
   });
   const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
+  const [isLottieReady, setIsLottieReady] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return Boolean(window.customElements.get('dotlottie-player'));
+  });
   const introFallbackTimerRef = useRef<number | null>(null);
   const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
@@ -189,14 +193,27 @@ export default function App() {
   }, [clearIntroFallbackTimer, triggerIntroZoom]);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || isLottieReady) return;
+
+    let isCancelled = false;
+    window.customElements.whenDefined('dotlottie-player').then(() => {
+      if (isCancelled) return;
+      setIsLottieReady(true);
+      setIsIntroAnimationHidden(false);
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLottieReady]);
+
+  useEffect(() => {
     if (introStage !== 'video') return;
 
     if (typeof window === 'undefined') return;
 
     const animationElement = introAnimationRef.current;
-    const isLottieRegistered = Boolean(window.customElements.get('dotlottie-player'));
-
-    if (!isLottieRegistered || !animationElement) {
+    if (!isLottieReady || !animationElement) {
       setIsIntroAnimationHidden(true);
       scheduleIntroFallback();
       return () => {
@@ -218,7 +235,7 @@ export default function App() {
       animationElement.removeEventListener('error', onAnimationError);
       clearIntroFallbackTimer();
     };
-  }, [clearIntroFallbackTimer, introStage, scheduleIntroFallback, triggerIntroZoom]);
+  }, [clearIntroFallbackTimer, introStage, isLottieReady, scheduleIntroFallback, triggerIntroZoom]);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
