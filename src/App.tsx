@@ -18,13 +18,7 @@ type IntroStage = 'video' | 'zoom' | 'done';
 const STARTUP_LOTTIE_SOURCE = 'https://lottie.host/d89022a6-abe0-4609-90af-bfb256395a95/fB0RggP14C.lottie';
 
 function MenuIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
-      <path d="M7 11a3.6 3.6 0 0 1 0-7.2c.86 0 1.66.3 2.29.8a4.7 4.7 0 0 1 8.81 2.32A3.3 3.3 0 1 1 17 13H7a2.1 2.1 0 1 1 0-4.2" />
-      <path d="M8 13v2.2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V13" />
-      <path d="M9 20h6" />
-    </svg>
-  );
+  return <img src={iconAssets.menuChefHat} alt="" className={className} aria-hidden />;
 }
 
 function GridIcon({ className }: IconProps) {
@@ -163,11 +157,15 @@ export default function App() {
     setIntroStage('done');
   }
 
-  const triggerIntroZoom = useCallback(() => {
+  const clearIntroFallbackTimer = useCallback(() => {
     if (introFallbackTimerRef.current !== null && typeof window !== 'undefined') {
       window.clearTimeout(introFallbackTimerRef.current);
       introFallbackTimerRef.current = null;
     }
+  }, []);
+
+  const triggerIntroZoom = useCallback(() => {
+    clearIntroFallbackTimer();
 
     if (shouldReduceMotion) {
       finishIntro();
@@ -176,40 +174,36 @@ export default function App() {
 
     captureIntroFrame();
     setIntroStage('zoom');
-  }, [captureIntroFrame, shouldReduceMotion]);
+  }, [captureIntroFrame, clearIntroFallbackTimer, shouldReduceMotion]);
 
-
-  useEffect(() => {
+  const scheduleIntroFallback = useCallback(() => {
     if (typeof window === 'undefined') return;
-
-    const isLottieRegistered = Boolean(window.customElements.get('dotlottie-player'));
-    if (isLottieRegistered) return;
-
-    setIsIntroAnimationHidden(true);
+    clearIntroFallbackTimer();
     introFallbackTimerRef.current = window.setTimeout(() => {
       triggerIntroZoom();
     }, 1200);
-
-    return () => {
-      if (introFallbackTimerRef.current !== null) {
-        window.clearTimeout(introFallbackTimerRef.current);
-        introFallbackTimerRef.current = null;
-      }
-    };
-  }, [triggerIntroZoom]);
+  }, [clearIntroFallbackTimer, triggerIntroZoom]);
 
   useEffect(() => {
+    if (introStage !== 'video') return;
+
+    if (typeof window === 'undefined') return;
+
     const animationElement = introAnimationRef.current;
-    if (!animationElement) return;
+    const isLottieRegistered = Boolean(window.customElements.get('dotlottie-player'));
+
+    if (!isLottieRegistered || !animationElement) {
+      setIsIntroAnimationHidden(true);
+      scheduleIntroFallback();
+      return () => {
+        clearIntroFallbackTimer();
+      };
+    }
 
     const onAnimationComplete = () => triggerIntroZoom();
     const onAnimationError = () => {
       setIsIntroAnimationHidden(true);
-      if (typeof window !== 'undefined') {
-        introFallbackTimerRef.current = window.setTimeout(() => {
-          triggerIntroZoom();
-        }, 1200);
-      }
+      scheduleIntroFallback();
     };
 
     animationElement.addEventListener('complete', onAnimationComplete);
@@ -218,12 +212,9 @@ export default function App() {
     return () => {
       animationElement.removeEventListener('complete', onAnimationComplete);
       animationElement.removeEventListener('error', onAnimationError);
-      if (introFallbackTimerRef.current !== null && typeof window !== 'undefined') {
-        window.clearTimeout(introFallbackTimerRef.current);
-        introFallbackTimerRef.current = null;
-      }
+      clearIntroFallbackTimer();
     };
-  }, [triggerIntroZoom]);
+  }, [clearIntroFallbackTimer, introStage, scheduleIntroFallback, triggerIntroZoom]);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
