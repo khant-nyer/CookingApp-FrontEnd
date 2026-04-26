@@ -267,9 +267,9 @@ button:disabled {
 }
 
 .brand-icon .icon {
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
   object-position: center;
   display: block;
   color: #fff;
