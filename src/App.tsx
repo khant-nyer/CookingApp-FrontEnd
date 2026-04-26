@@ -182,7 +182,7 @@ export default function App() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const isLottieRegistered = Boolean(window.customElements.get('lottie-player'));
+    const isLottieRegistered = Boolean(window.customElements.get('dotlottie-player'));
     if (isLottieRegistered) return;
 
     setIsIntroAnimationHidden(true);
@@ -382,7 +382,7 @@ export default function App() {
           aria-hidden
         >
           {!isIntroAnimationHidden ? (
-            <lottie-player
+            <dotlottie-player
               ref={introAnimationRef}
               className="startup-animation"
               src={STARTUP_LOTTIE_SOURCE}
