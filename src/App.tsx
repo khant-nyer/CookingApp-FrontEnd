@@ -107,6 +107,7 @@ export default function App() {
   const [introStage, setIntroStage] = useState<IntroStage>('video');
   const [introAnimationSourceIndex, setIntroAnimationSourceIndex] = useState(0);
   const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
+  const introFallbackTimerRef = useRef<number | null>(null);
   const [introViewport, setIntroViewport] = useState({ width: 0, height: 0 });
   const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
@@ -168,6 +169,11 @@ export default function App() {
   }
 
   const triggerIntroZoom = useCallback(() => {
+    if (introFallbackTimerRef.current !== null && typeof window !== 'undefined') {
+      window.clearTimeout(introFallbackTimerRef.current);
+      introFallbackTimerRef.current = null;
+    }
+
     if (shouldReduceMotion) {
       finishIntro();
       return;
@@ -176,6 +182,26 @@ export default function App() {
     captureIntroFrame();
     setIntroStage('zoom');
   }, [captureIntroFrame, shouldReduceMotion]);
+
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const isLottieRegistered = Boolean(window.customElements.get('lottie-player'));
+    if (isLottieRegistered) return;
+
+    setIsIntroAnimationHidden(true);
+    introFallbackTimerRef.current = window.setTimeout(() => {
+      triggerIntroZoom();
+    }, 1200);
+
+    return () => {
+      if (introFallbackTimerRef.current !== null) {
+        window.clearTimeout(introFallbackTimerRef.current);
+        introFallbackTimerRef.current = null;
+      }
+    };
+  }, [triggerIntroZoom]);
 
   useEffect(() => {
     const animationElement = introAnimationRef.current;
@@ -187,7 +213,11 @@ export default function App() {
         const hasNextSource = previousIndex < STARTUP_LOTTIE_SOURCES.length - 1;
         if (hasNextSource) return previousIndex + 1;
         setIsIntroAnimationHidden(true);
-        triggerIntroZoom();
+        if (typeof window !== 'undefined') {
+          introFallbackTimerRef.current = window.setTimeout(() => {
+            triggerIntroZoom();
+          }, 1200);
+        }
         return previousIndex;
       });
     };
@@ -198,6 +228,10 @@ export default function App() {
     return () => {
       animationElement.removeEventListener('complete', onAnimationComplete);
       animationElement.removeEventListener('error', onAnimationError);
+      if (introFallbackTimerRef.current !== null && typeof window !== 'undefined') {
+        window.clearTimeout(introFallbackTimerRef.current);
+        introFallbackTimerRef.current = null;
+      }
     };
   }, [triggerIntroZoom]);
 
