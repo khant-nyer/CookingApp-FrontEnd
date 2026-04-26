@@ -19,11 +19,11 @@ const STARTUP_LOTTIE_SOURCE = 'https://lottie.host/d89022a6-abe0-4609-90af-bfb25
 
 function MenuIcon({ className }: IconProps) {
   return (
-    <img
-      src={iconAssets.menuChefHat}
-      alt="Chef hat menu icon"
-      className={className}
-    />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M7 11a3.6 3.6 0 0 1 0-7.2c.86 0 1.66.3 2.29.8a4.7 4.7 0 0 1 8.81 2.32A3.3 3.3 0 1 1 17 13H7a2.1 2.1 0 1 1 0-4.2" />
+      <path d="M8 13v2.2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V13" />
+      <path d="M9 20h6" />
+    </svg>
   );
 }
 

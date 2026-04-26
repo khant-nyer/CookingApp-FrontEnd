@@ -272,7 +272,8 @@ button:disabled {
   object-fit: cover;
   object-position: center;
   display: block;
-  filter: brightness(0) invert(1);
+  color: #fff;
+  filter: none;
 }
 
 .brand-title {
