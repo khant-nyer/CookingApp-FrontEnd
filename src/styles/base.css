@@ -247,6 +247,8 @@ button:disabled {
 
 .sidebar.collapsed .brand-icon {
   margin-left: 0;
+  width: 52px;
+  height: 52px;
 }
 
 .sidebar-head {
@@ -387,6 +389,7 @@ button:disabled {
 
 .sidebar.collapsed .sidebar-head {
   justify-content: center;
+  gap: 0;
 }
 
 .sidebar.collapsed .sidebar-link {
@@ -802,9 +805,11 @@ button:disabled {
     min-height: 48px;
   }
 
-  .sidebar.collapsed .brand-icon {
-    margin-left: 0;
-  }
+.sidebar.collapsed .brand-icon {
+  margin-left: 0;
+  width: 52px;
+  height: 52px;
+}
 
   .content-shell {
     margin-left: 84px;
