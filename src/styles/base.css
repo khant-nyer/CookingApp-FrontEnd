@@ -269,11 +269,10 @@ button:disabled {
 .brand-icon .icon {
   width: 30px;
   height: 30px;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   display: block;
-  color: #fff;
-  filter: none;
+  filter: brightness(0) saturate(100%) invert(1);
 }
 
 .brand-title {
