@@ -791,35 +791,11 @@ button:disabled {
   background: #000;
 }
 
-.startup-video {
+.startup-animation {
   width: 100%;
   height: 100%;
-  object-fit: cover;
   display: block;
-}
-
-.startup-video-fallback {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: radial-gradient(circle at top, rgb(30 41 59 / 88%), rgb(2 6 23 / 95%));
-  color: #f8fafc;
-  text-align: center;
-  padding: 1rem;
-}
-
-.startup-video-fallback p {
-  margin: 0;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.startup-fallback-continue {
-  margin-top: 0.75rem;
-  border-radius: 999px;
+  background: radial-gradient(circle at 50% 20%, #111827 0%, #020617 100%);
 }
 
 .startup-skip {
