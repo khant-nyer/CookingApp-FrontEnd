@@ -235,6 +235,7 @@ button:disabled {
   padding: 1.25rem 1rem;
   gap: 1.5rem;
   transition: width 200ms ease;
+  will-change: width;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -253,6 +254,7 @@ button:disabled {
   align-items: center;
   gap: 0.9rem;
   min-height: 44px;
+  min-width: 0;
 }
 
 .brand-icon {
@@ -284,6 +286,13 @@ button:disabled {
   font-size: 1.85rem;
   font-weight: 700;
   color: #0b2b55;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: opacity 160ms ease, max-width 160ms ease;
 }
 
 .sidebar-nav,
@@ -312,6 +321,16 @@ button:disabled {
   font-weight: 600;
   text-align: left;
   box-shadow: none;
+  min-width: 0;
+}
+
+.sidebar-link span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 140ms ease, max-width 140ms ease;
+  max-width: 220px;
 }
 
 .sidebar-link .icon {
@@ -361,7 +380,9 @@ button:disabled {
 
 .sidebar.collapsed .brand-title,
 .sidebar.collapsed .sidebar-link span {
-  display: none;
+  opacity: 0;
+  max-width: 0;
+  pointer-events: none;
 }
 
 .sidebar.collapsed .sidebar-head {
