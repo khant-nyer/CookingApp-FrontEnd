@@ -371,7 +371,7 @@ button:disabled {
 
 .logout-link {
   color: #b91c1c;
-  border: 1px solid #b91c1c;
+  border: none;
 }
 
 .logout-link:hover:not(:disabled),
@@ -751,6 +751,10 @@ button:disabled {
 }
 
 @media (max-width: 760px) {
+  .brand-icon {
+    border-radius: 999px;
+  }
+
   .app-shell {
     overflow-x: hidden;
     position: relative;
@@ -805,11 +809,12 @@ button:disabled {
     min-height: 48px;
   }
 
-.sidebar.collapsed .brand-icon {
-  margin-left: 0;
-  width: 52px;
-  height: 52px;
-}
+  .sidebar.collapsed .brand-icon {
+    margin-left: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+  }
 
   .content-shell {
     margin-left: 84px;

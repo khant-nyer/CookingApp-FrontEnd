@@ -100,8 +100,11 @@ export default function App() {
     return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true' ? 'done' : 'video';
   });
   const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
+  const [isLottieReady, setIsLottieReady] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return Boolean(window.customElements.get('dotlottie-player'));
+  });
   const introFallbackTimerRef = useRef<number | null>(null);
-  const [introViewport, setIntroViewport] = useState({ width: 0, height: 0 });
   const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
@@ -117,8 +120,6 @@ export default function App() {
 
   const captureIntroFrame = useCallback(() => {
     if (typeof window === 'undefined') return;
-
-    setIntroViewport({ width: window.innerWidth, height: window.innerHeight });
 
     const rect = brandIconRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -192,14 +193,27 @@ export default function App() {
   }, [clearIntroFallbackTimer, triggerIntroZoom]);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || isLottieReady) return;
+
+    let isCancelled = false;
+    window.customElements.whenDefined('dotlottie-player').then(() => {
+      if (isCancelled) return;
+      setIsLottieReady(true);
+      setIsIntroAnimationHidden(false);
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLottieReady]);
+
+  useEffect(() => {
     if (introStage !== 'video') return;
 
     if (typeof window === 'undefined') return;
 
     const animationElement = introAnimationRef.current;
-    const isLottieRegistered = Boolean(window.customElements.get('dotlottie-player'));
-
-    if (!isLottieRegistered || !animationElement) {
+    if (!isLottieReady || !animationElement) {
       setIsIntroAnimationHidden(true);
       scheduleIntroFallback();
       return () => {
@@ -221,7 +235,7 @@ export default function App() {
       animationElement.removeEventListener('error', onAnimationError);
       clearIntroFallbackTimer();
     };
-  }, [clearIntroFallbackTimer, introStage, scheduleIntroFallback, triggerIntroZoom]);
+  }, [clearIntroFallbackTimer, introStage, isLottieReady, scheduleIntroFallback, triggerIntroZoom]);
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -359,8 +373,8 @@ export default function App() {
           animate={introStage === 'video' ? {
             top: 0,
             left: 0,
-            width: introViewport.width,
-            height: introViewport.height,
+            width: '100vw',
+            height: '100vh',
             borderRadius: 0,
             boxShadow: '0 0 0 rgba(0,0,0,0)',
             backgroundColor: '#ffffff'
