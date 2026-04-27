@@ -17,6 +17,7 @@ type IntroStage = 'video' | 'zoom' | 'done';
 
 const STARTUP_LOTTIE_SOURCE = 'https://lottie.host/d89022a6-abe0-4609-90af-bfb256395a95/fB0RggP14C.lottie';
 const INTRO_PLAYED_STORAGE_KEY = 'cooking-app-intro-played';
+const ACTIVE_TAB_STORAGE_KEY = 'cooking-app-active-tab';
 
 function MenuIcon({ className }: IconProps) {
   return <img src={iconAssets.menuChefHat} alt="" className={className} aria-hidden />;
@@ -71,6 +72,7 @@ const pageHeaderByTab: Record<TabKey, string> = {
 };
 
 type AppTabKey = TabKey | 'settings';
+const appTabKeys: AppTabKey[] = ['dashboard', 'foods', 'ingredients', 'recipes', 'nutrition', 'settings'];
 
 const pageSubheaderByTab: Record<AppTabKey, string> = {
   dashboard: "Welcome back. Here's what's cooking today.",
@@ -111,7 +113,11 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isMobileView, setIsMobileView] = useState(() => (typeof window !== 'undefined' ? window.matchMedia('(max-width: 980px)').matches : false));
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => (typeof window !== 'undefined' ? window.matchMedia('(max-width: 980px)').matches : false));
-  const [activeTab, setActiveTab] = useState<AppTabKey>('dashboard');
+  const [activeTab, setActiveTab] = useState<AppTabKey>(() => {
+    if (typeof window === 'undefined') return 'dashboard';
+    const storedTab = window.sessionStorage.getItem(ACTIVE_TAB_STORAGE_KEY);
+    return appTabKeys.includes(storedTab as AppTabKey) ? (storedTab as AppTabKey) : 'dashboard';
+  });
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
@@ -207,6 +213,11 @@ export default function App() {
       isCancelled = true;
     };
   }, [isLottieReady]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.sessionStorage.setItem(ACTIVE_TAB_STORAGE_KEY, activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     if (introStage !== 'video') return;
