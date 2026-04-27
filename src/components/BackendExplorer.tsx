@@ -68,10 +68,16 @@ function RecipeSummaryAnimatedIcon({ className }: IconProps) {
   return <ImageIcon src={iconAssets.recipeSummaryAnimated} fallbackSrc={iconAssets.recipeSummaryFallback} className={className} />;
 }
 
-function pickRecipeTitle(recipe: Recipe) {
+function pickRecipeFoodName(recipe: Recipe) {
   if (recipe.foodName) return recipe.foodName;
   if (recipe.description) return recipe.description.split(/[.!?]/)[0];
   return 'Untitled recipe';
+}
+
+function pickRecipeTitle(recipe: Recipe) {
+  const foodName = pickRecipeFoodName(recipe);
+  const createdBy = recipe.createdBy?.trim();
+  return createdBy ? `${createdBy}'s ${foodName}` : foodName;
 }
 
 function pickRecipeVersion(recipe: Recipe) {

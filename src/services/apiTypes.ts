@@ -57,6 +57,9 @@ export interface RecipeDto extends IdentifiableDto {
   foodName?: string;
   version?: string;
   description?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  updatedAt?: string;
   ingredients?: RecipeIngredientItemDto[];
   instructions?: RecipeInstructionItemDto[];
 }

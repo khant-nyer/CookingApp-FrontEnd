@@ -15,16 +15,17 @@ interface GalleryTileProps {
   key?: string | number;
   imageUrl?: string;
   fallbackText: string;
+  caption?: string;
   onClick: () => void;
   isSelected?: boolean;
   subtitle?: string;
 }
 
-export function GalleryTile({ imageUrl, fallbackText, onClick, isSelected, subtitle }: GalleryTileProps) {
+export function GalleryTile({ imageUrl, fallbackText, caption, onClick, isSelected, subtitle }: GalleryTileProps) {
   return (
     <button className={isSelected ? 'gallery-tile selected' : 'gallery-tile'} onClick={onClick}>
       {imageUrl ? <img src={imageUrl} alt={fallbackText} className="gallery-image" /> : <div className="gallery-fallback">{fallbackText}</div>}
-      <div className="gallery-caption">{fallbackText}</div>
+      <div className="gallery-caption">{caption || fallbackText}</div>
       {subtitle ? <div className="gallery-subtitle">{subtitle}</div> : null}
     </button>
   );
