@@ -744,10 +744,15 @@ button:disabled {
 }
 
 .recipe-meta-stack {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.35rem;
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.latest-food-warning-stack {
+  display: grid;
+  justify-items: end;
   flex-shrink: 0;
 }
 
@@ -854,6 +859,10 @@ button:disabled {
   .recipe-meta-stack {
     justify-content: flex-start;
   }
+
+  .latest-food-warning-stack {
+    justify-items: start;
+  }
 }
 
 @media (max-width: 480px) {
@@ -888,9 +897,13 @@ button:disabled {
 
   .recipe-meta-stack {
     grid-area: meta;
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    justify-items: start;
     width: 100%;
+  }
+
+  .latest-food-warning-stack {
+    grid-column: 2;
+    justify-items: start;
   }
 }
 

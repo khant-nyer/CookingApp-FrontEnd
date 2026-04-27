@@ -309,7 +309,7 @@ export default function BackendExplorer({
                       <strong>{pickRecipeTitle(recipe)}</strong>
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
-                    <div className="recipe-meta-stack">
+                    <div className="recipe-meta-stack dashboard-warning-stack">
                       <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
                       <AllergyWarningToggle
                         variant="dashboard"
@@ -335,14 +335,16 @@ export default function BackendExplorer({
                       <strong>{food.name || 'Unnamed food'}</strong>
                       <span>{food.category || 'No category'}</span>
                     </div>
-                    <AllergyWarningToggle
-                      variant="dashboard"
-                      alertText={buildAllergyAwarenessText([
-                        food.name,
-                        food.category,
-                        ...(food.recipes || []).map((recipe) => recipe.name)
-                      ])}
-                    />
+                    <div className="latest-food-warning-stack dashboard-warning-stack">
+                      <AllergyWarningToggle
+                        variant="dashboard"
+                        alertText={buildAllergyAwarenessText([
+                          food.name,
+                          food.category,
+                          ...(food.recipes || []).map((recipe) => recipe.name)
+                        ])}
+                      />
+                    </div>
                   </li>
                 ))}
                 {!latestFoods.length && <li>No foods yet.</li>}

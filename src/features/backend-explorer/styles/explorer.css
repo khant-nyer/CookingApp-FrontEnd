@@ -487,7 +487,7 @@
   gap: 0;
 }
 
-.recipe-meta-stack .allergy-warning-dashboard {
+.dashboard-warning-stack .allergy-warning-dashboard {
   display: grid;
   justify-items: inherit;
   margin-top: 0;
@@ -507,7 +507,7 @@
   transform: translateX(0);
 }
 
-.recipe-meta-stack .allergy-warning-dashboard .allergy-warning-message {
+.dashboard-warning-stack .allergy-warning-dashboard .allergy-warning-message {
   position: absolute;
   top: 50%;
   right: calc(100% + 0.5rem);
@@ -521,19 +521,19 @@
   z-index: 2;
 }
 
-.recipe-meta-stack .allergy-warning-dashboard.revealed .allergy-warning-message {
+.dashboard-warning-stack .allergy-warning-dashboard.revealed .allergy-warning-message {
   transform: translateX(0) translateY(-50%);
 }
 
 @media (max-width: 480px) {
-  .recipe-meta-stack .allergy-warning-dashboard .allergy-warning-message {
+  .dashboard-warning-stack .allergy-warning-dashboard .allergy-warning-message {
     position: static;
     width: 100%;
     margin-top: 0.25rem;
     transform: translateX(10px);
   }
 
-  .recipe-meta-stack .allergy-warning-dashboard.revealed .allergy-warning-message {
+  .dashboard-warning-stack .allergy-warning-dashboard.revealed .allergy-warning-message {
     transform: translateX(0);
   }
 }
