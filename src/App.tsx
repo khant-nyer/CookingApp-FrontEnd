@@ -115,6 +115,7 @@ export default function App() {
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
+  const isIntroComplete = introStage === 'done';
 
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
 
@@ -357,24 +358,26 @@ export default function App() {
             allergies={user?.allergies}
           />
         ) : (
-          <BackendExplorer
-            isAuthenticated={isAuthenticated}
-            onRequireAuth={() => setIsAuthModalOpen(true)}
-            introComplete={introStage === 'done'}
-            activeTab={activeTab}
-            onTabChange={(tab) => {
-              setActiveTab(tab);
-              setFoodSearchQuery('');
-              if (isMobileView) setIsSidebarCollapsed(true);
-            }}
-            foodSearchQuery={foodSearchQuery}
-            onFoodSearchQueryChange={setFoodSearchQuery}
-            userAllergies={user?.allergies}
-          />
+          isIntroComplete ? (
+            <BackendExplorer
+              isAuthenticated={isAuthenticated}
+              onRequireAuth={() => setIsAuthModalOpen(true)}
+              introComplete={isIntroComplete}
+              activeTab={activeTab}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                setFoodSearchQuery('');
+                if (isMobileView) setIsSidebarCollapsed(true);
+              }}
+              foodSearchQuery={foodSearchQuery}
+              onFoodSearchQueryChange={setFoodSearchQuery}
+              userAllergies={user?.allergies}
+            />
+          ) : null
         )}
       </section>
 
-      {introStage !== 'done' ? (
+      {!isIntroComplete ? (
         <motion.div
           className="startup-splash"
           initial={false}
