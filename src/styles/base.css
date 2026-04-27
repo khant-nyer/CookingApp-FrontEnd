@@ -664,6 +664,7 @@ button:disabled {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   min-width: 0;
 }
 
