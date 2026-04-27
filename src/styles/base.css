@@ -304,6 +304,10 @@ button:disabled {
   gap: 0.5rem;
 }
 
+.sidebar-nav {
+  min-height: 0;
+}
+
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
@@ -660,6 +664,7 @@ button:disabled {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   min-width: 0;
 }
 
@@ -674,6 +679,12 @@ button:disabled {
   margin: 0;
   padding: 1rem 1rem 0.6rem;
   color: #041a45;
+}
+
+.dashboard-list-card.recent-recipes-card h3,
+.dashboard-list-card.latest-foods-card h3 {
+  background: #eef4ff;
+  border-radius: 16px 16px 0 0;
 }
 
 .dashboard-list-card ul {
@@ -717,11 +728,27 @@ button:disabled {
   padding: 7px;
 }
 
-.dashboard-list-card li div {
+.dashboard-list-card li .dashboard-list-content {
   display: grid;
   gap: 0.2rem;
   flex: 1;
   min-width: 0;
+}
+
+.dashboard-list-card li.recent-recipe-item .dashboard-list-content strong,
+.dashboard-list-card li.recent-recipe-item .dashboard-list-content span {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+}
+
+.dashboard-list-card li.recent-recipe-item .dashboard-list-content strong {
+  -webkit-line-clamp: 1;
+}
+
+.dashboard-list-card li.recent-recipe-item .dashboard-list-content span {
+  -webkit-line-clamp: 2;
 }
 
 .dashboard-list-card li span {
@@ -737,6 +764,19 @@ button:disabled {
   padding: 0.2rem 0.6rem;
   font-size: 0.78rem;
   white-space: nowrap;
+}
+
+.recipe-meta-stack {
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.latest-food-warning-stack {
+  display: grid;
+  justify-items: end;
+  flex-shrink: 0;
 }
 
 @media (max-width: 980px) {
@@ -771,6 +811,8 @@ button:disabled {
     height: 100vh;
     max-height: 100vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     border-radius: 0 24px 24px 0;
     box-shadow: 0 12px 32px rgb(15 23 42 / 24%);
     transition: width 220ms ease, border-radius 220ms ease, box-shadow 220ms ease, top 220ms ease, transform 220ms ease;
@@ -836,6 +878,14 @@ button:disabled {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  .recipe-meta-stack {
+    justify-content: flex-start;
+  }
+
+  .latest-food-warning-stack {
+    justify-items: start;
+  }
 }
 
 @media (max-width: 480px) {
@@ -845,14 +895,38 @@ button:disabled {
     align-items: start;
   }
 
-  .dashboard-list-card li div {
+  .dashboard-list-card li.recent-recipe-item {
+    grid-template-areas:
+      "icon content"
+      ". meta";
+  }
+
+  .dashboard-list-card li.recent-recipe-item .dashboard-list-icon {
+    grid-area: icon;
+  }
+
+  .dashboard-list-card li.recent-recipe-item .dashboard-list-content {
+    grid-area: content;
+  }
+
+  .dashboard-list-card li .dashboard-list-content {
     overflow-wrap: anywhere;
   }
 
   .recipe-version-badge {
-    grid-column: 2;
     justify-self: start;
     max-width: 100%;
+  }
+
+  .recipe-meta-stack {
+    grid-area: meta;
+    justify-items: start;
+    width: 100%;
+  }
+
+  .latest-food-warning-stack {
+    grid-column: 2;
+    justify-items: start;
   }
 }
 

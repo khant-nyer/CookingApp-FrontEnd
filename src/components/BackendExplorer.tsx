@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
 import { getItemId } from '../features/backend-explorer/utils/ids';
+import { formatNutrientLabel } from '../features/backend-explorer/utils/nutrients';
 import { iconAssets } from './iconAssets';
 import CreateEntityModal from '../features/backend-explorer/modals/CreateEntityModal';
 import DeleteConfirmModal from '../features/backend-explorer/modals/DeleteConfirmModal';
@@ -138,8 +139,43 @@ export default function BackendExplorer({
     if (!searchableText.trim()) return undefined;
     const matchedAllergies = normalizedAllergies.filter((allergy) => searchableText.includes(allergy));
     if (!matchedAllergies.length) return undefined;
-    return `Allergy awareness: contains ${Array.from(new Set(matchedAllergies)).join(', ')}`;
+    return `Contains allergens: ${Array.from(new Set(matchedAllergies)).join(', ')}`;
   }, [normalizedAllergies]);
+
+  const ingredientNutritionById = useMemo(() => {
+    const map = new Map<string, string[]>();
+    entities.ingredients.forEach((ingredient) => {
+      const ingredientId = String(getItemId(ingredient) || '');
+      if (!ingredientId) return;
+      const nutrients = (ingredient.nutritionList || []).flatMap((nutrition) => {
+        const normalized = String(nutrition?.nutrient || '').trim();
+        if (!normalized) return [];
+        const readable = formatNutrientLabel(normalized);
+        return [normalized, readable];
+      });
+      map.set(ingredientId, nutrients);
+    });
+    return map;
+  }, [entities.ingredients]);
+
+  const getRecipeSearchableValues = useCallback((recipe: Recipe) => {
+    const ingredientValues = (recipe.ingredients || []).flatMap((ingredient) => {
+      const ingredientId = String(ingredient.ingredientId || '');
+      const nutritionTerms = ingredientNutritionById.get(ingredientId) || [];
+      return [
+        ingredient.ingredientName,
+        ingredient.note,
+        ingredientId,
+        ...nutritionTerms
+      ];
+    });
+
+    return [
+      recipe.foodName,
+      recipe.description,
+      ...ingredientValues
+    ];
+  }, [ingredientNutritionById]);
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
     if (onTabChange) {
@@ -188,7 +224,11 @@ export default function BackendExplorer({
     allergyAlertText: buildAllergyAwarenessText([
       entities.selectedIngredient?.name,
       entities.selectedIngredient?.category,
-      entities.selectedIngredient?.description
+      entities.selectedIngredient?.description,
+      ...((entities.selectedIngredient?.nutritionList || []).flatMap((nutrition) => [
+        nutrition.nutrient,
+        formatNutrientLabel(nutrition.nutrient)
+      ]))
     ])
   }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText]);
 
@@ -206,12 +246,8 @@ export default function BackendExplorer({
     onPageChange: (page: number) => loadTabData('recipes', page),
     loading,
     onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe)),
-    allergyAlertText: buildAllergyAwarenessText([
-      entities.selectedRecipe?.foodName,
-      entities.selectedRecipe?.description,
-      ...(entities.selectedRecipe?.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
-    ])
-  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText]);
+    allergyAlertText: entities.selectedRecipe ? buildAllergyAwarenessText(getRecipeSearchableValues(entities.selectedRecipe)) : undefined
+  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText, getRecipeSearchableValues]);
 
   const nutritionTabProps = useMemo(() => ({
     searchQuery: foodSearchQuery,
@@ -261,34 +297,32 @@ export default function BackendExplorer({
           </div>
 
           <div className="dashboard-lists">
-            <article className="dashboard-list-card">
+            <article className="dashboard-list-card recent-recipes-card">
               <h3>Recent Recipes</h3>
               <ul>
                 {recentRecipes.map((recipe) => (
-                  <li key={String(getItemId(recipe))}>
+                  <li key={String(getItemId(recipe))} className="recent-recipe-item">
                     <span className="dashboard-list-icon" aria-hidden>
                       <ChefHatIcon className="icon" />
                     </span>
-                    <div>
+                    <div className="dashboard-list-content">
                       <strong>{pickRecipeTitle(recipe)}</strong>
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
-                    <AllergyWarningToggle
-                      variant="dashboard"
-                      alertText={buildAllergyAwarenessText([
-                        recipe.foodName,
-                        recipe.description,
-                        ...(recipe.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
-                      ])}
-                    />
-                    <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
+                    <div className="recipe-meta-stack dashboard-warning-stack">
+                      <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
+                      <AllergyWarningToggle
+                        variant="dashboard"
+                        alertText={buildAllergyAwarenessText(getRecipeSearchableValues(recipe))}
+                      />
+                    </div>
                   </li>
                 ))}
                 {!recentRecipes.length && <li>No recipes yet.</li>}
               </ul>
             </article>
 
-            <article className="dashboard-list-card">
+            <article className="dashboard-list-card latest-foods-card">
               <h3>Latest Foods</h3>
               <ul>
                 {latestFoods.map((food) => (
@@ -297,18 +331,20 @@ export default function BackendExplorer({
                       src={food.imageUrl || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=60'}
                       alt={food.name || 'Food image'}
                     />
-                    <div>
+                    <div className="dashboard-list-content">
                       <strong>{food.name || 'Unnamed food'}</strong>
                       <span>{food.category || 'No category'}</span>
                     </div>
-                    <AllergyWarningToggle
-                      variant="dashboard"
-                      alertText={buildAllergyAwarenessText([
-                        food.name,
-                        food.category,
-                        ...(food.recipes || []).map((recipe) => recipe.name)
-                      ])}
-                    />
+                    <div className="latest-food-warning-stack dashboard-warning-stack">
+                      <AllergyWarningToggle
+                        variant="dashboard"
+                        alertText={buildAllergyAwarenessText([
+                          food.name,
+                          food.category,
+                          ...(food.recipes || []).map((recipe) => recipe.name)
+                        ])}
+                      />
+                    </div>
                   </li>
                 ))}
                 {!latestFoods.length && <li>No foods yet.</li>}

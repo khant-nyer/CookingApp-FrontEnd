@@ -297,6 +297,13 @@
   min-height: 72px;
 }
 
+.picker-item span:nth-child(2),
+.picker-item small {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.1;
+}
+
 .picker-item.highlighted {
   border-color: #f97316;
   box-shadow: 0 0 0 1px rgb(249 115 22 / 30%);
@@ -377,6 +384,8 @@
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .nutrient-full-name {
@@ -475,20 +484,58 @@
 
 .dashboard-list-card .allergy-warning {
   justify-items: center;
+  gap: 0;
+}
+
+.dashboard-warning-stack .allergy-warning-dashboard {
+  display: grid;
+  justify-items: inherit;
+  margin-top: 0;
+  position: relative;
 }
 
 .allergy-warning-dashboard .allergy-warning-message {
-  max-height: 0;
   opacity: 0;
-  overflow: hidden;
-  transform: translateY(-4px);
-  transition: max-height 220ms ease, opacity 220ms ease, transform 220ms ease;
+  margin: 0;
+  transform: translateX(10px);
+  transition: opacity 220ms ease, transform 220ms ease;
+  pointer-events: none;
 }
 
-.allergy-warning-dashboard .allergy-warning-message.revealed {
-  max-height: 72px;
+.allergy-warning-dashboard.revealed .allergy-warning-message {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
+}
+
+.dashboard-warning-stack .allergy-warning-dashboard .allergy-warning-message {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 0.5rem);
+  transform: translateX(10px) translateY(-50%);
+  width: min(280px, 45vw);
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #f8caca;
+  border-radius: 10px;
+  background: #fff3f3;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 12%);
+  z-index: 2;
+}
+
+.dashboard-warning-stack .allergy-warning-dashboard.revealed .allergy-warning-message {
+  transform: translateX(0) translateY(-50%);
+}
+
+@media (max-width: 480px) {
+  .dashboard-warning-stack .allergy-warning-dashboard .allergy-warning-message {
+    position: static;
+    width: 100%;
+    margin-top: 0.25rem;
+    transform: translateX(10px);
+  }
+
+  .dashboard-warning-stack .allergy-warning-dashboard.revealed .allergy-warning-message {
+    transform: translateX(0);
+  }
 }
 
 .detail-section {
@@ -640,6 +687,17 @@ pre {
 
   .picker-group {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .picker-item {
+    min-height: 82px;
+    padding: 0.42rem 0.3rem;
+  }
+
+  .picker-item span:nth-child(2),
+  .picker-item small,
+  .nutrition-summary-head small {
+    font-size: 0.62rem;
   }
 
   .gallery-grid {

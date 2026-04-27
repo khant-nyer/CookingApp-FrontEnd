@@ -243,6 +243,7 @@ export default function App() {
 
     try {
       await extendSession();
+      dismissExpiryWarning();
       setSessionExtendError('');
     } catch (error) {
       setSessionExtendError(error instanceof Error ? error.message : 'Unable to extend your session.');

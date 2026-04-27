@@ -115,6 +115,7 @@ export default function UpdateEntityModal({
                     min={0}
                     className="quantity-input"
                     value={ri.quantity}
+                    placeholder="Quantity"
                     onChange={(event: InputChangeEvent) => {
                       const value = event.target.value;
                       if (value === '' || Number(value) >= 0) {
@@ -129,7 +130,7 @@ export default function UpdateEntityModal({
                     }}
                   />
                   <select value={ri.unit} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, unit: event.target.value } : x) } }))}>{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                  <input value={ri.note} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, note: event.target.value } : x) } }))} />
+                  <input placeholder="Note" value={ri.note} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), ingredients: (prev.form as RecipeUpdateForm).ingredients.map((x, idx) => idx === index ? { ...x, note: event.target.value } : x) } }))} />
                   <button
                     type="button"
                     className="danger"
@@ -167,8 +168,8 @@ export default function UpdateEntityModal({
               {recipeForm.instructions.map((ins, index) => (
                 <div key={`upd-ins-${index}`} className="summary-row">
                   <input type="number" value={index + 1} readOnly />
-                  <input value={ins.description} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), instructions: (prev.form as RecipeUpdateForm).instructions.map((x, idx) => idx === index ? { ...x, description: event.target.value } : x) } }))} />
-                  <input value={ins.tutorialVideoUrl} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), instructions: (prev.form as RecipeUpdateForm).instructions.map((x, idx) => idx === index ? { ...x, tutorialVideoUrl: event.target.value } : x) } }))} />
+                  <input placeholder="Instruction description" value={ins.description} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), instructions: (prev.form as RecipeUpdateForm).instructions.map((x, idx) => idx === index ? { ...x, description: event.target.value } : x) } }))} />
+                  <input placeholder="Tutorial video URL (optional)" value={ins.tutorialVideoUrl} onChange={(event: InputChangeEvent) => setUpdateModal((prev) => ({ ...prev, form: { ...(prev.form as RecipeUpdateForm), instructions: (prev.form as RecipeUpdateForm).instructions.map((x, idx) => idx === index ? { ...x, tutorialVideoUrl: event.target.value } : x) } }))} />
                   <button
                     type="button"
                     className="danger"
