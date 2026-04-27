@@ -138,7 +138,7 @@ export default function BackendExplorer({
     if (!searchableText.trim()) return undefined;
     const matchedAllergies = normalizedAllergies.filter((allergy) => searchableText.includes(allergy));
     if (!matchedAllergies.length) return undefined;
-    return `Allergy awareness: contains ${Array.from(new Set(matchedAllergies)).join(', ')}`;
+    return `Contains allergens: ${Array.from(new Set(matchedAllergies)).join(', ')}`;
   }, [normalizedAllergies]);
 
   const handleTabSwitch = useCallback((tab: TabKey) => {

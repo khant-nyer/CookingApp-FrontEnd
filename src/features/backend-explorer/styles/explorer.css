@@ -484,6 +484,11 @@
 
 .dashboard-list-card .allergy-warning {
   justify-items: center;
+  gap: 0;
+}
+
+.recipe-meta-stack .allergy-warning-dashboard {
+  margin-top: 0.2rem;
 }
 
 .allergy-warning-dashboard .allergy-warning-message {
