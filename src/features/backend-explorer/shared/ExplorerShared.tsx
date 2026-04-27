@@ -102,18 +102,17 @@ export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyW
   }
 
   return (
-    <div className="allergy-warning allergy-warning-dashboard">
-      {!isRevealed ? (
-        <button
-          type="button"
-          className="allergy-warning-toggle"
-          aria-label="Show allergy warning"
-          onClick={() => setIsRevealed(true)}
-        >
-          <WarningIcon className="icon" />
-        </button>
-      ) : null}
-      {isRevealed ? <p className="detail-alert-text allergy-warning-message revealed">{alertText}</p> : null}
+    <div className={`allergy-warning allergy-warning-dashboard${isRevealed ? ' revealed' : ''}`}>
+      <button
+        type="button"
+        className="allergy-warning-toggle"
+        aria-label={isRevealed ? 'Hide allergy warning' : 'Show allergy warning'}
+        aria-expanded={isRevealed}
+        onClick={() => setIsRevealed((currentValue) => !currentValue)}
+      >
+        <WarningIcon className="icon" />
+      </button>
+      <p className="detail-alert-text allergy-warning-message">{alertText}</p>
     </div>
   );
 }

@@ -721,7 +721,7 @@ button:disabled {
   padding: 7px;
 }
 
-.dashboard-list-card li div {
+.dashboard-list-card li .dashboard-list-content {
   display: grid;
   gap: 0.2rem;
   flex: 1;
@@ -746,8 +746,14 @@ button:disabled {
 .recipe-meta-stack {
   display: grid;
   justify-items: end;
-  gap: 0.2rem;
-  align-content: start;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.latest-food-warning-stack {
+  display: grid;
+  justify-items: end;
+  flex-shrink: 0;
 }
 
 @media (max-width: 980px) {
@@ -853,6 +859,10 @@ button:disabled {
   .recipe-meta-stack {
     justify-items: start;
   }
+
+  .latest-food-warning-stack {
+    justify-items: start;
+  }
 }
 
 @media (max-width: 480px) {
@@ -862,17 +872,36 @@ button:disabled {
     align-items: start;
   }
 
-  .dashboard-list-card li div {
+  .dashboard-list-card li.recent-recipe-item {
+    grid-template-areas:
+      "icon content"
+      ". meta";
+  }
+
+  .dashboard-list-card li.recent-recipe-item .dashboard-list-icon {
+    grid-area: icon;
+  }
+
+  .dashboard-list-card li.recent-recipe-item .dashboard-list-content {
+    grid-area: content;
+  }
+
+  .dashboard-list-card li .dashboard-list-content {
     overflow-wrap: anywhere;
   }
 
   .recipe-version-badge {
-    grid-column: 2;
     justify-self: start;
     max-width: 100%;
   }
 
   .recipe-meta-stack {
+    grid-area: meta;
+    justify-items: start;
+    width: 100%;
+  }
+
+  .latest-food-warning-stack {
     grid-column: 2;
     justify-items: start;
   }
