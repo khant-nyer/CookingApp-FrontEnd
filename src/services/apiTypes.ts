@@ -31,9 +31,12 @@ export interface IngredientDto extends IdentifiableDto {
   name?: string;
   category?: string;
   description?: string;
+  imageUrl?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  updatedAt?: string;
   servingAmount?: number | string;
   servingUnit?: string;
-  imageUrl?: string;
   nutritionList?: NutritionItemDto[];
 }
 

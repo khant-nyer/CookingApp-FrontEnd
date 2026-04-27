@@ -20,6 +20,13 @@ interface IngredientsTabProps {
   allergyAlertText?: string;
 }
 
+function formatUpdatedAt(value?: string) {
+  if (!value) return '-';
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) return value;
+  return parsedDate.toLocaleString();
+}
+
 function IngredientsTab({
   searchQuery = '',
   ingredients,
@@ -71,7 +78,10 @@ function IngredientsTab({
           fields={[
             { label: 'Category', value: selectedIngredient.category },
             { label: 'Description', value: selectedIngredient.description },
-            { label: 'Serving', value: `${selectedIngredient.servingAmount || '-'} ${selectedIngredient.servingUnit || ''}` }
+            { label: 'Serving', value: `${selectedIngredient.servingAmount || '-'} ${selectedIngredient.servingUnit || ''}` },
+            { label: 'Created By', value: selectedIngredient.createdBy },
+            { label: 'Updated By', value: selectedIngredient.updatedBy },
+            { label: 'Updated At', value: formatUpdatedAt(selectedIngredient.updatedAt) }
           ]}
           sections={[{ title: 'Nutritions', items: (selectedIngredient.nutritionList || []).map((n) => `${formatNutrientLabel(n.nutrient)}: ${n.value} ${n.unit}`) }]}
           onDelete={() => onDeleteIngredient(selectedIngredient)}
