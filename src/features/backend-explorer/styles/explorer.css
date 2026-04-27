@@ -527,14 +527,18 @@
 
 @media (max-width: 480px) {
   .dashboard-warning-stack .allergy-warning-dashboard .allergy-warning-message {
-    position: static;
-    width: 100%;
-    margin-top: 0.25rem;
-    transform: translateX(10px);
+    position: absolute;
+    top: calc(100% + 0.25rem);
+    left: 50%;
+    right: auto;
+    width: min(220px, calc(100vw - 7rem));
+    margin-top: 0;
+    transform: translate(-50%, 8px);
+    z-index: 6;
   }
 
   .dashboard-warning-stack .allergy-warning-dashboard.revealed .allergy-warning-message {
-    transform: translateX(0);
+    transform: translate(-50%, 0);
   }
 }
 
