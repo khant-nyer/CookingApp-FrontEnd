@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
@@ -82,6 +82,7 @@ function pickRecipeVersion(recipe: Recipe) {
 interface BackendExplorerProps {
   isAuthenticated: boolean;
   onRequireAuth: () => void;
+  introComplete?: boolean;
   activeTab?: TabKey;
   onTabChange?: (tab: TabKey) => void;
   foodSearchQuery?: string;
@@ -92,12 +93,14 @@ interface BackendExplorerProps {
 export default function BackendExplorer({
   isAuthenticated,
   onRequireAuth,
+  introComplete = true,
   activeTab: externalActiveTab,
   onTabChange,
   foodSearchQuery,
   onFoodSearchQueryChange,
   userAllergies
 }: BackendExplorerProps) {
+  const [dashboardAnimationCycle, setDashboardAnimationCycle] = useState(0);
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -125,6 +128,12 @@ export default function BackendExplorer({
   }, [isAuthenticated, onRequireAuth]);
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
+
+  useEffect(() => {
+    if (activeTab === 'dashboard' && introComplete) {
+      setDashboardAnimationCycle((prev) => prev + 1);
+    }
+  }, [activeTab, introComplete]);
   const normalizedAllergies = useMemo(() => {
     return (userAllergies || [])
       .map((allergy) => allergy.trim().toLowerCase())
@@ -288,7 +297,10 @@ export default function BackendExplorer({
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'dashboard' ? (
-        <section className="dashboard-layout">
+        <section
+          key={`dashboard-cycle-${dashboardAnimationCycle}`}
+          className={introComplete ? 'dashboard-layout dashboard-layout-animate' : 'dashboard-layout'}
+        >
           <p className="development-notice"><strong>App under development—update coming soon. All features are currently functional. Please create an account to explore. Hi recruiters: please message me on LinkedIn or via email for login credentials if you prefer not to sign up.</strong></p>
           <div className="dashboard-cards">
             <DashboardCard title="Total Foods" total={totalFoods} icon={<FoodSummaryAnimatedIcon className="icon" />} />
