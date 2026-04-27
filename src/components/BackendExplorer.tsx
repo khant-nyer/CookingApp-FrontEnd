@@ -305,7 +305,7 @@ export default function BackendExplorer({
                     <span className="dashboard-list-icon" aria-hidden>
                       <ChefHatIcon className="icon" />
                     </span>
-                    <div>
+                    <div className="dashboard-list-content">
                       <strong>{pickRecipeTitle(recipe)}</strong>
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
@@ -331,7 +331,7 @@ export default function BackendExplorer({
                       src={food.imageUrl || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=60'}
                       alt={food.name || 'Food image'}
                     />
-                    <div>
+                    <div className="dashboard-list-content">
                       <strong>{food.name || 'Unnamed food'}</strong>
                       <span>{food.category || 'No category'}</span>
                     </div>
