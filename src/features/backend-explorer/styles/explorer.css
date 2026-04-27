@@ -488,7 +488,8 @@
 }
 
 .recipe-meta-stack .allergy-warning-dashboard {
-  display: block;
+  display: grid;
+  justify-items: inherit;
   margin-top: 0.2rem;
 }
 
@@ -496,14 +497,16 @@
   max-height: 0;
   opacity: 0;
   overflow: hidden;
+  margin: 0;
   transform: translateY(-4px);
   transition: max-height 220ms ease, opacity 220ms ease, transform 220ms ease;
 }
 
-.allergy-warning-dashboard .allergy-warning-message.revealed {
-  max-height: 72px;
+.allergy-warning-dashboard.revealed .allergy-warning-message {
+  max-height: 240px;
   opacity: 1;
   transform: translateY(0);
+  margin-top: 0.2rem;
 }
 
 .detail-section {

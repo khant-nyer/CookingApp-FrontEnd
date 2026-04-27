@@ -301,7 +301,7 @@ export default function BackendExplorer({
               <h3>Recent Recipes</h3>
               <ul>
                 {recentRecipes.map((recipe) => (
-                  <li key={String(getItemId(recipe))}>
+                  <li key={String(getItemId(recipe))} className="recent-recipe-item">
                     <span className="dashboard-list-icon" aria-hidden>
                       <ChefHatIcon className="icon" />
                     </span>
