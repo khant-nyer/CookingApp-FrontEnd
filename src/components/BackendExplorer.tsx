@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
@@ -100,6 +100,7 @@ export default function BackendExplorer({
   onFoodSearchQueryChange,
   userAllergies
 }: BackendExplorerProps) {
+  const [tabAnimationCycle, setTabAnimationCycle] = useState(0);
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -127,6 +128,12 @@ export default function BackendExplorer({
   }, [isAuthenticated, onRequireAuth]);
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
+
+  useEffect(() => {
+    if (introComplete) {
+      setTabAnimationCycle((prev) => prev + 1);
+    }
+  }, [activeTab, introComplete]);
   const normalizedAllergies = useMemo(() => {
     return (userAllergies || [])
       .map((allergy) => allergy.trim().toLowerCase())
