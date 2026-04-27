@@ -100,7 +100,7 @@ export default function BackendExplorer({
   onFoodSearchQueryChange,
   userAllergies
 }: BackendExplorerProps) {
-  const [dashboardAnimationCycle, setDashboardAnimationCycle] = useState(0);
+  const [tabAnimationCycle, setTabAnimationCycle] = useState(0);
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -130,8 +130,8 @@ export default function BackendExplorer({
   const activeTab = externalActiveTab ?? controllerActiveTab;
 
   useEffect(() => {
-    if (activeTab === 'dashboard' && introComplete) {
-      setDashboardAnimationCycle((prev) => prev + 1);
+    if (introComplete) {
+      setTabAnimationCycle((prev) => prev + 1);
     }
   }, [activeTab, introComplete]);
   const normalizedAllergies = useMemo(() => {
@@ -298,8 +298,8 @@ export default function BackendExplorer({
 
       {activeTab === 'dashboard' ? (
         <section
-          key={`dashboard-cycle-${dashboardAnimationCycle}`}
-          className={introComplete ? 'dashboard-layout dashboard-layout-animate' : 'dashboard-layout'}
+          key={`tab-cycle-${activeTab}-${tabAnimationCycle}`}
+          className={introComplete ? 'dashboard-layout tab-content-animate dashboard-layout-animate' : 'dashboard-layout'}
         >
           <p className="development-notice"><strong>App under development—update coming soon. All features are currently functional. Please create an account to explore. Hi recruiters: please message me on LinkedIn or via email for login credentials if you prefer not to sign up.</strong></p>
           <div className="dashboard-cards">
@@ -366,13 +366,29 @@ export default function BackendExplorer({
         </section>
       ) : null}
 
-      {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
+      {activeTab === 'foods' && (
+        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
+          <FoodsTab {...foodsTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
+      {activeTab === 'ingredients' && (
+        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
+          <IngredientsTab {...ingredientsTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
+      {activeTab === 'recipes' && (
+        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
+          <RecipesTab {...recipesTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
+      {activeTab === 'nutrition' && (
+        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
+          <NutritionTab {...nutritionTabProps} />
+        </div>
+      )}
 
       <CreateEntityModal
         createModal={createFlow.createModal}

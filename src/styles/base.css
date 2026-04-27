@@ -355,8 +355,8 @@ button:disabled {
   color: #fff;
 }
 
-.sidebar-link:hover:not(:disabled),
-.sidebar-link:focus-visible {
+.sidebar-link:hover:not(:disabled):not(.active),
+.sidebar-link:focus-visible:not(.active) {
   background: #eef4ff;
   color: #0b2b55;
   box-shadow: none;
@@ -765,6 +765,7 @@ button:disabled {
   }
 }
 
+.tab-content-animate .card,
 .dashboard-layout-animate .dashboard-card,
 .dashboard-layout-animate .dashboard-list-card.recent-recipes-card,
 .dashboard-layout-animate .dashboard-list-card.latest-foods-card {
@@ -773,26 +774,35 @@ button:disabled {
 }
 
 .dashboard-layout-animate .dashboard-card:nth-child(1) {
-  animation-delay: 40ms;
+  animation-delay: 0ms;
 }
 
 .dashboard-layout-animate .dashboard-card:nth-child(2) {
-  animation-delay: 120ms;
+  animation-delay: 60ms;
 }
 
 .dashboard-layout-animate .dashboard-card:nth-child(3) {
-  animation-delay: 200ms;
+  animation-delay: 120ms;
 }
 
 .dashboard-layout-animate .dashboard-list-card.recent-recipes-card {
-  animation-delay: 300ms;
+  animation-delay: 160ms;
 }
 
 .dashboard-layout-animate .dashboard-list-card.latest-foods-card {
-  animation-delay: 360ms;
+  animation-delay: 220ms;
+}
+
+.tab-content-animate .card:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.tab-content-animate .card:nth-child(2) {
+  animation-delay: 60ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tab-content-animate .card,
   .dashboard-layout-animate .dashboard-card,
   .dashboard-layout-animate .dashboard-list-card.recent-recipes-card,
   .dashboard-layout-animate .dashboard-list-card.latest-foods-card {
