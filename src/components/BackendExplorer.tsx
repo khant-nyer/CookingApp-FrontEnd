@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
@@ -68,10 +68,16 @@ function RecipeSummaryAnimatedIcon({ className }: IconProps) {
   return <ImageIcon src={iconAssets.recipeSummaryAnimated} fallbackSrc={iconAssets.recipeSummaryFallback} className={className} />;
 }
 
-function pickRecipeTitle(recipe: Recipe) {
+function pickRecipeFoodName(recipe: Recipe) {
   if (recipe.foodName) return recipe.foodName;
   if (recipe.description) return recipe.description.split(/[.!?]/)[0];
   return 'Untitled recipe';
+}
+
+function pickRecipeTitle(recipe: Recipe) {
+  const foodName = pickRecipeFoodName(recipe);
+  const createdBy = recipe.createdBy?.trim();
+  return createdBy ? `${createdBy}'s ${foodName}` : foodName;
 }
 
 function pickRecipeVersion(recipe: Recipe) {
@@ -82,6 +88,7 @@ function pickRecipeVersion(recipe: Recipe) {
 interface BackendExplorerProps {
   isAuthenticated: boolean;
   onRequireAuth: () => void;
+  introComplete?: boolean;
   activeTab?: TabKey;
   onTabChange?: (tab: TabKey) => void;
   foodSearchQuery?: string;
@@ -92,12 +99,14 @@ interface BackendExplorerProps {
 export default function BackendExplorer({
   isAuthenticated,
   onRequireAuth,
+  introComplete = true,
   activeTab: externalActiveTab,
   onTabChange,
   foodSearchQuery,
   onFoodSearchQueryChange,
   userAllergies
 }: BackendExplorerProps) {
+  const [tabAnimationCycle, setTabAnimationCycle] = useState(0);
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -125,6 +134,12 @@ export default function BackendExplorer({
   }, [isAuthenticated, onRequireAuth]);
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
+
+  useEffect(() => {
+    if (introComplete) {
+      setTabAnimationCycle((prev) => prev + 1);
+    }
+  }, [activeTab, introComplete]);
   const normalizedAllergies = useMemo(() => {
     return (userAllergies || [])
       .map((allergy) => allergy.trim().toLowerCase())
@@ -288,7 +303,10 @@ export default function BackendExplorer({
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'dashboard' ? (
-        <section className="dashboard-layout">
+        <section
+          key={`tab-cycle-${activeTab}-${tabAnimationCycle}`}
+          className={introComplete ? 'dashboard-layout tab-content-animate dashboard-layout-animate' : 'dashboard-layout'}
+        >
           <p className="development-notice"><strong>App under development—update coming soon. All features are currently functional. Please create an account to explore. Hi recruiters: please message me on LinkedIn or via email for login credentials if you prefer not to sign up.</strong></p>
           <div className="dashboard-cards">
             <DashboardCard title="Total Foods" total={totalFoods} icon={<FoodSummaryAnimatedIcon className="icon" />} />
@@ -354,13 +372,29 @@ export default function BackendExplorer({
         </section>
       ) : null}
 
-      {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
+      {activeTab === 'foods' && (
+        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
+          <FoodsTab {...foodsTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
+      {activeTab === 'ingredients' && (
+        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
+          <IngredientsTab {...ingredientsTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
+      {activeTab === 'recipes' && (
+        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
+          <RecipesTab {...recipesTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
+      {activeTab === 'nutrition' && (
+        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
+          <NutritionTab {...nutritionTabProps} />
+        </div>
+      )}
 
       <CreateEntityModal
         createModal={createFlow.createModal}
