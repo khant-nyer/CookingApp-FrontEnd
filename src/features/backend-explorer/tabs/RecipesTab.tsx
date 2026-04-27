@@ -36,6 +36,14 @@ function RecipesTab({
   onDeleteRecipe,
   allergyAlertText
 }: RecipesTabProps) {
+  const getRecipeFoodName = (recipe: Recipe) => recipe.foodName || foods.find((food) => String(food.id) === String(recipe.foodId))?.name || 'Food';
+
+  const getRecipeGalleryFallbackText = (recipe: Recipe) => {
+    const foodName = getRecipeFoodName(recipe);
+    const createdBy = recipe.createdBy?.trim();
+    return createdBy ? `${createdBy}'s ${foodName}` : foodName;
+  };
+
   const filteredRecipes = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
     if (!normalizedQuery) return recipes;
@@ -57,8 +65,7 @@ function RecipesTab({
           {filteredRecipes.map((recipe) => {
             const sourceIndex = recipes.findIndex((candidate) => candidate === recipe);
             const id = getRecipeTileId(recipe, sourceIndex >= 0 ? sourceIndex : 0);
-            const foodName = recipe.foodName || foods.find((food) => String(food.id) === String(recipe.foodId))?.name || 'Food';
-            return <GalleryTile key={String(id)} imageUrl={undefined} fallbackText={foodName} subtitle={recipe.version || 'No version'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id))} />;
+            return <GalleryTile key={String(id)} imageUrl={undefined} fallbackText={getRecipeGalleryFallbackText(recipe)} caption={getRecipeFoodName(recipe)} subtitle={recipe.version || 'No version'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id))} />;
           })}
         </div>
         {!filteredRecipes.length ? <p className="muted">No recipes found for this search.</p> : null}
@@ -69,7 +76,7 @@ function RecipesTab({
         <TextDetail
           title={`${selectedRecipe.foodName || 'Recipe'} ${selectedRecipe.version ? `(${selectedRecipe.version})` : ''}`}
           alertText={allergyAlertText}
-          fields={[{ label: 'Food', value: selectedRecipe.foodName }, { label: 'Version', value: selectedRecipe.version }, { label: 'Description', value: selectedRecipe.description }]}
+          fields={[{ label: 'Food', value: getRecipeFoodName(selectedRecipe) }, { label: 'Version', value: selectedRecipe.version }, { label: 'Created By', value: selectedRecipe.createdBy }, { label: 'Description', value: selectedRecipe.description }]}
           sections={[
             { title: 'Ingredients', items: (selectedRecipe.ingredients || []).map((item) => `${item.ingredientName || item.ingredientId}: ${item.quantity} ${item.unit}${item.note ? ` (${item.note})` : ''}`) },
             { title: 'Instructions', items: (selectedRecipe.instructions || []).map((ins, idx) => `Step ${ins.step || ins.stepNumber || idx + 1}: ${ins.description}`) }
