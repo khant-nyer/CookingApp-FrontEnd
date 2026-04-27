@@ -857,7 +857,7 @@ button:disabled {
   }
 
   .recipe-meta-stack {
-    justify-items: start;
+    justify-content: flex-start;
   }
 
   .latest-food-warning-stack {
