@@ -529,15 +529,16 @@
   .dashboard-warning-stack .allergy-warning-dashboard .allergy-warning-message {
     position: absolute;
     top: calc(100% + 0.25rem);
-    right: 0;
-    width: min(220px, 72vw);
+    left: 50%;
+    right: auto;
+    width: min(220px, calc(100vw - 7rem));
     margin-top: 0;
-    transform: translateY(8px);
+    transform: translate(-50%, 8px);
     z-index: 6;
   }
 
   .dashboard-warning-stack .allergy-warning-dashboard.revealed .allergy-warning-message {
-    transform: translateY(0);
+    transform: translate(-50%, 0);
   }
 }
 
