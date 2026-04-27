@@ -728,6 +728,22 @@ button:disabled {
   min-width: 0;
 }
 
+.dashboard-list-card li.recent-recipe-item .dashboard-list-content strong,
+.dashboard-list-card li.recent-recipe-item .dashboard-list-content span {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+}
+
+.dashboard-list-card li.recent-recipe-item .dashboard-list-content strong {
+  -webkit-line-clamp: 1;
+}
+
+.dashboard-list-card li.recent-recipe-item .dashboard-list-content span {
+  -webkit-line-clamp: 2;
+}
+
 .dashboard-list-card li span {
   color: #647b9b;
   font-size: 0.92rem;
