@@ -266,6 +266,12 @@ export default function App() {
     setIsLogoutConfirmOpen(true);
   }
 
+  function collapseSidebarOnMainTouch() {
+    if (isMobileView && !isSidebarCollapsed) {
+      setIsSidebarCollapsed(true);
+    }
+  }
+
   return (
     <main className="app-shell">
       <aside className={isSidebarCollapsed ? 'sidebar collapsed' : 'sidebar'}>
@@ -333,7 +339,7 @@ export default function App() {
         </div>
       </aside>
 
-      <section className="content-shell">
+      <section className="content-shell" onPointerDown={collapseSidebarOnMainTouch}>
         <header className="page-header">
           <h1>{pageHeader}</h1>
           <p className="page-subheader">{pageSubheaderByTab[activeTab]}</p>

@@ -804,12 +804,13 @@ button:disabled {
     position: fixed;
     left: 0;
     top: 0;
+    bottom: 0;
     transform: none;
     z-index: 40;
     width: min(280px, 82vw);
     min-width: 0;
-    height: 100vh;
-    max-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
@@ -821,6 +822,7 @@ button:disabled {
   .sidebar.collapsed {
     left: 0.6rem;
     top: 50%;
+    bottom: auto;
     transform: translateY(-50%);
     width: 72px;
     min-width: 72px;
