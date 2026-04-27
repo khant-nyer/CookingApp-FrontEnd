@@ -297,6 +297,13 @@
   min-height: 72px;
 }
 
+.picker-item span:nth-child(2),
+.picker-item small {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.1;
+}
+
 .picker-item.highlighted {
   border-color: #f97316;
   box-shadow: 0 0 0 1px rgb(249 115 22 / 30%);
@@ -377,6 +384,8 @@
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .nutrient-full-name {
@@ -475,6 +484,11 @@
 
 .dashboard-list-card .allergy-warning {
   justify-items: center;
+  gap: 0;
+}
+
+.recipe-meta-stack .allergy-warning-dashboard {
+  margin-top: 0.2rem;
 }
 
 .allergy-warning-dashboard .allergy-warning-message {
@@ -640,6 +654,17 @@ pre {
 
   .picker-group {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .picker-item {
+    min-height: 82px;
+    padding: 0.42rem 0.3rem;
+  }
+
+  .picker-item span:nth-child(2),
+  .picker-item small,
+  .nutrition-summary-head small {
+    font-size: 0.62rem;
   }
 
   .gallery-grid {

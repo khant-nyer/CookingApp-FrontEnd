@@ -138,7 +138,7 @@ export default function BackendExplorer({
     if (!searchableText.trim()) return undefined;
     const matchedAllergies = normalizedAllergies.filter((allergy) => searchableText.includes(allergy));
     if (!matchedAllergies.length) return undefined;
-    return `Allergy awareness: contains ${Array.from(new Set(matchedAllergies)).join(', ')}`;
+    return `Contains allergens: ${Array.from(new Set(matchedAllergies)).join(', ')}`;
   }, [normalizedAllergies]);
 
   const handleTabSwitch = useCallback((tab: TabKey) => {
@@ -273,15 +273,17 @@ export default function BackendExplorer({
                       <strong>{pickRecipeTitle(recipe)}</strong>
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
-                    <AllergyWarningToggle
-                      variant="dashboard"
-                      alertText={buildAllergyAwarenessText([
-                        recipe.foodName,
-                        recipe.description,
-                        ...(recipe.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
-                      ])}
-                    />
-                    <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
+                    <div className="recipe-meta-stack">
+                      <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
+                      <AllergyWarningToggle
+                        variant="dashboard"
+                        alertText={buildAllergyAwarenessText([
+                          recipe.foodName,
+                          recipe.description,
+                          ...(recipe.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
+                        ])}
+                      />
+                    </div>
                   </li>
                 ))}
                 {!recentRecipes.length && <li>No recipes yet.</li>}
