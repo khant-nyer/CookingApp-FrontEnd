@@ -8,7 +8,7 @@ import {
 import { unitOptions } from '../constants/units';
 import type { Ingredient, IngredientNutrition, InputChangeEvent, InputKeyboardEvent, PaginationInfo, RecipeIngredientItem } from '../types';
 import { getItemId } from '../utils/ids';
-import { filterNutrientCatalogByQuery } from '../utils/nutrients';
+import { filterNutrientCatalogByQuery, formatNutrientLabel } from '../utils/nutrients';
 
 interface GalleryTileProps {
   key?: string | number;
@@ -113,9 +113,7 @@ export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyW
           <WarningIcon className="icon" />
         </button>
       ) : null}
-      <p className={isRevealed ? 'detail-alert-text allergy-warning-message revealed' : 'detail-alert-text allergy-warning-message'}>
-        {alertText}
-      </p>
+      {isRevealed ? <p className="detail-alert-text allergy-warning-message revealed">{alertText}</p> : null}
     </div>
   );
 }
@@ -161,7 +159,7 @@ export function NutritionIcon({ nutrient, selected, onClick }: NutritionIconProp
   return (
     <button className={selected ? 'nutrient-pill selected' : 'nutrient-pill'} onClick={onClick}>
       <span className="nutrient-icon">{nutrientIcons[nutrient] || '🧪'}</span>
-      <small>{nutrient}</small>
+      <small>{formatNutrientLabel(nutrient)}</small>
     </button>
   );
 }
@@ -314,7 +312,7 @@ export function NutrientPicker({ value, onChange, storageKey = 'default' }: Nutr
               onClick={() => selectNutrient(item.key)}
             >
               <span>{nutrientIcons[item.key] || '🧪'}</span>
-              <span>{item.key}</span>
+              <span>{formatNutrientLabel(item.key)}</span>
               <small>{nutrientShortNames[item.key]}</small>
             </button>
           ))}
@@ -340,7 +338,7 @@ export function NutritionSummaryCards({ items = [], onRemove, onValueChange, onU
           <button type="button" className="mini-remove" onClick={() => onRemove(index)}>×</button>
           <div className="mini-summary-head nutrition-summary-head">
             <span className="nutrient-icon">{nutrientIcons[nutrition.nutrient] || '🧪'}</span>
-            <small className="nutrient-full-name">{nutrition.nutrient}</small>
+            <small className="nutrient-full-name">{formatNutrientLabel(nutrition.nutrient)}</small>
             <small className="nutrient-short-name">{nutrientShortNames[nutrition.nutrient] || nutrition.nutrient}</small>
           </div>
           <div className="mini-summary-fields">
