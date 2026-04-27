@@ -488,6 +488,7 @@
 }
 
 .recipe-meta-stack .allergy-warning-dashboard {
+  display: block;
   margin-top: 0.2rem;
 }
 

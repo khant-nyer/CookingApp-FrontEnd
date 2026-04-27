@@ -54,3 +54,15 @@ export function filterNutrientCatalogByQuery(query: string) {
       || aliases.includes(normalizedQuery);
   });
 }
+
+export function formatNutrientLabel(nutrient: string): string {
+  if (!nutrient) return '';
+
+  const normalized = normalizeNutrientKey(nutrient);
+  return normalized
+    .toLowerCase()
+    .split('_')
+    .filter(Boolean)
+    .map((part) => (part ? `${part[0].toUpperCase()}${part.slice(1)}` : part))
+    .join(' ');
+}

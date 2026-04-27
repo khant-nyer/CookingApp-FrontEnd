@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
 import type { CreateSuccessState, EntityType, Ingredient, PaginationInfo } from '../types';
 import { GalleryTile, PaginationControls, TextDetail } from '../shared/ExplorerShared';
+import { formatNutrientLabel } from '../utils/nutrients';
 
 interface IngredientsTabProps {
   searchQuery?: string;
@@ -72,7 +73,7 @@ function IngredientsTab({
             { label: 'Description', value: selectedIngredient.description },
             { label: 'Serving', value: `${selectedIngredient.servingAmount || '-'} ${selectedIngredient.servingUnit || ''}` }
           ]}
-          sections={[{ title: 'Nutritions', items: (selectedIngredient.nutritionList || []).map((n) => `${n.nutrient}: ${n.value} ${n.unit}`) }]}
+          sections={[{ title: 'Nutritions', items: (selectedIngredient.nutritionList || []).map((n) => `${formatNutrientLabel(n.nutrient)}: ${n.value} ${n.unit}`) }]}
           onDelete={() => onDeleteIngredient(selectedIngredient)}
           onUpdate={() => openIngredientUpdateModal(selectedIngredient)}
         />
