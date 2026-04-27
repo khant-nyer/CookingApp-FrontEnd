@@ -273,15 +273,17 @@ export default function BackendExplorer({
                       <strong>{pickRecipeTitle(recipe)}</strong>
                       <span>{recipe.description || 'No description available'}</span>
                     </div>
-                    <AllergyWarningToggle
-                      variant="dashboard"
-                      alertText={buildAllergyAwarenessText([
-                        recipe.foodName,
-                        recipe.description,
-                        ...(recipe.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
-                      ])}
-                    />
-                    <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
+                    <div className="recipe-meta-stack">
+                      <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
+                      <AllergyWarningToggle
+                        variant="dashboard"
+                        alertText={buildAllergyAwarenessText([
+                          recipe.foodName,
+                          recipe.description,
+                          ...(recipe.ingredients || []).map((ingredient) => ingredient.ingredientName || String(ingredient.ingredientId))
+                        ])}
+                      />
+                    </div>
                   </li>
                 ))}
                 {!recentRecipes.length && <li>No recipes yet.</li>}
