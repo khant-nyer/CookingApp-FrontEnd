@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   nutrientGroups,
   nutrientIcons,
@@ -90,6 +90,30 @@ interface AllergyWarningToggleProps {
 
 export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyWarningToggleProps) {
   const [isRevealed, setIsRevealed] = useState(false);
+  const warningRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isRevealed || variant !== 'dashboard') return;
+
+    function handleOutsideClick(event: MouseEvent | TouchEvent) {
+      if (warningRef.current?.contains(event.target as Node)) return;
+      setIsRevealed(false);
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsRevealed(false);
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isRevealed, variant]);
 
   if (!alertText) return null;
 
@@ -102,7 +126,7 @@ export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyW
   }
 
   return (
-    <div className={`allergy-warning allergy-warning-dashboard${isRevealed ? ' revealed' : ''}`}>
+    <div ref={warningRef} className={`allergy-warning allergy-warning-dashboard${isRevealed ? ' revealed' : ''}`}>
       <button
         type="button"
         className="allergy-warning-toggle"
