@@ -297,7 +297,7 @@ export default function BackendExplorer({
           </div>
 
           <div className="dashboard-lists">
-            <article className="dashboard-list-card">
+            <article className="dashboard-list-card recent-recipes-card">
               <h3>Recent Recipes</h3>
               <ul>
                 {recentRecipes.map((recipe) => (
@@ -322,7 +322,7 @@ export default function BackendExplorer({
               </ul>
             </article>
 
-            <article className="dashboard-list-card">
+            <article className="dashboard-list-card latest-foods-card">
               <h3>Latest Foods</h3>
               <ul>
                 {latestFoods.map((food) => (
