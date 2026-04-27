@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
   nutrientGroups,
   nutrientIcons,
@@ -91,6 +92,8 @@ interface AllergyWarningToggleProps {
 export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyWarningToggleProps) {
   const [isRevealed, setIsRevealed] = useState(false);
   const warningRef = useRef<HTMLDivElement | null>(null);
+  const toggleButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [mobileMessageStyle, setMobileMessageStyle] = useState<CSSProperties | undefined>(undefined);
 
   useEffect(() => {
     if (!isRevealed || variant !== 'dashboard') return;
@@ -116,6 +119,48 @@ export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyW
     };
   }, [isRevealed, variant]);
 
+  useEffect(() => {
+    if (variant !== 'dashboard') return;
+
+    function updateMobileMessagePosition() {
+      if (!isRevealed || !toggleButtonRef.current || typeof window === 'undefined') {
+        setMobileMessageStyle(undefined);
+        return;
+      }
+
+      if (window.innerWidth > 480) {
+        setMobileMessageStyle(undefined);
+        return;
+      }
+
+      const rect = toggleButtonRef.current.getBoundingClientRect();
+      const horizontalPadding = 12;
+      const messageWidth = Math.min(240, window.innerWidth - horizontalPadding * 2);
+      const centeredLeft = rect.left + (rect.width - messageWidth) / 2;
+      const clampedLeft = Math.min(
+        Math.max(centeredLeft, horizontalPadding),
+        window.innerWidth - messageWidth - horizontalPadding
+      );
+
+      setMobileMessageStyle({
+        position: 'fixed',
+        top: rect.bottom + 6,
+        left: clampedLeft,
+        width: messageWidth,
+        zIndex: 2600
+      });
+    }
+
+    updateMobileMessagePosition();
+    window.addEventListener('resize', updateMobileMessagePosition);
+    window.addEventListener('scroll', updateMobileMessagePosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updateMobileMessagePosition);
+      window.removeEventListener('scroll', updateMobileMessagePosition, true);
+    };
+  }, [isRevealed, variant]);
+
   if (!alertText) return null;
 
   if (variant === 'detail') {
@@ -129,6 +174,7 @@ export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyW
   return (
     <div ref={warningRef} className={`allergy-warning allergy-warning-dashboard${isRevealed ? ' revealed' : ''}`}>
       <button
+        ref={toggleButtonRef}
         type="button"
         className="allergy-warning-toggle"
         aria-label={isRevealed ? 'Hide allergy warning' : 'Show allergy warning'}
@@ -137,7 +183,7 @@ export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyW
       >
         <WarningIcon className="icon" />
       </button>
-      <p className="detail-alert-text allergy-warning-message">{alertText}</p>
+      <p className="detail-alert-text allergy-warning-message" style={mobileMessageStyle}>{alertText}</p>
     </div>
   );
 }
