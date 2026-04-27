@@ -65,7 +65,7 @@ function RecipesTab({
           {filteredRecipes.map((recipe) => {
             const sourceIndex = recipes.findIndex((candidate) => candidate === recipe);
             const id = getRecipeTileId(recipe, sourceIndex >= 0 ? sourceIndex : 0);
-            return <GalleryTile key={String(id)} imageUrl={undefined} fallbackText={getRecipeGalleryFallbackText(recipe)} subtitle={recipe.version || 'No version'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id))} />;
+            return <GalleryTile key={String(id)} imageUrl={undefined} fallbackText={getRecipeGalleryFallbackText(recipe)} caption={getRecipeFoodName(recipe)} subtitle={recipe.version || 'No version'} isSelected={String(id) === String(selectedId)} onClick={() => setSelectedId(String(id))} />;
           })}
         </div>
         {!filteredRecipes.length ? <p className="muted">No recipes found for this search.</p> : null}
