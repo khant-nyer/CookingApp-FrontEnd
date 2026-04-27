@@ -96,7 +96,8 @@ export function AllergyWarningToggle({ alertText, variant = 'detail' }: AllergyW
     if (!isRevealed || variant !== 'dashboard') return;
 
     function handleOutsideClick(event: MouseEvent | TouchEvent) {
-      if (warningRef.current?.contains(event.target as Node)) return;
+      const toggleButton = warningRef.current?.querySelector('.allergy-warning-toggle');
+      if (toggleButton?.contains(event.target as Node)) return;
       setIsRevealed(false);
     }
 
