@@ -82,6 +82,7 @@ function pickRecipeVersion(recipe: Recipe) {
 interface BackendExplorerProps {
   isAuthenticated: boolean;
   onRequireAuth: () => void;
+  introComplete?: boolean;
   activeTab?: TabKey;
   onTabChange?: (tab: TabKey) => void;
   foodSearchQuery?: string;
@@ -92,6 +93,7 @@ interface BackendExplorerProps {
 export default function BackendExplorer({
   isAuthenticated,
   onRequireAuth,
+  introComplete = true,
   activeTab: externalActiveTab,
   onTabChange,
   foodSearchQuery,
@@ -288,7 +290,10 @@ export default function BackendExplorer({
       {error && <p className="error">{error}</p>}
 
       {activeTab === 'dashboard' ? (
-        <section className="dashboard-layout">
+        <section
+          key={activeTab}
+          className={introComplete ? 'dashboard-layout tab-content-animate dashboard-layout-animate' : 'dashboard-layout'}
+        >
           <p className="development-notice"><strong>App under development—update coming soon. All features are currently functional. Please create an account to explore. Hi recruiters: please message me on LinkedIn or via email for login credentials if you prefer not to sign up.</strong></p>
           <div className="dashboard-cards">
             <DashboardCard title="Total Foods" total={totalFoods} icon={<FoodSummaryAnimatedIcon className="icon" />} />
@@ -354,13 +359,29 @@ export default function BackendExplorer({
         </section>
       ) : null}
 
-      {activeTab === 'foods' && <FoodsTab {...foodsTabProps} />}
+      {activeTab === 'foods' && (
+        <div key={activeTab} className={introComplete ? 'tab-content-animate' : undefined}>
+          <FoodsTab {...foodsTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'ingredients' && <IngredientsTab {...ingredientsTabProps} />}
+      {activeTab === 'ingredients' && (
+        <div key={activeTab} className={introComplete ? 'tab-content-animate' : undefined}>
+          <IngredientsTab {...ingredientsTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'recipes' && <RecipesTab {...recipesTabProps} />}
+      {activeTab === 'recipes' && (
+        <div key={activeTab} className={introComplete ? 'tab-content-animate' : undefined}>
+          <RecipesTab {...recipesTabProps} />
+        </div>
+      )}
 
-      {activeTab === 'nutrition' && <NutritionTab {...nutritionTabProps} />}
+      {activeTab === 'nutrition' && (
+        <div key={activeTab} className={introComplete ? 'tab-content-animate' : undefined}>
+          <NutritionTab {...nutritionTabProps} />
+        </div>
+      )}
 
       <CreateEntityModal
         createModal={createFlow.createModal}

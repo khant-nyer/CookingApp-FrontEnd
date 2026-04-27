@@ -360,6 +360,7 @@ export default function App() {
           <BackendExplorer
             isAuthenticated={isAuthenticated}
             onRequireAuth={() => setIsAuthModalOpen(true)}
+            introComplete={introStage === 'done'}
             activeTab={activeTab}
             onTabChange={(tab) => {
               setActiveTab(tab);
