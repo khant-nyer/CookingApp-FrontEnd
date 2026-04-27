@@ -355,17 +355,15 @@ button:disabled {
   color: #fff;
 }
 
-.sidebar-link:hover:not(:disabled),
-.sidebar-link:focus-visible {
-  background: #f97316;
-  color: #fff;
+.sidebar-link:hover:not(:disabled):not(.active),
+.sidebar-link:focus-visible:not(.active) {
+  background: #eef4ff;
+  color: #0b2b55;
   box-shadow: none;
 }
 
 
-.sidebar-link.active img.icon,
-.sidebar-link:hover:not(:disabled) img.icon,
-.sidebar-link:focus-visible img.icon {
+.sidebar-link.active img.icon {
   filter: brightness(0) saturate(100%) invert(1);
 }
 
@@ -754,6 +752,63 @@ button:disabled {
 .dashboard-list-card li span {
   color: #647b9b;
   font-size: 0.92rem;
+}
+
+@keyframes dashboard-card-appear {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content-animate .card,
+.dashboard-layout-animate .dashboard-card,
+.dashboard-layout-animate .dashboard-list-card.recent-recipes-card,
+.dashboard-layout-animate .dashboard-list-card.latest-foods-card {
+  opacity: 0;
+  animation: dashboard-card-appear 420ms ease-out forwards;
+}
+
+.dashboard-layout-animate .dashboard-card:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.dashboard-layout-animate .dashboard-card:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.dashboard-layout-animate .dashboard-card:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.dashboard-layout-animate .dashboard-list-card.recent-recipes-card {
+  animation-delay: 160ms;
+}
+
+.dashboard-layout-animate .dashboard-list-card.latest-foods-card {
+  animation-delay: 220ms;
+}
+
+.tab-content-animate .card:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.tab-content-animate .card:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-content-animate .card,
+  .dashboard-layout-animate .dashboard-card,
+  .dashboard-layout-animate .dashboard-list-card.recent-recipes-card,
+  .dashboard-layout-animate .dashboard-list-card.latest-foods-card {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .recipe-version-badge {
