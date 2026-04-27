@@ -744,10 +744,10 @@ button:disabled {
 }
 
 .recipe-meta-stack {
-  display: grid;
-  justify-items: end;
-  gap: 0.2rem;
-  align-content: start;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
   flex-shrink: 0;
 }
 
@@ -852,7 +852,7 @@ button:disabled {
   }
 
   .recipe-meta-stack {
-    justify-items: start;
+    justify-content: flex-start;
   }
 }
 
@@ -888,7 +888,8 @@ button:disabled {
 
   .recipe-meta-stack {
     grid-area: meta;
-    justify-items: start;
+    justify-content: flex-start;
+    flex-wrap: wrap;
     width: 100%;
   }
 }

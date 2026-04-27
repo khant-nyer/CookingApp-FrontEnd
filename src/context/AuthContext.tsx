@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { api, setApiTokenProvider } from '../services/api';
 import {
@@ -88,6 +88,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(bootstrappedSession.user);
   const [isExpiryWarningOpen, setIsExpiryWarningOpen] = useState(false);
   const [secondsToExpiry, setSecondsToExpiry] = useState(0);
+  const suppressExpiryWarningUntilRef = useRef(0);
 
   useEffect(() => {
     localStorage.setItem(AUTH_CONFIG_SIGNATURE_KEY, AUTH_CONFIG_SIGNATURE);
@@ -163,6 +164,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     accessToken,
     warningWindowMs: EXPIRY_WARNING_WINDOW_MS,
     onWarningOpen: () => {
+      if (Date.now() < suppressExpiryWarningUntilRef.current) return;
       setIsExpiryWarningOpen(true);
     },
     onExpired: clearLocalAuthState,
@@ -180,6 +182,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         refreshSession: refreshSessionWithCognito,
         updateSession,
         onExtended: () => {
+          suppressExpiryWarningUntilRef.current = Date.now() + 5000;
           setIsExpiryWarningOpen(false);
           setSecondsToExpiry(0);
         },
