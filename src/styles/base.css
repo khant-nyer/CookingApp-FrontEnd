@@ -721,7 +721,7 @@ button:disabled {
   padding: 7px;
 }
 
-.dashboard-list-card li div {
+.dashboard-list-card li .dashboard-list-content {
   display: grid;
   gap: 0.2rem;
   flex: 1;
@@ -862,7 +862,7 @@ button:disabled {
     align-items: start;
   }
 
-  .dashboard-list-card li div {
+  .dashboard-list-card li .dashboard-list-content {
     overflow-wrap: anywhere;
   }
 
