@@ -2,8 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { unitOptions } from '../features/backend-explorer/constants/units';
 import useBackendExplorerController from '../features/backend-explorer/hooks/useBackendExplorerController';
+import { useFoodsTabProps } from '../features/backend-explorer/hooks/useFoodsTabProps';
+import { useIngredientsTabProps } from '../features/backend-explorer/hooks/useIngredientsTabProps';
+import { useRecipeSearchableValues } from '../features/backend-explorer/hooks/useRecipeSearchableValues';
+import { useRecipesTabProps } from '../features/backend-explorer/hooks/useRecipesTabProps';
 import { getItemId } from '../features/backend-explorer/utils/ids';
-import { formatNutrientLabel } from '../features/backend-explorer/utils/nutrients';
 import { iconAssets } from './iconAssets';
 import CreateEntityModal from '../features/backend-explorer/modals/CreateEntityModal';
 import DeleteConfirmModal from '../features/backend-explorer/modals/DeleteConfirmModal';
@@ -12,8 +15,10 @@ import FoodsTab from '../features/backend-explorer/tabs/FoodsTab';
 import IngredientsTab from '../features/backend-explorer/tabs/IngredientsTab';
 import NutritionTab from '../features/backend-explorer/tabs/NutritionTab';
 import RecipesTab from '../features/backend-explorer/tabs/RecipesTab';
-import type { EntityType, Food, Ingredient, Recipe, TabKey } from '../features/backend-explorer/types';
+import type { Recipe, TabKey } from '../features/backend-explorer/types';
 import { AllergyWarningToggle } from '../features/backend-explorer/shared/ExplorerShared';
+
+// ─── Local icon components ────────────────────────────────────────────────────
 
 interface IconProps {
   className?: string;
@@ -26,47 +31,45 @@ interface ImageIconProps extends IconProps {
 
 function ImageIcon({ className, src, fallbackSrc }: ImageIconProps) {
   return (
-    <img
-      src={src}
-      alt=""
-      className={className}
-      aria-hidden
-      onError={(event) => {
-        if (event.currentTarget.src !== fallbackSrc) {
-          event.currentTarget.src = fallbackSrc;
-        }
-      }}
-    />
+      <img
+          src={src}
+          alt=""
+          className={className}
+          aria-hidden
+          onError={(event) => {
+            if (event.currentTarget.src !== fallbackSrc) {
+              event.currentTarget.src = fallbackSrc;
+            }
+          }}
+      />
   );
 }
 
-function ChefHatIcon({ className }: IconProps) {
-  return <ImageIcon src={iconAssets.recipe} fallbackSrc={iconAssets.recipeSummaryFallback} className={className} />;
-}
+const createSummaryIcon = (src: string, fallbackSrc: string) =>
+    ({ className }: IconProps) => (
+        <ImageIcon src={src} fallbackSrc={fallbackSrc} className={className} />
+    );
+
+const FoodSummaryIcon       = createSummaryIcon(iconAssets.foodSummaryAnimated,       iconAssets.foodSummaryFallback);
+const IngredientSummaryIcon = createSummaryIcon(iconAssets.ingredientSummaryAnimated, iconAssets.ingredientSummaryFallback);
+const RecipeSummaryIcon     = createSummaryIcon(iconAssets.recipeSummaryAnimated,     iconAssets.recipeSummaryFallback);
+const ChefHatIcon           = createSummaryIcon(iconAssets.recipe,                   iconAssets.recipeSummaryFallback);
+
+// ─── Dashboard sub-components ─────────────────────────────────────────────────
 
 function DashboardCard({ title, total, icon }: { title: string; total: number; icon: ReactNode }) {
   return (
-    <article className="dashboard-card">
-      <div>
-        <p className="dashboard-card-title">{title}</p>
-        <strong className="dashboard-card-total">{total}</strong>
-      </div>
-      <span className="dashboard-card-icon" aria-hidden>{icon}</span>
-    </article>
+      <article className="dashboard-card">
+        <div>
+          <p className="dashboard-card-title">{title}</p>
+          <strong className="dashboard-card-total">{total}</strong>
+        </div>
+        <span className="dashboard-card-icon" aria-hidden>{icon}</span>
+      </article>
   );
 }
 
-function FoodSummaryAnimatedIcon({ className }: IconProps) {
-  return <ImageIcon src={iconAssets.foodSummaryAnimated} fallbackSrc={iconAssets.foodSummaryFallback} className={className} />;
-}
-
-function IngredientSummaryAnimatedIcon({ className }: IconProps) {
-  return <ImageIcon src={iconAssets.ingredientSummaryAnimated} fallbackSrc={iconAssets.ingredientSummaryFallback} className={className} />;
-}
-
-function RecipeSummaryAnimatedIcon({ className }: IconProps) {
-  return <ImageIcon src={iconAssets.recipeSummaryAnimated} fallbackSrc={iconAssets.recipeSummaryFallback} className={className} />;
-}
+// ─── Recipe title helpers ─────────────────────────────────────────────────────
 
 function pickRecipeFoodName(recipe: Recipe) {
   if (recipe.foodName) return recipe.foodName;
@@ -75,15 +78,27 @@ function pickRecipeFoodName(recipe: Recipe) {
 }
 
 function pickRecipeTitle(recipe: Recipe) {
-  const foodName = pickRecipeFoodName(recipe);
+  const foodName  = pickRecipeFoodName(recipe);
   const createdBy = recipe.createdBy?.trim();
   return createdBy ? `${createdBy}'s ${foodName}` : foodName;
 }
 
 function pickRecipeVersion(recipe: Recipe) {
-  if (recipe.version && String(recipe.version).trim()) return String(recipe.version).trim();
-  return 'N/A';
+  const version = String(recipe.version ?? '').trim();
+  return version || 'N/A';
 }
+
+// ─── Search placeholder map ───────────────────────────────────────────────────
+
+const SEARCH_PLACEHOLDERS: Record<TabKey, string> = {
+  dashboard:   '',
+  foods:       'Search foods by name, category, or creator',
+  ingredients: 'Search ingredients by name, category, or description',
+  recipes:     'Search recipes by food, version, or description',
+  nutrition:   'Search nutrient ingredients by name or category',
+};
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface BackendExplorerProps {
   isAuthenticated: boolean;
@@ -96,17 +111,20 @@ interface BackendExplorerProps {
   userAllergies?: string[];
 }
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function BackendExplorer({
-  isAuthenticated,
-  onRequireAuth,
-  introComplete = true,
-  activeTab: externalActiveTab,
-  onTabChange,
-  foodSearchQuery,
-  onFoodSearchQueryChange,
-  userAllergies
-}: BackendExplorerProps) {
+                                          isAuthenticated,
+                                          onRequireAuth,
+                                          introComplete = true,
+                                          activeTab: externalActiveTab,
+                                          onTabChange,
+                                          foodSearchQuery,
+                                          onFoodSearchQueryChange,
+                                          userAllergies,
+                                        }: BackendExplorerProps) {
   const [tabAnimationCycle, setTabAnimationCycle] = useState(0);
+
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
   const {
     selectedId,
@@ -118,338 +136,307 @@ export default function BackendExplorer({
     loadTabData,
     loading,
     error,
-    pagination
+    pagination,
   } = viewState;
-
-  const handleDeleteCancel = useCallback(() => {
-    deleteFlow.setDeleteModal({ open: false, message: '', action: null });
-  }, [deleteFlow]);
-
-  const runProtectedAction = useCallback((action: () => void) => {
-    if (!isAuthenticated) {
-      onRequireAuth();
-      return;
-    }
-    action();
-  }, [isAuthenticated, onRequireAuth]);
 
   const activeTab = externalActiveTab ?? controllerActiveTab;
 
   useEffect(() => {
-    if (introComplete) {
-      setTabAnimationCycle((prev) => prev + 1);
-    }
+    if (introComplete) setTabAnimationCycle((prev) => prev + 1);
   }, [activeTab, introComplete]);
-  const normalizedAllergies = useMemo(() => {
-    return (userAllergies || [])
-      .map((allergy) => allergy.trim().toLowerCase())
-      .filter(Boolean);
-  }, [userAllergies]);
 
-  const buildAllergyAwarenessText = useCallback((searchableValues: Array<string | undefined>) => {
-    if (!normalizedAllergies.length) return undefined;
-    const searchableText = searchableValues
-      .map((value) => String(value || '').toLowerCase())
-      .join(' ');
-    if (!searchableText.trim()) return undefined;
-    const matchedAllergies = normalizedAllergies.filter((allergy) => searchableText.includes(allergy));
-    if (!matchedAllergies.length) return undefined;
-    return `Contains allergens: ${Array.from(new Set(matchedAllergies)).join(', ')}`;
-  }, [normalizedAllergies]);
+  // ── Auth guard ──────────────────────────────────────────────────────────────
 
-  const ingredientNutritionById = useMemo(() => {
-    const map = new Map<string, string[]>();
-    entities.ingredients.forEach((ingredient) => {
-      const ingredientId = String(getItemId(ingredient) || '');
-      if (!ingredientId) return;
-      const nutrients = (ingredient.nutritionList || []).flatMap((nutrition) => {
-        const normalized = String(nutrition?.nutrient || '').trim();
-        if (!normalized) return [];
-        const readable = formatNutrientLabel(normalized);
-        return [normalized, readable];
-      });
-      map.set(ingredientId, nutrients);
-    });
-    return map;
-  }, [entities.ingredients]);
+  const runProtectedAction = useCallback(
+      (action: () => void) => {
+        if (!isAuthenticated) { onRequireAuth(); return; }
+        action();
+      },
+      [isAuthenticated, onRequireAuth],
+  );
 
-  const getRecipeSearchableValues = useCallback((recipe: Recipe) => {
-    const ingredientValues = (recipe.ingredients || []).flatMap((ingredient) => {
-      const ingredientId = String(ingredient.ingredientId || '');
-      const nutritionTerms = ingredientNutritionById.get(ingredientId) || [];
-      return [
-        ingredient.ingredientName,
-        ingredient.note,
-        ingredientId,
-        ...nutritionTerms
-      ];
-    });
+  // ── Allergy awareness ───────────────────────────────────────────────────────
 
-    return [
-      recipe.foodName,
-      recipe.description,
-      ...ingredientValues
-    ];
-  }, [ingredientNutritionById]);
+  const normalizedAllergies = useMemo(
+      () => (userAllergies ?? []).map((a) => a.trim().toLowerCase()).filter(Boolean),
+      [userAllergies],
+  );
 
-  const handleTabSwitch = useCallback((tab: TabKey) => {
-    if (onTabChange) {
-      onTabChange(tab);
-      return;
-    }
-    setActiveTab(tab);
-  }, [onTabChange, setActiveTab]);
+  const buildAllergyAwarenessText = useCallback(
+      (searchableValues: Array<string | undefined>): string | undefined => {
+        if (!normalizedAllergies.length) return undefined;
+        const text = searchableValues.map((v) => String(v ?? '').toLowerCase()).join(' ');
+        if (!text.trim()) return undefined;
+        const matched = [...new Set(normalizedAllergies.filter((a) => text.includes(a)))];
+        return matched.length ? `Contains allergens: ${matched.join(', ')}` : undefined;
+      },
+      [normalizedAllergies],
+  );
 
-  const foodsTabProps = useMemo(() => ({
-    foods: entities.foods,
+  // ── Recipe searchability (shared by dashboard + RecipesTab) ─────────────────
+
+  const { getRecipeSearchableValues } = useRecipeSearchableValues(entities.ingredients);
+
+  // ── Tab switch ──────────────────────────────────────────────────────────────
+
+  const handleTabSwitch = useCallback(
+      (tab: TabKey) => (onTabChange ? onTabChange(tab) : setActiveTab(tab)),
+      [onTabChange, setActiveTab],
+  );
+
+  // ── Tab prop hooks ──────────────────────────────────────────────────────────
+
+  const foodsTabProps = useFoodsTabProps({
+    foods:                entities.foods,
+    selectedFood:         entities.selectedFood,
     selectedId,
     setSelectedId,
-    selectedFood: entities.selectedFood,
-    createSuccess: createFlow.createSuccess,
-    openFoodUpdateModal: (food: Food) => runProtectedAction(() => updateFlow.openFoodUpdateModal(food)),
-    getItemId,
-    pagination: pagination.foods,
-    onPageChange: (page: number) => loadTabData('foods', page),
+    pagination:           pagination.foods,
     loading,
-    onDeleteFood: (food: Food) => runProtectedAction(() => deleteFlow.handleDeleteFood(food)),
-    onCreateFood: () => runProtectedAction(() => createFlow.openCreateModal('food')),
-    searchQuery: foodSearchQuery,
-    onSearchQueryChange: onFoodSearchQueryChange,
-    allergyAlertText: buildAllergyAwarenessText([
-      entities.selectedFood?.name,
-      entities.selectedFood?.category,
-      ...(entities.selectedFood?.recipes || []).map((recipe) => recipe.name)
-    ])
-  }), [entities.foods, selectedId, setSelectedId, entities.selectedFood, pagination.foods, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, createFlow, foodSearchQuery, onFoodSearchQueryChange, buildAllergyAwarenessText]);
+    createSuccess:        createFlow.createSuccess,
+    openCreateModal:      createFlow.openCreateModal,
+    openFoodUpdateModal:  updateFlow.openFoodUpdateModal,
+    handleDeleteFood:     deleteFlow.handleDeleteFood,
+    loadTabData,
+    runProtectedAction,
+    buildAllergyAwarenessText,
+    searchQuery:          foodSearchQuery,
+    onSearchQueryChange:  onFoodSearchQueryChange,
+  });
 
-  const ingredientsTabProps = useMemo(() => ({
-    searchQuery: foodSearchQuery,
-    ingredients: entities.ingredients,
+  const ingredientsTabProps = useIngredientsTabProps({
+    ingredients:                entities.ingredients,
+    selectedIngredient:         entities.selectedIngredient,
     selectedId,
     setSelectedId,
-    selectedIngredient: entities.selectedIngredient,
-    createSuccess: createFlow.createSuccess,
-    openCreateModal: (type: EntityType) => runProtectedAction(() => createFlow.openCreateModal(type)),
-    openIngredientUpdateModal: (ingredient: Ingredient) => runProtectedAction(() => updateFlow.openIngredientUpdateModal(ingredient)),
-    getItemId,
-    pagination: pagination.ingredients,
-    onPageChange: (page: number) => loadTabData('ingredients', page),
+    pagination:                 pagination.ingredients,
     loading,
-    onDeleteIngredient: (ingredient: Ingredient) => runProtectedAction(() => deleteFlow.handleDeleteIngredient(ingredient)),
-    allergyAlertText: buildAllergyAwarenessText([
-      entities.selectedIngredient?.name,
-      entities.selectedIngredient?.category,
-      entities.selectedIngredient?.description,
-      ...((entities.selectedIngredient?.nutritionList || []).flatMap((nutrition) => [
-        nutrition.nutrient,
-        formatNutrientLabel(nutrition.nutrient)
-      ]))
-    ])
-  }), [foodSearchQuery, entities.ingredients, selectedId, setSelectedId, entities.selectedIngredient, createFlow, pagination.ingredients, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText]);
-
-  const recipesTabProps = useMemo(() => ({
+    createSuccess:              createFlow.createSuccess,
+    openCreateModal:            createFlow.openCreateModal,
+    openIngredientUpdateModal:  updateFlow.openIngredientUpdateModal,
+    handleDeleteIngredient:     deleteFlow.handleDeleteIngredient,
+    loadTabData,
+    runProtectedAction,
+    buildAllergyAwarenessText,
     searchQuery: foodSearchQuery,
-    recipes: entities.recipes,
-    foods: entities.foods,
+  });
+
+  const recipesTabProps = useRecipesTabProps({
+    recipes:               entities.recipes,
+    foods:                 entities.foods,
+    selectedRecipe:        entities.selectedRecipe,
     selectedId,
     setSelectedId,
-    selectedRecipe: entities.selectedRecipe,
-    createSuccess: createFlow.createSuccess,
-    openCreateModal: (type: EntityType) => runProtectedAction(() => createFlow.openCreateModal(type)),
-    openRecipeUpdateModal: (recipe: Recipe) => runProtectedAction(() => updateFlow.openRecipeUpdateModal(recipe)),
-    pagination: pagination.recipes,
-    onPageChange: (page: number) => loadTabData('recipes', page),
+    pagination:            pagination.recipes,
     loading,
-    onDeleteRecipe: (recipe: Recipe) => runProtectedAction(() => deleteFlow.handleDeleteRecipe(recipe)),
-    allergyAlertText: entities.selectedRecipe ? buildAllergyAwarenessText(getRecipeSearchableValues(entities.selectedRecipe)) : undefined
-  }), [foodSearchQuery, entities.recipes, entities.foods, selectedId, setSelectedId, entities.selectedRecipe, createFlow, pagination.recipes, loadTabData, loading, runProtectedAction, deleteFlow, updateFlow, buildAllergyAwarenessText, getRecipeSearchableValues]);
-
-  const nutritionTabProps = useMemo(() => ({
+    createSuccess:         createFlow.createSuccess,
+    openCreateModal:       createFlow.openCreateModal,
+    openRecipeUpdateModal: updateFlow.openRecipeUpdateModal,
+    handleDeleteRecipe:    deleteFlow.handleDeleteRecipe,
+    loadTabData,
+    runProtectedAction,
+    buildAllergyAwarenessText,
+    getRecipeSearchableValues,
     searchQuery: foodSearchQuery,
+  });
+
+  // NutritionTab props are simple pass-throughs with no auth-guarded actions,
+  // so a dedicated hook would add no value — assembled inline.
+  const nutritionTabProps = {
+    searchQuery:                 foodSearchQuery,
     selectedNutrient,
     setSelectedNutrient,
     nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
-    setActiveTab: handleTabSwitch,
-    getItemId
-  }), [foodSearchQuery, selectedNutrient, setSelectedNutrient, entities.nutrientFilteredIngredients, handleTabSwitch]);
+    setActiveTab:                handleTabSwitch,
+    getItemId,
+  };
 
-  const totalFoods = pagination.foods.totalElements || entities.foods.length;
-  const totalIngredients = pagination.ingredients.totalElements || entities.ingredients.length;
-  const totalRecipes = pagination.recipes.totalElements || entities.recipes.length;
+  // ── Dashboard derived data ──────────────────────────────────────────────────
+
+  const totalFoods       = pagination.foods.totalElements       ?? entities.foods.length;
+  const totalIngredients = pagination.ingredients.totalElements ?? entities.ingredients.length;
+  const totalRecipes     = pagination.recipes.totalElements     ?? entities.recipes.length;
 
   const recentRecipes = entities.recipes.slice(0, 4);
-  const latestFoods = entities.foods.slice(0, 4);
-  const searchPlaceholder = activeTab === 'foods'
-    ? 'Search foods by name, category, or creator'
-    : activeTab === 'ingredients'
-      ? 'Search ingredients by name, category, or description'
-      : activeTab === 'recipes'
-        ? 'Search recipes by food, version, or description'
-        : 'Search nutrient ingredients by name or category';
+  const latestFoods   = entities.foods.slice(0, 4);
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+
+  const tabAnimClass = introComplete ? 'tab-content-animate' : undefined;
 
   return (
-    <section className="backend-explorer-scroll">
-      {activeTab !== 'dashboard' ? (
-        <div className="explorer-search-row">
-          <input
-            type="search"
-            placeholder={searchPlaceholder}
-            value={foodSearchQuery || ''}
-            onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
-            aria-label={searchPlaceholder}
-          />
-        </div>
-      ) : null}
-      {error && <p className="error">{error}</p>}
+      <section className="backend-explorer-scroll">
+        {activeTab !== 'dashboard' && (
+            <div className="explorer-search-row">
+              <input
+                  type="search"
+                  placeholder={SEARCH_PLACEHOLDERS[activeTab]}
+                  value={foodSearchQuery ?? ''}
+                  onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
+                  aria-label={SEARCH_PLACEHOLDERS[activeTab]}
+              />
+            </div>
+        )}
 
-      {activeTab === 'dashboard' ? (
-        <section
-          key={`tab-cycle-${activeTab}-${tabAnimationCycle}`}
-          className={introComplete ? 'dashboard-layout tab-content-animate dashboard-layout-animate' : 'dashboard-layout'}
-        >
-          <p className="development-notice"><strong>App under development—update coming soon. All features are currently functional. Please create an account to explore. Hi recruiters: please message me on LinkedIn or via email for login credentials if you prefer not to sign up.</strong></p>
-          <div className="dashboard-cards">
-            <DashboardCard title="Total Foods" total={totalFoods} icon={<FoodSummaryAnimatedIcon className="icon" />} />
-            <DashboardCard title="Ingredients" total={totalIngredients} icon={<IngredientSummaryAnimatedIcon className="icon" />} />
-            <DashboardCard title="Recipes" total={totalRecipes} icon={<RecipeSummaryAnimatedIcon className="icon" />} />
-          </div>
+        {error && <p className="error">{error}</p>}
 
-          <div className="dashboard-lists">
-            <article className="dashboard-list-card recent-recipes-card">
-              <h3>Recent Recipes</h3>
-              <ul>
-                {recentRecipes.map((recipe) => (
-                  <li key={String(getItemId(recipe))} className="recent-recipe-item">
+        {activeTab === 'dashboard' && (
+            <section
+                key={`tab-cycle-dashboard-${tabAnimationCycle}`}
+                className={introComplete
+                    ? 'dashboard-layout tab-content-animate dashboard-layout-animate'
+                    : 'dashboard-layout'}
+            >
+              <p className="development-notice">
+                <strong>
+                  App under development—update coming soon. All features are currently functional.
+                  Please create an account to explore. Hi recruiters: please message me on LinkedIn
+                  or via email for login credentials if you prefer not to sign up.
+                </strong>
+              </p>
+
+              <div className="dashboard-cards">
+                <DashboardCard title="Total Foods"  total={totalFoods}       icon={<FoodSummaryIcon       className="icon" />} />
+                <DashboardCard title="Ingredients"  total={totalIngredients} icon={<IngredientSummaryIcon className="icon" />} />
+                <DashboardCard title="Recipes"      total={totalRecipes}     icon={<RecipeSummaryIcon     className="icon" />} />
+              </div>
+
+              <div className="dashboard-lists">
+                <article className="dashboard-list-card recent-recipes-card">
+                  <h3>Recent Recipes</h3>
+                  <ul>
+                    {recentRecipes.map((recipe) => (
+                        <li key={String(getItemId(recipe))} className="recent-recipe-item">
                     <span className="dashboard-list-icon" aria-hidden>
                       <ChefHatIcon className="icon" />
                     </span>
-                    <div className="dashboard-list-content">
-                      <strong>{pickRecipeTitle(recipe)}</strong>
-                      <span>{recipe.description || 'No description available'}</span>
-                    </div>
-                    <div className="recipe-meta-stack dashboard-warning-stack">
-                      <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
-                      <AllergyWarningToggle
-                        variant="dashboard"
-                        alertText={buildAllergyAwarenessText(getRecipeSearchableValues(recipe))}
-                      />
-                    </div>
-                  </li>
-                ))}
-                {!recentRecipes.length && <li>No recipes yet.</li>}
-              </ul>
-            </article>
+                          <div className="dashboard-list-content">
+                            <strong>{pickRecipeTitle(recipe)}</strong>
+                            <span>{recipe.description ?? 'No description available'}</span>
+                          </div>
+                          <div className="recipe-meta-stack dashboard-warning-stack">
+                            <strong className="recipe-version-badge">{pickRecipeVersion(recipe)}</strong>
+                            <AllergyWarningToggle
+                                variant="dashboard"
+                                alertText={buildAllergyAwarenessText(getRecipeSearchableValues(recipe))}
+                            />
+                          </div>
+                        </li>
+                    ))}
+                    {!recentRecipes.length && <li>No recipes yet.</li>}
+                  </ul>
+                </article>
 
-            <article className="dashboard-list-card latest-foods-card">
-              <h3>Latest Foods</h3>
-              <ul>
-                {latestFoods.map((food) => (
-                  <li key={String(getItemId(food))}>
-                    <img
-                      src={food.imageUrl || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=60'}
-                      alt={food.name || 'Food image'}
-                    />
-                    <div className="dashboard-list-content">
-                      <strong>{food.name || 'Unnamed food'}</strong>
-                      <span>{food.category || 'No category'}</span>
-                    </div>
-                    <div className="latest-food-warning-stack dashboard-warning-stack">
-                      <AllergyWarningToggle
-                        variant="dashboard"
-                        alertText={buildAllergyAwarenessText([
-                          food.name,
-                          food.category,
-                          ...(food.recipes || []).map((recipe) => recipe.name)
-                        ])}
-                      />
-                    </div>
-                  </li>
-                ))}
-                {!latestFoods.length && <li>No foods yet.</li>}
-              </ul>
-            </article>
-          </div>
-        </section>
-      ) : null}
+                <article className="dashboard-list-card latest-foods-card">
+                  <h3>Latest Foods</h3>
+                  <ul>
+                    {latestFoods.map((food) => (
+                        <li key={String(getItemId(food))}>
+                          <img
+                              src={food.imageUrl ?? 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=60'}
+                              alt={food.name ?? 'Food image'}
+                          />
+                          <div className="dashboard-list-content">
+                            <strong>{food.name ?? 'Unnamed food'}</strong>
+                            <span>{food.category ?? 'No category'}</span>
+                          </div>
+                          <div className="latest-food-warning-stack dashboard-warning-stack">
+                            <AllergyWarningToggle
+                                variant="dashboard"
+                                alertText={buildAllergyAwarenessText([
+                                  food.name,
+                                  food.category,
+                                  ...(food.recipes ?? []).map((recipe) => recipe.name),
+                                ])}
+                            />
+                          </div>
+                        </li>
+                    ))}
+                    {!latestFoods.length && <li>No foods yet.</li>}
+                  </ul>
+                </article>
+              </div>
+            </section>
+        )}
 
-      {activeTab === 'foods' && (
-        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
-          <FoodsTab {...foodsTabProps} />
-        </div>
-      )}
+        {activeTab === 'foods' && (
+            <div key={`tab-cycle-foods-${tabAnimationCycle}`} className={tabAnimClass}>
+              <FoodsTab {...foodsTabProps} />
+            </div>
+        )}
 
-      {activeTab === 'ingredients' && (
-        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
-          <IngredientsTab {...ingredientsTabProps} />
-        </div>
-      )}
+        {activeTab === 'ingredients' && (
+            <div key={`tab-cycle-ingredients-${tabAnimationCycle}`} className={tabAnimClass}>
+              <IngredientsTab {...ingredientsTabProps} />
+            </div>
+        )}
 
-      {activeTab === 'recipes' && (
-        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
-          <RecipesTab {...recipesTabProps} />
-        </div>
-      )}
+        {activeTab === 'recipes' && (
+            <div key={`tab-cycle-recipes-${tabAnimationCycle}`} className={tabAnimClass}>
+              <RecipesTab {...recipesTabProps} />
+            </div>
+        )}
 
-      {activeTab === 'nutrition' && (
-        <div key={`tab-cycle-${activeTab}-${tabAnimationCycle}`} className={introComplete ? 'tab-content-animate' : undefined}>
-          <NutritionTab {...nutritionTabProps} />
-        </div>
-      )}
+        {activeTab === 'nutrition' && (
+            <div key={`tab-cycle-nutrition-${tabAnimationCycle}`} className={tabAnimClass}>
+              <NutritionTab {...nutritionTabProps} />
+            </div>
+        )}
 
-      <CreateEntityModal
-        createModal={createFlow.createModal}
-        createError={createFlow.createError}
-        closeCreateModal={createFlow.closeCreateModal}
-        createFood={createFlow.createFood}
-        createIngredient={createFlow.createIngredient}
-        createRecipe={createFlow.createRecipe}
-        foodForm={createFlow.foodForm}
-        setFoodForm={createFlow.setFoodForm}
-        ingredientForm={createFlow.ingredientForm}
-        setIngredientForm={createFlow.setIngredientForm}
-        ingredientNutritions={createFlow.ingredientNutritions}
-        setIngredientNutritions={createFlow.setIngredientNutritions}
-        nutritionDraft={createFlow.nutritionDraft}
-        setNutritionDraft={createFlow.setNutritionDraft}
-        unitOptions={unitOptions}
-        addNutrition={createFlow.addNutrition}
-        recipeForm={createFlow.recipeForm}
-        setRecipeForm={createFlow.setRecipeForm}
-        foods={entities.foods}
-        getItemId={getItemId}
-        recipeIngredients={createFlow.recipeIngredients}
-        setRecipeIngredients={createFlow.setRecipeIngredients}
-        ingredients={entities.ingredients}
-        recipeIngredientDraft={createFlow.recipeIngredientDraft}
-        setRecipeIngredientDraft={createFlow.setRecipeIngredientDraft}
-        addRecipeIngredient={createFlow.addRecipeIngredient}
-        recipeInstructionDraft={createFlow.recipeInstructionDraft}
-        setRecipeInstructionDraft={createFlow.setRecipeInstructionDraft}
-        addRecipeInstruction={createFlow.addRecipeInstruction}
-        recipeInstructions={createFlow.recipeInstructions}
-        setRecipeInstructions={createFlow.setRecipeInstructions}
-      />
+        <CreateEntityModal
+            createModal={createFlow.createModal}
+            createError={createFlow.createError}
+            closeCreateModal={createFlow.closeCreateModal}
+            createFood={createFlow.createFood}
+            createIngredient={createFlow.createIngredient}
+            createRecipe={createFlow.createRecipe}
+            foodForm={createFlow.foodForm}
+            setFoodForm={createFlow.setFoodForm}
+            ingredientForm={createFlow.ingredientForm}
+            setIngredientForm={createFlow.setIngredientForm}
+            ingredientNutritions={createFlow.ingredientNutritions}
+            setIngredientNutritions={createFlow.setIngredientNutritions}
+            nutritionDraft={createFlow.nutritionDraft}
+            setNutritionDraft={createFlow.setNutritionDraft}
+            unitOptions={unitOptions}
+            addNutrition={createFlow.addNutrition}
+            recipeForm={createFlow.recipeForm}
+            setRecipeForm={createFlow.setRecipeForm}
+            foods={entities.foods}
+            getItemId={getItemId}
+            recipeIngredients={createFlow.recipeIngredients}
+            setRecipeIngredients={createFlow.setRecipeIngredients}
+            ingredients={entities.ingredients}
+            recipeIngredientDraft={createFlow.recipeIngredientDraft}
+            setRecipeIngredientDraft={createFlow.setRecipeIngredientDraft}
+            addRecipeIngredient={createFlow.addRecipeIngredient}
+            recipeInstructionDraft={createFlow.recipeInstructionDraft}
+            setRecipeInstructionDraft={createFlow.setRecipeInstructionDraft}
+            addRecipeInstruction={createFlow.addRecipeInstruction}
+            recipeInstructions={createFlow.recipeInstructions}
+            setRecipeInstructions={createFlow.setRecipeInstructions}
+        />
 
-      <DeleteConfirmModal
-        deleteModal={deleteFlow.deleteModal}
-        errorMessage={deleteFlow.deleteError}
-        onCancel={handleDeleteCancel}
-        onConfirm={deleteFlow.confirmDelete}
-      />
+        <DeleteConfirmModal
+            deleteModal={deleteFlow.deleteModal}
+            errorMessage={deleteFlow.deleteError}
+            onCancel={() => deleteFlow.setDeleteModal({ open: false, message: '', action: null })}
+            onConfirm={deleteFlow.confirmDelete}
+        />
 
-      <UpdateEntityModal
-        updateModal={updateFlow.updateModal}
-        errorMessage={updateFlow.updateError}
-        setUpdateModal={updateFlow.setUpdateModal}
-        unitOptions={unitOptions}
-        foods={entities.foods}
-        ingredients={entities.ingredients}
-        getItemId={getItemId}
-        updateNutritionDraft={updateFlow.updateNutritionDraft}
-        setUpdateNutritionDraft={updateFlow.setUpdateNutritionDraft}
-        addUpdateNutrition={updateFlow.addUpdateNutrition}
-        confirmUpdate={updateFlow.confirmUpdate}
-      />
-    </section>
+        <UpdateEntityModal
+            updateModal={updateFlow.updateModal}
+            errorMessage={updateFlow.updateError}
+            setUpdateModal={updateFlow.setUpdateModal}
+            unitOptions={unitOptions}
+            foods={entities.foods}
+            ingredients={entities.ingredients}
+            getItemId={getItemId}
+            updateNutritionDraft={updateFlow.updateNutritionDraft}
+            setUpdateNutritionDraft={updateFlow.setUpdateNutritionDraft}
+            addUpdateNutrition={updateFlow.addUpdateNutrition}
+            confirmUpdate={updateFlow.confirmUpdate}
+        />
+      </section>
   );
 }
