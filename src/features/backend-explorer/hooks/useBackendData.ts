@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError, api } from '../../../services/api';
-import type { Food, Ingredient, Recipe, TabKey } from '../types';
+import type { EntityRequestStateMap, Food, Ingredient, Recipe, TabKey } from '../types';
 
 type PaginationInfo = {
   page: number;
@@ -13,6 +13,7 @@ type PaginationInfo = {
 };
 
 type PaginationState = Record<'foods' | 'ingredients' | 'recipes', PaginationInfo>;
+type EntityFetchState = EntityRequestStateMap;
 
 type LoaderResult<T> = {
   data: T[];
@@ -20,6 +21,7 @@ type LoaderResult<T> = {
   pagination: PaginationInfo;
 };
 
+type EntityKey = keyof PaginationState;
 
 interface ListEnvelope<T> {
   data?: T[] | unknown;
@@ -127,6 +129,12 @@ const defaultPaginationState = (): PaginationState => ({
   recipes: { ...DEFAULT_PAGINATION }
 });
 
+const defaultEntityFetchState = (): EntityFetchState => ({
+  foods: { loading: false, error: '' },
+  ingredients: { loading: false, error: '' },
+  recipes: { loading: false, error: '' }
+});
+
 export function mapLoadError(loadError: unknown, fallbackMessage: string) {
   if (loadError instanceof ApiError) {
     if (loadError.isNetworkError || loadError.code === 'NETWORK_ERROR') {
@@ -152,11 +160,15 @@ export default function useBackendData() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [pagination, setPagination] = useState<PaginationState>(defaultPaginationState);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const latestRequestIdRef = useRef(0);
+  const [entityFetchState, setEntityFetchState] = useState<EntityFetchState>(defaultEntityFetchState);
+  const [actionError, setActionError] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
   const isMountedRef = useRef(true);
-  const tabRequestRef = useRef<Partial<Record<TabKey, Promise<void>>>>({});
+  const entityRequestIdRef = useRef<Record<EntityKey, number>>({
+    foods: 0,
+    ingredients: 0,
+    recipes: 0
+  });
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -229,102 +241,122 @@ export default function useBackendData() {
     }
   }, [getPaginationInfo]);
 
-  const loadAll = useCallback(async () => {
-    const requestId = latestRequestIdRef.current + 1;
-    latestRequestIdRef.current = requestId;
-    setLoading(true);
-    setError('');
+  const setEntityLoading = useCallback((entity: EntityKey, loading: boolean) => {
+    setEntityFetchState((prev) => ({
+      ...prev,
+      [entity]: {
+        ...prev[entity],
+        loading
+      }
+    }));
+  }, []);
+
+  const setEntityError = useCallback((entity: EntityKey, error: string) => {
+    setEntityFetchState((prev) => ({
+      ...prev,
+      [entity]: {
+        ...prev[entity],
+        error
+      }
+    }));
+  }, []);
+
+  const loadEntityPage = useCallback(async (entity: EntityKey, page = 0) => {
+    const requestId = entityRequestIdRef.current[entity] + 1;
+    entityRequestIdRef.current[entity] = requestId;
+    setEntityLoading(entity, true);
+    setEntityError(entity, '');
 
     try {
-      const [foodsResult, ingredientsResult, recipesResult] = await Promise.all([
-        loadFoods(0),
-        loadIngredients(0),
-        loadRecipes(0)
-      ]);
+      const result = entity === 'foods'
+        ? await loadFoods(page)
+        : entity === 'ingredients'
+          ? await loadIngredients(page)
+          : await loadRecipes(page);
 
-      if (!isMountedRef.current || requestId !== latestRequestIdRef.current) return;
+      if (!isMountedRef.current || entityRequestIdRef.current[entity] !== requestId) return;
 
-      setFoods(foodsResult.data);
-      setIngredients(ingredientsResult.data);
-      setRecipes(recipesResult.data);
-      setPagination({
-        foods: foodsResult.pagination,
-        ingredients: ingredientsResult.pagination,
-        recipes: recipesResult.pagination
-      });
-
-      const loadErrors = [foodsResult.error, ingredientsResult.error, recipesResult.error].filter(Boolean);
-      if (loadErrors.length > 0) {
-        const uniqueErrors = [...new Set(loadErrors)];
-        setError(uniqueErrors.join(' | '));
+      if (entity === 'foods') {
+        setFoods(result.data);
+        setPagination((prev) => ({ ...prev, foods: result.pagination }));
+      } else if (entity === 'ingredients') {
+        setIngredients(result.data);
+        setPagination((prev) => ({ ...prev, ingredients: result.pagination }));
+      } else {
+        setRecipes(result.data);
+        setPagination((prev) => ({ ...prev, recipes: result.pagination }));
       }
-    } catch {
-      if (!isMountedRef.current || requestId !== latestRequestIdRef.current) return;
-      setError('Failed to load data.');
+
+      if (result.error) setEntityError(entity, result.error);
+    } catch (entityError) {
+      if (!isMountedRef.current || entityRequestIdRef.current[entity] !== requestId) return;
+      setEntityError(entity, entityError instanceof Error ? entityError.message : 'Failed to load data.');
     } finally {
-      if (isMountedRef.current && requestId === latestRequestIdRef.current) {
-        setLoading(false);
+      if (isMountedRef.current && entityRequestIdRef.current[entity] === requestId) {
+        setEntityLoading(entity, false);
       }
     }
-  }, [loadFoods, loadIngredients, loadRecipes]);
+  }, [loadFoods, loadIngredients, loadRecipes, setEntityError, setEntityLoading]);
+
+  const loadAll = useCallback(async () => {
+    setActionError('');
+    await Promise.all([
+      loadEntityPage('foods', 0),
+      loadEntityPage('ingredients', 0),
+      loadEntityPage('recipes', 0)
+    ]);
+  }, [loadEntityPage]);
 
   const loadTabData = useCallback(async (tab: TabKey, page?: number) => {
-    const inFlightRequest = tabRequestRef.current[tab];
-    if (inFlightRequest) return inFlightRequest;
-
-    setLoading(true);
-    setError('');
-
-    const requestPromise = (async () => {
-      try {
-        if (tab === 'dashboard') {
-          await loadAll();
-        } else if (tab === 'foods') {
-          const nextPage = Math.max(0, page ?? pagination.foods.page ?? 0);
-          const result = await loadFoods(nextPage);
-          setFoods(result.data);
-          setPagination((prev) => ({ ...prev, foods: result.pagination }));
-          if (result.error) setError(result.error);
-        } else if (tab === 'ingredients' || tab === 'nutrition') {
-          const nextPage = Math.max(0, page ?? pagination.ingredients.page ?? 0);
-          const result = await loadIngredients(nextPage);
-          setIngredients(result.data);
-          setPagination((prev) => ({ ...prev, ingredients: result.pagination }));
-          if (result.error) setError(result.error);
-        } else if (tab === 'recipes') {
-          const nextPage = Math.max(0, page ?? pagination.recipes.page ?? 0);
-          const result = await loadRecipes(nextPage);
-          setRecipes(result.data);
-          setPagination((prev) => ({ ...prev, recipes: result.pagination }));
-          if (result.error) setError(result.error);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data.');
-      } finally {
-        setLoading(false);
-      }
-    })();
-
-    tabRequestRef.current[tab] = requestPromise;
-
-    await requestPromise;
-
-    if (tabRequestRef.current[tab] === requestPromise) {
-      delete tabRequestRef.current[tab];
+    setActionError('');
+    if (tab === 'dashboard') {
+      await loadAll();
+      return;
     }
-  }, [loadAll, loadFoods, loadIngredients, loadRecipes, pagination]);
+    if (tab === 'foods') {
+      const nextPage = Math.max(0, page ?? pagination.foods.page ?? 0);
+      await loadEntityPage('foods', nextPage);
+      return;
+    }
+    if (tab === 'ingredients' || tab === 'nutrition') {
+      const nextPage = Math.max(0, page ?? pagination.ingredients.page ?? 0);
+      await loadEntityPage('ingredients', nextPage);
+      return;
+    }
+    const nextPage = Math.max(0, page ?? pagination.recipes.page ?? 0);
+    await loadEntityPage('recipes', nextPage);
+  }, [loadAll, loadEntityPage, pagination]);
+
+  const refreshFoods = useCallback(async () => {
+    await loadEntityPage('foods', 0);
+  }, [loadEntityPage]);
+
+  const refreshIngredients = useCallback(async () => {
+    await loadEntityPage('ingredients', 0);
+  }, [loadEntityPage]);
+
+  const refreshRecipes = useCallback(async () => {
+    await loadEntityPage('recipes', 0);
+  }, [loadEntityPage]);
 
   const runWithRefresh = useCallback(async (action: () => Promise<unknown> | unknown) => {
-    setLoading(true);
-    setError('');
+    setActionLoading(true);
+    setActionError('');
     try {
       await action();
       await loadAll();
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'Action failed.');
-      setLoading(false);
+      setActionError(actionError instanceof Error ? actionError.message : 'Action failed.');
+    } finally {
+      setActionLoading(false);
     }
   }, [loadAll]);
+
+  const loading = actionLoading || Object.values(entityFetchState).some((state) => state.loading);
+  const entityErrors = Object.values(entityFetchState)
+    .map((state) => state.error)
+    .filter(Boolean);
+  const error = actionError || [...new Set(entityErrors)].join(' | ');
 
   return {
     foods,
@@ -333,10 +365,15 @@ export default function useBackendData() {
     pagination,
     error,
     loading,
-    setLoading,
-    setError,
+    loadingByEntity: entityFetchState,
+    errorByEntity: entityFetchState,
+    setLoading: setActionLoading,
+    setError: setActionError,
     loadAll,
     loadTabData,
-    runWithRefresh
+    runWithRefresh,
+    refreshFoods,
+    refreshIngredients,
+    refreshRecipes
   };
 }

@@ -16,7 +16,7 @@ interface UseIngredientActionsParams {
   setCreateSuccessByType: (type: EntityType, message: string) => void;
   closeCreateModal: () => void;
   setLoading: Dispatch<SetStateAction<boolean>>;
-  loadAll: () => Promise<void>;
+  refreshIngredients: () => Promise<void>;
 }
 
 export default function useIngredientActions({
@@ -30,7 +30,7 @@ export default function useIngredientActions({
   setCreateSuccessByType,
   closeCreateModal,
   setLoading,
-  loadAll
+  refreshIngredients
 }: UseIngredientActionsParams) {
   const addNutrition = useCallback(() => {
     if (!nutritionDraft.value) return setCreateError('Nutrition value is required.');
@@ -49,7 +49,7 @@ export default function useIngredientActions({
     setCreateError('');
     try {
       await api.createIngredient(buildCreateIngredientPayload(ingredientForm, ingredientNutritions));
-      await loadAll();
+      await refreshIngredients();
       setIngredientForm({ name: '', category: '', description: '', servingAmount: '100', servingUnit: 'G', imageUrl: '' });
       setIngredientNutritions([]);
       setNutritionDraft({ nutrient: 'CALORIES', value: '', unit: 'G' });
@@ -60,7 +60,7 @@ export default function useIngredientActions({
     } finally {
       setLoading(false);
     }
-  }, [ingredientForm, ingredientNutritions, setCreateError, setLoading, loadAll, setIngredientForm, setIngredientNutritions, setNutritionDraft, setCreateSuccessByType, closeCreateModal]);
+  }, [ingredientForm, ingredientNutritions, setCreateError, setLoading, refreshIngredients, setIngredientForm, setIngredientNutritions, setNutritionDraft, setCreateSuccessByType, closeCreateModal]);
 
   return { addNutrition, createIngredient };
 }

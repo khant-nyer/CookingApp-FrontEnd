@@ -104,10 +104,10 @@ interface BackendExplorerProps {
   isAuthenticated: boolean;
   onRequireAuth: () => void;
   introComplete?: boolean;
-  activeTab?: TabKey;
-  onTabChange?: (tab: TabKey) => void;
-  foodSearchQuery?: string;
-  onFoodSearchQueryChange?: (value: string) => void;
+  activeTab: TabKey;
+  onTabChange: (tab: TabKey) => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (value: string) => void;
   userAllergies?: string[];
 }
 
@@ -117,33 +117,37 @@ export default function BackendExplorer({
                                           isAuthenticated,
                                           onRequireAuth,
                                           introComplete = true,
-                                          activeTab: externalActiveTab,
+                                          activeTab,
                                           onTabChange,
-                                          foodSearchQuery,
-                                          onFoodSearchQueryChange,
+                                          searchQuery,
+                                          onSearchQueryChange,
                                           userAllergies,
                                         }: BackendExplorerProps) {
   const [tabAnimationCycle, setTabAnimationCycle] = useState(0);
 
   const { viewState, createFlow, updateFlow, deleteFlow, entities } = useBackendExplorerController();
+  const { clearCreateSuccess } = createFlow;
   const {
     selectedId,
     setSelectedId,
     selectedNutrient,
     setSelectedNutrient,
-    setActiveTab,
-    activeTab: controllerActiveTab,
     loadTabData,
     loading,
+    loadingByEntity,
+    errorByEntity,
     error,
     pagination,
   } = viewState;
 
-  const activeTab = externalActiveTab ?? controllerActiveTab;
-
   useEffect(() => {
     if (introComplete) setTabAnimationCycle((prev) => prev + 1);
   }, [activeTab, introComplete]);
+
+  useEffect(() => {
+    setSelectedId('');
+    clearCreateSuccess();
+  }, [activeTab, clearCreateSuccess, setSelectedId]);
 
   // ── Auth guard ──────────────────────────────────────────────────────────────
 
@@ -180,8 +184,8 @@ export default function BackendExplorer({
   // ── Tab switch ──────────────────────────────────────────────────────────────
 
   const handleTabSwitch = useCallback(
-      (tab: TabKey) => (onTabChange ? onTabChange(tab) : setActiveTab(tab)),
-      [onTabChange, setActiveTab],
+      (tab: TabKey) => onTabChange(tab),
+      [onTabChange],
   );
 
   // ── Tab prop hooks ──────────────────────────────────────────────────────────
@@ -193,6 +197,7 @@ export default function BackendExplorer({
     setSelectedId,
     pagination:           pagination.foods,
     loading,
+    entityLoading:        loadingByEntity.foods.loading,
     createSuccess:        createFlow.createSuccess,
     openCreateModal:      createFlow.openCreateModal,
     openFoodUpdateModal:  updateFlow.openFoodUpdateModal,
@@ -200,8 +205,8 @@ export default function BackendExplorer({
     loadTabData,
     runProtectedAction,
     buildAllergyAwarenessText,
-    searchQuery:          foodSearchQuery,
-    onSearchQueryChange:  onFoodSearchQueryChange,
+    searchQuery,
+    onSearchQueryChange,
   });
 
   const ingredientsTabProps = useIngredientsTabProps({
@@ -211,6 +216,7 @@ export default function BackendExplorer({
     setSelectedId,
     pagination:                 pagination.ingredients,
     loading,
+    entityLoading:              loadingByEntity.ingredients.loading,
     createSuccess:              createFlow.createSuccess,
     openCreateModal:            createFlow.openCreateModal,
     openIngredientUpdateModal:  updateFlow.openIngredientUpdateModal,
@@ -218,7 +224,7 @@ export default function BackendExplorer({
     loadTabData,
     runProtectedAction,
     buildAllergyAwarenessText,
-    searchQuery: foodSearchQuery,
+    searchQuery,
   });
 
   const recipesTabProps = useRecipesTabProps({
@@ -229,6 +235,7 @@ export default function BackendExplorer({
     setSelectedId,
     pagination:            pagination.recipes,
     loading,
+    entityLoading:         loadingByEntity.recipes.loading,
     createSuccess:         createFlow.createSuccess,
     openCreateModal:       createFlow.openCreateModal,
     openRecipeUpdateModal: updateFlow.openRecipeUpdateModal,
@@ -237,13 +244,13 @@ export default function BackendExplorer({
     runProtectedAction,
     buildAllergyAwarenessText,
     getRecipeSearchableValues,
-    searchQuery: foodSearchQuery,
+    searchQuery,
   });
 
   // NutritionTab props are simple pass-throughs with no auth-guarded actions,
   // so a dedicated hook would add no value — assembled inline.
   const nutritionTabProps = {
-    searchQuery:                 foodSearchQuery,
+    searchQuery,
     selectedNutrient,
     setSelectedNutrient,
     nutrientFilteredIngredients: entities.nutrientFilteredIngredients,
@@ -259,6 +266,14 @@ export default function BackendExplorer({
 
   const recentRecipes = entities.recipes.slice(0, 4);
   const latestFoods   = entities.foods.slice(0, 4);
+  const activeTabError = activeTab === 'foods'
+    ? errorByEntity.foods.error
+    : activeTab === 'ingredients' || activeTab === 'nutrition'
+      ? errorByEntity.ingredients.error
+      : activeTab === 'recipes'
+        ? errorByEntity.recipes.error
+        : '';
+  const displayError = activeTabError || error;
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -271,14 +286,14 @@ export default function BackendExplorer({
               <input
                   type="search"
                   placeholder={SEARCH_PLACEHOLDERS[activeTab]}
-                  value={foodSearchQuery ?? ''}
-                  onChange={(event) => onFoodSearchQueryChange?.(event.target.value)}
+                  value={searchQuery ?? ''}
+                  onChange={(event) => onSearchQueryChange?.(event.target.value)}
                   aria-label={SEARCH_PLACEHOLDERS[activeTab]}
               />
             </div>
         )}
 
-        {error && <p className="error">{error}</p>}
+        {displayError ? <p className="error">{displayError}</p> : null}
 
         {activeTab === 'dashboard' && (
             <section
@@ -333,7 +348,7 @@ export default function BackendExplorer({
                     {latestFoods.map((food) => (
                         <li key={String(getItemId(food))}>
                           <img
-                              src={food.imageUrl ?? 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=60'}
+                              src={food.imageUrl ?? iconAssets.foodSummaryFallback}
                               alt={food.name ?? 'Food image'}
                           />
                           <div className="dashboard-list-content">
@@ -387,34 +402,13 @@ export default function BackendExplorer({
             createModal={createFlow.createModal}
             createError={createFlow.createError}
             closeCreateModal={createFlow.closeCreateModal}
-            createFood={createFlow.createFood}
-            createIngredient={createFlow.createIngredient}
-            createRecipe={createFlow.createRecipe}
-            foodForm={createFlow.foodForm}
-            setFoodForm={createFlow.setFoodForm}
-            ingredientForm={createFlow.ingredientForm}
-            setIngredientForm={createFlow.setIngredientForm}
-            ingredientNutritions={createFlow.ingredientNutritions}
-            setIngredientNutritions={createFlow.setIngredientNutritions}
-            nutritionDraft={createFlow.nutritionDraft}
-            setNutritionDraft={createFlow.setNutritionDraft}
+            foodFlow={createFlow.food}
+            ingredientFlow={createFlow.ingredient}
+            recipeFlow={createFlow.recipe}
             unitOptions={unitOptions}
-            addNutrition={createFlow.addNutrition}
-            recipeForm={createFlow.recipeForm}
-            setRecipeForm={createFlow.setRecipeForm}
             foods={entities.foods}
             getItemId={getItemId}
-            recipeIngredients={createFlow.recipeIngredients}
-            setRecipeIngredients={createFlow.setRecipeIngredients}
             ingredients={entities.ingredients}
-            recipeIngredientDraft={createFlow.recipeIngredientDraft}
-            setRecipeIngredientDraft={createFlow.setRecipeIngredientDraft}
-            addRecipeIngredient={createFlow.addRecipeIngredient}
-            recipeInstructionDraft={createFlow.recipeInstructionDraft}
-            setRecipeInstructionDraft={createFlow.setRecipeInstructionDraft}
-            addRecipeInstruction={createFlow.addRecipeInstruction}
-            recipeInstructions={createFlow.recipeInstructions}
-            setRecipeInstructions={createFlow.setRecipeInstructions}
         />
 
         <DeleteConfirmModal
@@ -428,13 +422,12 @@ export default function BackendExplorer({
             updateModal={updateFlow.updateModal}
             errorMessage={updateFlow.updateError}
             setUpdateModal={updateFlow.setUpdateModal}
+            closeUpdateModal={updateFlow.closeUpdateModal}
             unitOptions={unitOptions}
             foods={entities.foods}
             ingredients={entities.ingredients}
             getItemId={getItemId}
-            updateNutritionDraft={updateFlow.updateNutritionDraft}
-            setUpdateNutritionDraft={updateFlow.setUpdateNutritionDraft}
-            addUpdateNutrition={updateFlow.addUpdateNutrition}
+            ingredientFlow={updateFlow.ingredient}
             confirmUpdate={updateFlow.confirmUpdate}
         />
       </section>

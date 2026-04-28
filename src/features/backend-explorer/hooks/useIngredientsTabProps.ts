@@ -18,6 +18,7 @@ interface UseIngredientsTabPropsArgs {
     setSelectedId:       ViewState['setSelectedId'];
     pagination:          ViewState['pagination']['ingredients'];
     loading:             ViewState['loading'];
+    entityLoading:       ViewState['loadingByEntity']['ingredients']['loading'];
     createSuccess:       CreateFlow['createSuccess'];
 
     // Actions (raw, un-guarded)
@@ -39,6 +40,7 @@ export function useIngredientsTabProps({
                                            setSelectedId,
                                            pagination,
                                            loading,
+                                           entityLoading,
                                            createSuccess,
                                            openCreateModal,
                                            openIngredientUpdateModal,
@@ -93,7 +95,7 @@ export function useIngredientsTabProps({
         getItemId,
         pagination,
         onPageChange,
-        loading,
+        loading: entityLoading || loading,
         onDeleteIngredient,
         allergyAlertText,
     };

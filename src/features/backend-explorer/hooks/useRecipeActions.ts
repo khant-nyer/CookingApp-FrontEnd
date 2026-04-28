@@ -29,7 +29,7 @@ interface UseRecipeActionsParams {
   setCreateSuccessByType: (type: EntityType, message: string) => void;
   closeCreateModal: () => void;
   setLoading: Dispatch<SetStateAction<boolean>>;
-  loadAll: () => Promise<void>;
+  refreshRecipes: () => Promise<void>;
 }
 
 export default function useRecipeActions({
@@ -48,7 +48,7 @@ export default function useRecipeActions({
   setCreateSuccessByType,
   closeCreateModal,
   setLoading,
-  loadAll
+  refreshRecipes
 }: UseRecipeActionsParams) {
   const addRecipeIngredient = useCallback(() => {
     if (!recipeIngredientDraft.ingredientId || !recipeIngredientDraft.quantity) {
@@ -92,7 +92,7 @@ export default function useRecipeActions({
     setCreateError('');
     try {
       await api.createRecipeForFoodViaRecipeApi(recipeForm.foodId, buildCreateRecipePayload(recipeForm, recipeIngredients, recipeInstructions));
-      await loadAll();
+      await refreshRecipes();
       setRecipeForm({ foodId: '', version: 'v1', description: '' });
       setRecipeIngredients([]);
       setRecipeInstructions([]);
@@ -103,7 +103,7 @@ export default function useRecipeActions({
     } finally {
       setLoading(false);
     }
-  }, [recipeForm, recipeIngredients, recipeInstructions, setCreateError, setLoading, loadAll, setRecipeForm, setRecipeIngredients, setRecipeInstructions, setCreateSuccessByType, closeCreateModal]);
+  }, [recipeForm, recipeIngredients, recipeInstructions, setCreateError, setLoading, refreshRecipes, setRecipeForm, setRecipeIngredients, setRecipeInstructions, setCreateSuccessByType, closeCreateModal]);
 
   return {
     addRecipeIngredient,

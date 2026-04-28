@@ -18,6 +18,7 @@ interface UseRecipesTabPropsArgs {
     setSelectedId:  ViewState['setSelectedId'];
     pagination:     ViewState['pagination']['recipes'];
     loading:        ViewState['loading'];
+    entityLoading:  ViewState['loadingByEntity']['recipes']['loading'];
     createSuccess:  CreateFlow['createSuccess'];
 
     // Actions (raw, un-guarded)
@@ -41,6 +42,7 @@ export function useRecipesTabProps({
                                        setSelectedId,
                                        pagination,
                                        loading,
+                                       entityLoading,
                                        createSuccess,
                                        openCreateModal,
                                        openRecipeUpdateModal,
@@ -88,7 +90,7 @@ export function useRecipesTabProps({
         openRecipeUpdateModal: onOpenRecipeUpdateModal,
         pagination,
         onPageChange,
-        loading,
+        loading: entityLoading || loading,
         onDeleteRecipe,
         allergyAlertText,
     };

@@ -11,7 +11,7 @@ interface UseFoodActionsParams {
   setCreateSuccessByType: (type: EntityType, message: string) => void;
   closeCreateModal: () => void;
   setLoading: Dispatch<SetStateAction<boolean>>;
-  loadAll: () => Promise<void>;
+  refreshFoods: () => Promise<void>;
 }
 
 export default function useFoodActions({
@@ -21,7 +21,7 @@ export default function useFoodActions({
   setCreateSuccessByType,
   closeCreateModal,
   setLoading,
-  loadAll
+  refreshFoods
 }: UseFoodActionsParams) {
   const createFood = useCallback(async () => {
     if (!foodForm.name.trim()) return setCreateError('Food name is required.');
@@ -30,7 +30,7 @@ export default function useFoodActions({
     setCreateError('');
     try {
       await api.createFood(buildCreateFoodPayload(foodForm));
-      await loadAll();
+      await refreshFoods();
       setFoodForm({ name: '', category: '', imageUrl: '' });
       setCreateSuccessByType('food', 'Food created successfully.');
       closeCreateModal();
@@ -39,7 +39,7 @@ export default function useFoodActions({
     } finally {
       setLoading(false);
     }
-  }, [foodForm, setCreateError, setLoading, loadAll, setFoodForm, setCreateSuccessByType, closeCreateModal]);
+  }, [foodForm, setCreateError, setLoading, refreshFoods, setFoodForm, setCreateSuccessByType, closeCreateModal]);
 
   return { createFood };
 }

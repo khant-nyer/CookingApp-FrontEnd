@@ -4,6 +4,7 @@ import { normalizeNutrientKey } from '../utils/nutrients';
 import { initialUpdateFlowState, updateFlowReducer } from '../reducers/updateFlowReducer';
 import { appendUpdateNutritionToForm, executeUpdateConfirmation } from './backendExplorerFlowHelpers';
 import type {
+  EntityType,
   Food,
   Ingredient,
   IngredientUpdateForm,
@@ -14,10 +15,10 @@ import type {
 } from '../types';
 
 interface Params {
-  run: (action: () => Promise<unknown> | unknown) => Promise<void>;
+  runByEntity: (entity: EntityType, action: () => Promise<unknown> | unknown) => Promise<void>;
 }
 
-export default function useExplorerUpdateFlow({ run }: Params) {
+export default function useExplorerUpdateFlow({ runByEntity }: Params) {
   const [updateFlowState, dispatchUpdateFlow] = useReducer(updateFlowReducer, initialUpdateFlowState);
   const [updateError, setUpdateError] = useState('');
   const { updateNutritionDraft, updateModal } = updateFlowState;
@@ -28,6 +29,10 @@ export default function useExplorerUpdateFlow({ run }: Params) {
 
   function setUpdateNutritionDraft(value: Updater<NutritionDraft>) {
     dispatchUpdateFlow({ type: 'set_update_nutrition_draft', value });
+  }
+
+  function closeUpdateModal() {
+    setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
   }
 
   function addUpdateNutrition() {
@@ -110,8 +115,8 @@ export default function useExplorerUpdateFlow({ run }: Params) {
   async function confirmUpdate() {
     setUpdateError('');
     try {
-      await executeUpdateConfirmation({ updateModal, run });
-      setUpdateModal({ open: false, type: '', title: '', itemId: null, form: null });
+      await executeUpdateConfirmation({ updateModal, runByEntity });
+      closeUpdateModal();
     } catch (updateError) {
       setUpdateError(updateError instanceof Error ? updateError.message : 'Unable to update item.');
     }
@@ -121,9 +126,12 @@ export default function useExplorerUpdateFlow({ run }: Params) {
     updateModal,
     updateError,
     setUpdateModal,
-    updateNutritionDraft,
-    setUpdateNutritionDraft,
-    addUpdateNutrition,
+    closeUpdateModal,
+    ingredient: {
+      nutritionDraft: updateNutritionDraft,
+      setNutritionDraft: setUpdateNutritionDraft,
+      addNutrition: addUpdateNutrition
+    },
     openFoodUpdateModal,
     openIngredientUpdateModal,
     openRecipeUpdateModal,

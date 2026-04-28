@@ -21,6 +21,11 @@ export function createFlowReducer(state: CreateFlowState, action: CreateFlowActi
         createError: '',
         createModal: { open: false, type: '' }
       };
+    case 'clear_create_success':
+      return {
+        ...state,
+        createSuccess: { food: '', ingredient: '', recipe: '' }
+      };
     case 'set_create_error':
       return { ...state, createError: action.message || '' };
     case 'set_create_success':

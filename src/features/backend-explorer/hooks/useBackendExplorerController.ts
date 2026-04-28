@@ -14,24 +14,42 @@ export {
 
 export default function useBackendExplorerController(): BackendExplorerController {
   const viewStateCore = useExplorerViewState();
-  const { loadAll } = viewStateCore;
+  const {
+    loadAll,
+    refreshFoods,
+    refreshIngredients,
+    refreshRecipes
+  } = viewStateCore;
 
-  const run = useCallback(async (action: () => Promise<unknown> | unknown) => {
+  const runByEntity = useCallback(async (
+    entity: 'food' | 'ingredient' | 'recipe',
+    action: () => Promise<unknown> | unknown
+  ) => {
     await action();
-    await loadAll();
-  }, [loadAll]);
+    if (entity === 'food') {
+      await refreshFoods();
+      return;
+    }
+    if (entity === 'ingredient') {
+      await refreshIngredients();
+      return;
+    }
+    await refreshRecipes();
+  }, [refreshFoods, refreshIngredients, refreshRecipes]);
 
   const createFlow = useExplorerCreateFlow({
     ingredients: viewStateCore.ingredients,
     setLoading: viewStateCore.setLoading,
-    loadAll
+    refreshFoods,
+    refreshIngredients,
+    refreshRecipes
   });
 
   const updateFlow = useExplorerUpdateFlow({
-    run
+    runByEntity
   });
 
-  const deleteFlow = useExplorerDeleteFlow({ run });
+  const deleteFlow = useExplorerDeleteFlow({ runByEntity });
 
   const selectedFood = useMemo(
     () => viewStateCore.foods.find((item) => String(getItemId(item)) === String(viewStateCore.selectedId)),
@@ -55,27 +73,33 @@ export default function useBackendExplorerController(): BackendExplorerControlle
   );
 
   const viewState = useMemo(() => ({
-    activeTab: viewStateCore.activeTab,
-    setActiveTab: viewStateCore.setActiveTab,
     selectedId: viewStateCore.selectedId,
     setSelectedId: viewStateCore.setSelectedId,
     selectedNutrient: viewStateCore.selectedNutrient,
     setSelectedNutrient: viewStateCore.setSelectedNutrient,
     error: viewStateCore.error,
     loading: viewStateCore.loading,
+    loadingByEntity: viewStateCore.loadingByEntity,
+    errorByEntity: viewStateCore.errorByEntity,
     loadAll,
+    refreshFoods,
+    refreshIngredients,
+    refreshRecipes,
     pagination: viewStateCore.pagination,
     loadTabData: viewStateCore.loadTabData
   }), [
-    viewStateCore.activeTab,
-    viewStateCore.setActiveTab,
     viewStateCore.selectedId,
     viewStateCore.setSelectedId,
     viewStateCore.selectedNutrient,
     viewStateCore.setSelectedNutrient,
     viewStateCore.error,
     viewStateCore.loading,
+    viewStateCore.loadingByEntity,
+    viewStateCore.errorByEntity,
     loadAll,
+    refreshFoods,
+    refreshIngredients,
+    refreshRecipes,
     viewStateCore.pagination,
     viewStateCore.loadTabData
   ]);

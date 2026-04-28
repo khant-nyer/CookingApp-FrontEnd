@@ -26,6 +26,17 @@ export interface PaginationState {
   recipes: PaginationInfo;
 }
 
+export interface EntityRequestState {
+  loading: boolean;
+  error: string;
+}
+
+export interface EntityRequestStateMap {
+  foods: EntityRequestState;
+  ingredients: EntityRequestState;
+  recipes: EntityRequestState;
+}
+
 
 export interface Identifiable {
   id?: string | number;
@@ -126,12 +137,14 @@ export interface CreateFlowState {
 export type CreateFlowAction =
   | { type: 'open_create_modal'; entityType: EntityType }
   | { type: 'close_create_modal' }
+  | { type: 'clear_create_success' }
   | { type: 'set_create_error'; message?: string }
   | { type: 'set_create_success'; entityType: EntityType; message?: string };
 
 export interface DeleteModalState {
   open: boolean;
   message: string;
+  entityType?: EntityType;
   action: null | (() => Promise<unknown>) | (() => unknown);
 }
 
@@ -198,15 +211,18 @@ export type UpdateFlowAction =
 
 
 export interface BackendExplorerViewState {
-  activeTab: TabKey;
-  setActiveTab: StateSetter<TabKey>;
   selectedId: string;
   setSelectedId: StateSetter<string>;
   selectedNutrient: string;
   setSelectedNutrient: StateSetter<string>;
   error: string;
   loading: boolean;
+  loadingByEntity: EntityRequestStateMap;
+  errorByEntity: EntityRequestStateMap;
   loadAll: () => Promise<void>;
+  refreshFoods: () => Promise<void>;
+  refreshIngredients: () => Promise<void>;
+  refreshRecipes: () => Promise<void>;
   pagination: PaginationState;
   loadTabData: (tab: TabKey, page?: number) => Promise<void>;
 }
@@ -217,39 +233,49 @@ export interface BackendExplorerCreateFlow {
   createSuccess: CreateSuccessState;
   openCreateModal: (type: EntityType) => void;
   closeCreateModal: () => void;
-  createFood: () => Promise<void>;
-  createIngredient: () => Promise<void>;
-  createRecipe: () => Promise<void>;
-  foodForm: FoodForm;
-  setFoodForm: StateSetter<FoodForm>;
-  ingredientForm: IngredientForm;
-  setIngredientForm: StateSetter<IngredientForm>;
-  ingredientNutritions: IngredientNutrition[];
-  setIngredientNutritions: StateSetter<IngredientNutrition[]>;
-  nutritionDraft: NutritionDraft;
-  setNutritionDraft: StateSetter<NutritionDraft>;
-  addNutrition: () => void;
-  recipeForm: RecipeForm;
-  setRecipeForm: StateSetter<RecipeForm>;
-  recipeIngredients: RecipeIngredientItem[];
-  setRecipeIngredients: StateSetter<RecipeIngredientItem[]>;
-  recipeIngredientDraft: RecipeIngredientDraft;
-  setRecipeIngredientDraft: StateSetter<RecipeIngredientDraft>;
-  addRecipeIngredient: () => void;
-  recipeInstructionDraft: RecipeInstructionDraft;
-  setRecipeInstructionDraft: StateSetter<RecipeInstructionDraft>;
-  addRecipeInstruction: () => void;
-  recipeInstructions: RecipeInstructionItem[];
-  setRecipeInstructions: StateSetter<RecipeInstructionItem[]>;
+  clearCreateSuccess: () => void;
+  food: {
+    form: FoodForm;
+    setForm: StateSetter<FoodForm>;
+    create: () => Promise<void>;
+  };
+  ingredient: {
+    form: IngredientForm;
+    setForm: StateSetter<IngredientForm>;
+    nutritions: IngredientNutrition[];
+    setNutritions: StateSetter<IngredientNutrition[]>;
+    nutritionDraft: NutritionDraft;
+    setNutritionDraft: StateSetter<NutritionDraft>;
+    addNutrition: () => void;
+    create: () => Promise<void>;
+  };
+  recipe: {
+    form: RecipeForm;
+    setForm: StateSetter<RecipeForm>;
+    ingredients: RecipeIngredientItem[];
+    setIngredients: StateSetter<RecipeIngredientItem[]>;
+    ingredientDraft: RecipeIngredientDraft;
+    setIngredientDraft: StateSetter<RecipeIngredientDraft>;
+    addIngredient: () => void;
+    instructionDraft: RecipeInstructionDraft;
+    setInstructionDraft: StateSetter<RecipeInstructionDraft>;
+    addInstruction: () => void;
+    instructions: RecipeInstructionItem[];
+    setInstructions: StateSetter<RecipeInstructionItem[]>;
+    create: () => Promise<void>;
+  };
 }
 
 export interface BackendExplorerUpdateFlow {
   updateModal: UpdateModalState;
   updateError: string;
   setUpdateModal: (value: Updater<UpdateModalState>) => void;
-  updateNutritionDraft: NutritionDraft;
-  setUpdateNutritionDraft: (value: Updater<NutritionDraft>) => void;
-  addUpdateNutrition: () => void;
+  closeUpdateModal: () => void;
+  ingredient: {
+    nutritionDraft: NutritionDraft;
+    setNutritionDraft: (value: Updater<NutritionDraft>) => void;
+    addNutrition: () => void;
+  };
   openFoodUpdateModal: (item: Food) => void;
   openIngredientUpdateModal: (item: Ingredient) => void;
   openRecipeUpdateModal: (item: Recipe) => void;

@@ -2,32 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { getFriendlyAuthErrorMessage } from '../services/authErrorMessages';
 import { useAuth } from '../context/useAuth';
-import { createSubmitHandlers} from './authFormLogic';
+import { createSubmitHandlers, modeErrorContext, modeHeading, modeSubmitLabel } from './authFormLogic';
 import type { AuthMode, AuthFormState } from './authFormLogic';
-
-const modeHeading: Record<AuthMode, string> = {
-  login: 'Login',
-  register: 'Create account',
-  'verify-email': 'Verify email',
-  'forgot-password': 'Forgot password',
-  'reset-password': 'Reset password'
-};
-
-const modeSubmitLabel: Record<AuthMode, string> = {
-  login: 'Login',
-  register: 'Register',
-  'verify-email': 'Verify email',
-  'forgot-password': 'Send code',
-  'reset-password': 'Reset password'
-};
-
-const modeErrorContext: Record<AuthMode, 'login' | 'register' | 'verify-email' | 'forgot-password' | 'reset-password'> = {
-  login: 'login',
-  register: 'register',
-  'verify-email': 'verify-email',
-  'forgot-password': 'forgot-password',
-  'reset-password': 'reset-password'
-};
 
 export default function AuthForm() {
   const RESEND_COOLDOWN_SECONDS = 30;

@@ -1,11 +1,7 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import AuthForm from './components/AuthForm';
-import BackendExplorer from './components/BackendExplorer';
 import { iconAssets } from './components/iconAssets';
-import SettingsPage from './components/SettingsPage';
-import SessionExpiryModal from './components/SessionExpiryModal';
 import { useAuth } from './context/useAuth';
 import type { TabKey } from './features/backend-explorer/types';
 
@@ -83,6 +79,11 @@ const pageSubheaderByTab: Record<AppTabKey, string> = {
   settings: 'Manage your profile and preference settings.'
 };
 
+const AuthForm = lazy(() => import('./components/AuthForm'));
+const BackendExplorer = lazy(() => import('./components/BackendExplorer'));
+const SettingsPage = lazy(() => import('./components/SettingsPage'));
+const SessionExpiryModal = lazy(() => import('./components/SessionExpiryModal'));
+
 export default function App() {
   const {
     isAuthenticated,
@@ -118,7 +119,7 @@ export default function App() {
     const storedTab = window.sessionStorage.getItem(ACTIVE_TAB_STORAGE_KEY);
     return appTabKeys.includes(storedTab as AppTabKey) ? (storedTab as AppTabKey) : 'dashboard';
   });
-  const [foodSearchQuery, setFoodSearchQuery] = useState('');
+  const [explorerSearchQuery, setExplorerSearchQuery] = useState('');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
   const isIntroComplete = introStage === 'done';
@@ -312,7 +313,7 @@ export default function App() {
                 className={isActive ? 'sidebar-link active' : 'sidebar-link'}
                 onClick={() => {
                   setActiveTab(tab.key);
-                  setFoodSearchQuery('');
+                  setExplorerSearchQuery('');
                   if (isMobileView) setIsSidebarCollapsed(true);
                 }}
               >
@@ -357,35 +358,37 @@ export default function App() {
           <p className="page-subheader">{pageSubheaderByTab[activeTab]}</p>
         </header>
 
-        {activeTab === 'settings' ? (
-          <SettingsPage
-            id={user?.id}
-            userName={user?.userName || user?.name || user?.email?.split('@')[0] || 'Chef User'}
-            email={user?.email || 'chef@example.com'}
-            cognitoSub={user?.cognitoSub}
-            accountStatus={user?.accountStatus}
-            role={user?.role}
-            profileImageUrl={user?.profileImageUrl}
-            allergies={user?.allergies}
-          />
-        ) : (
-          isIntroComplete ? (
-            <BackendExplorer
-              isAuthenticated={isAuthenticated}
-              onRequireAuth={() => setIsAuthModalOpen(true)}
-              introComplete={isIntroComplete}
-              activeTab={activeTab}
-              onTabChange={(tab) => {
-                setActiveTab(tab);
-                setFoodSearchQuery('');
-                if (isMobileView) setIsSidebarCollapsed(true);
-              }}
-              foodSearchQuery={foodSearchQuery}
-              onFoodSearchQueryChange={setFoodSearchQuery}
-              userAllergies={user?.allergies}
+        <Suspense fallback={<p className="muted">Loading view...</p>}>
+          {activeTab === 'settings' ? (
+            <SettingsPage
+              id={user?.id}
+              userName={user?.userName || user?.name || user?.email?.split('@')[0] || 'Chef User'}
+              email={user?.email || 'chef@example.com'}
+              cognitoSub={user?.cognitoSub}
+              accountStatus={user?.accountStatus}
+              role={user?.role}
+              profileImageUrl={user?.profileImageUrl}
+              allergies={user?.allergies}
             />
-          ) : null
-        )}
+          ) : (
+            isIntroComplete ? (
+              <BackendExplorer
+                isAuthenticated={isAuthenticated}
+                onRequireAuth={() => setIsAuthModalOpen(true)}
+                introComplete={isIntroComplete}
+                activeTab={activeTab}
+                onTabChange={(tab) => {
+                  setActiveTab(tab);
+                  setExplorerSearchQuery('');
+                  if (isMobileView) setIsSidebarCollapsed(true);
+                }}
+                searchQuery={explorerSearchQuery}
+                onSearchQueryChange={setExplorerSearchQuery}
+                userAllergies={user?.allergies}
+              />
+            ) : null
+          )}
+        </Suspense>
       </section>
 
       {!isIntroComplete ? (
@@ -437,20 +440,24 @@ export default function App() {
         <div className="modal-backdrop" role="presentation">
           <section className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="modal-close-icon" aria-label="Close sign in modal" onClick={() => setIsAuthModalOpen(false)}>×</button>
-            <AuthForm />
+            <Suspense fallback={<p className="muted">Loading authentication...</p>}>
+              <AuthForm />
+            </Suspense>
           </section>
         </div>
       ) : null}
 
-      <SessionExpiryModal
-        isOpen={isAuthenticated && isExpiryWarningOpen}
-        secondsToExpiry={secondsToExpiry}
-        errorMessage={sessionExtendError}
-        isExtending={isExtendingSession}
-        onDismiss={onDismissSessionWarning}
-        onExtendSession={onExtendSession}
-        onLogoutNow={onLogout}
-      />
+      <Suspense fallback={null}>
+        <SessionExpiryModal
+          isOpen={isAuthenticated && isExpiryWarningOpen}
+          secondsToExpiry={secondsToExpiry}
+          errorMessage={sessionExtendError}
+          isExtending={isExtendingSession}
+          onDismiss={onDismissSessionWarning}
+          onExtendSession={onExtendSession}
+          onLogoutNow={onLogout}
+        />
+      </Suspense>
 
       {isLogoutConfirmOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setIsLogoutConfirmOpen(false)}>

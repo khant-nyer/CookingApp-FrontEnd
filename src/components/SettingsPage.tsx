@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { api } from '../services/api';
 
+const EMPTY_ALLERGIES: string[] = [];
+
 interface SettingsPageProps {
   id?: number;
   userName: string;
@@ -21,9 +23,10 @@ export default function SettingsPage({
   role,
   id,
   profileImageUrl,
-  allergies: initialAllergies = []
+  allergies: incomingAllergies
 }: SettingsPageProps) {
   const { refreshCurrentUser } = useAuth();
+  const initialAllergies = incomingAllergies ?? EMPTY_ALLERGIES;
   const [allergyInput, setAllergyInput] = useState('');
   const [allergies, setAllergies] = useState<string[]>(initialAllergies);
   const [isSaving, setIsSaving] = useState(false);

@@ -18,6 +18,7 @@ interface UseFoodsTabPropsArgs {
     setSelectedId: ViewState['setSelectedId'];
     pagination:    ViewState['pagination']['foods'];
     loading:       ViewState['loading'];
+    entityLoading: ViewState['loadingByEntity']['foods']['loading'];
     createSuccess: CreateFlow['createSuccess'];
 
     // Actions (raw, un-guarded — this hook wraps them with runProtectedAction)
@@ -40,6 +41,7 @@ export function useFoodsTabProps({
                                      setSelectedId,
                                      pagination,
                                      loading,
+                                     entityLoading,
                                      createSuccess,
                                      openCreateModal,
                                      openFoodUpdateModal,
@@ -86,7 +88,7 @@ export function useFoodsTabProps({
         getItemId,
         pagination,
         onPageChange,
-        loading,
+        loading: entityLoading || loading,
         onDeleteFood,
         onCreateFood,
         searchQuery,
