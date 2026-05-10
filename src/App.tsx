@@ -15,7 +15,7 @@ interface IconProps {
 
 type IntroStage = 'video' | 'zoom' | 'done';
 
-const STARTUP_LOTTIE_SOURCE = 'https://lottie.host/d89022a6-abe0-4609-90af-bfb256395a95/fB0RggP14C.lottie';
+const STARTUP_LOTTIE_SOURCE = 'https://lottiefiles.com/free-animation/cookingsafe-O11imAk8Ra';
 const INTRO_PLAYED_STORAGE_KEY = 'cooking-app-intro-played';
 const ACTIVE_TAB_STORAGE_KEY = 'cooking-app-active-tab';
 
