@@ -16,7 +16,8 @@ interface IconProps {
 const STARTUP_ICON_SOURCE = 'https://cdn-icons-gif.flaticon.com/15578/15578744.gif';
 const INTRO_PLAYED_STORAGE_KEY = 'cooking-app-intro-played';
 const ACTIVE_TAB_STORAGE_KEY = 'cooking-app-active-tab';
-const INTRO_DURATION_MS = 2200;
+const INTRO_DURATION_MS = 3500;
+type IntroStage = 'splash' | 'zoom' | 'done';
 
 function MenuIcon({ className }: IconProps) {
   return <img src={iconAssets.menuChefHat} alt="" className={className} aria-hidden />;
@@ -93,10 +94,12 @@ export default function App() {
     extendSession
   } = useAuth();
 
-  const [isIntroComplete, setIsIntroComplete] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true';
+  const brandIconRef = useRef<HTMLButtonElement>(null);
+  const [introStage, setIntroStage] = useState<IntroStage>(() => {
+    if (typeof window === 'undefined') return 'splash';
+    return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true' ? 'done' : 'splash';
   });
+  const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -111,6 +114,18 @@ export default function App() {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
+  const isIntroComplete = introStage === 'done';
+
+  const captureIntroTarget = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const rect = brandIconRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setIntroTargetRect({ top: rect.top, left: rect.left, width: rect.width, height: rect.height });
+  }, []);
+
+  useLayoutEffect(() => {
+    captureIntroTarget();
+  }, [captureIntroTarget]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -121,15 +136,18 @@ export default function App() {
       const matches = event ? event.matches : mediaQuery.matches;
       setIsMobileView(matches);
       if (matches) setIsSidebarCollapsed(true);
+      captureIntroTarget();
     };
 
     updateMobileLayout();
+    window.addEventListener('resize', captureIntroTarget);
     mediaQuery.addEventListener('change', updateMobileLayout);
 
     return () => {
+      window.removeEventListener('resize', captureIntroTarget);
       mediaQuery.removeEventListener('change', updateMobileLayout);
     };
-  }, []);
+  }, [captureIntroTarget]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -137,19 +155,24 @@ export default function App() {
   }, [activeTab]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || isIntroComplete) return;
+    if (typeof window === 'undefined' || introStage !== 'splash') return;
     const introTimer = window.setTimeout(() => {
-      window.sessionStorage.setItem(INTRO_PLAYED_STORAGE_KEY, 'true');
-      setIsIntroComplete(true);
+      captureIntroTarget();
+      setIntroStage('zoom');
     }, INTRO_DURATION_MS);
     return () => window.clearTimeout(introTimer);
-  }, [isIntroComplete]);
+  }, [captureIntroTarget, introStage]);
 
   function onSkipIntro() {
+    captureIntroTarget();
+    setIntroStage('zoom');
+  }
+
+  function finishIntro() {
     if (typeof window !== 'undefined') {
       window.sessionStorage.setItem(INTRO_PLAYED_STORAGE_KEY, 'true');
     }
-    setIsIntroComplete(true);
+    setIntroStage('done');
   }
 
   async function onExtendSession() {
@@ -291,7 +314,32 @@ export default function App() {
       </section>
 
       {!isIntroComplete ? (
-        <motion.div className="startup-splash" initial={{ opacity: 1 }} animate={{ opacity: 1 }} aria-hidden>
+        <motion.div
+          className="startup-splash"
+          initial={false}
+          animate={introStage === 'splash' ? {
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            borderRadius: 0,
+            boxShadow: '0 0 0 rgba(0,0,0,0)'
+          } : {
+            top: introTargetRect.top,
+            left: introTargetRect.left,
+            width: introTargetRect.width,
+            height: introTargetRect.height,
+            borderRadius: 14,
+            boxShadow: '0 16px 30px rgba(0,0,0,0.26)'
+          }}
+          transition={introStage === 'zoom'
+            ? { type: 'spring', stiffness: 170, damping: 18, mass: 0.85 }
+            : { duration: 0.01 }}
+          onAnimationComplete={() => {
+            if (introStage === 'zoom') finishIntro();
+          }}
+          aria-hidden
+        >
           <motion.img
             className="startup-animation"
             src={STARTUP_ICON_SOURCE}
@@ -300,7 +348,9 @@ export default function App() {
             animate={{ scale: [0.85, 1, 0.96, 1], opacity: 1 }}
             transition={{ duration: 1.1, times: [0, 0.45, 0.8, 1], ease: 'easeInOut' }}
           />
-          <button type="button" className="startup-skip" onClick={onSkipIntro}>Skip intro</button>
+          {introStage === 'splash' ? (
+            <button type="button" className="startup-skip" onClick={onSkipIntro}>Skip intro</button>
+          ) : null}
         </motion.div>
       ) : null}
 
