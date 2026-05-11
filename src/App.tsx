@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import AuthForm from './components/AuthForm';
@@ -215,7 +215,6 @@ export default function App() {
       <aside className={isSidebarCollapsed ? 'sidebar collapsed' : 'sidebar'}>
         <div className="sidebar-head">
           <button
-            ref={brandIconRef}
             type="button"
             className="brand-icon"
             aria-label="Toggle sidebar"
