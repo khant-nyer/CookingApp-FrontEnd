@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import AuthForm from './components/AuthForm';
 import BackendExplorer from './components/BackendExplorer';
 import { iconAssets } from './components/iconAssets';
@@ -13,11 +13,10 @@ interface IconProps {
   className?: string;
 }
 
-type IntroStage = 'video' | 'zoom' | 'done';
-
-const STARTUP_LOTTIE_SOURCE = 'https://lottiefiles.com/free-animation/cookingsafe-O11imAk8Ra';
+const STARTUP_ICON_SOURCE = 'https://cdn-icons-gif.flaticon.com/15578/15578744.gif';
 const INTRO_PLAYED_STORAGE_KEY = 'cooking-app-intro-played';
 const ACTIVE_TAB_STORAGE_KEY = 'cooking-app-active-tab';
+const INTRO_DURATION_MS = 2200;
 
 function MenuIcon({ className }: IconProps) {
   return <img src={iconAssets.menuChefHat} alt="" className={className} aria-hidden />;
@@ -94,20 +93,10 @@ export default function App() {
     extendSession
   } = useAuth();
 
-  const shouldReduceMotion = useReducedMotion();
-  const brandIconRef = useRef<HTMLButtonElement>(null);
-  const introAnimationRef = useRef<HTMLElement>(null);
-  const [introStage, setIntroStage] = useState<IntroStage>(() => {
-    if (typeof window === 'undefined') return 'video';
-    return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true' ? 'done' : 'video';
-  });
-  const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
-  const [isLottieReady, setIsLottieReady] = useState(() => {
+  const [isIntroComplete, setIsIntroComplete] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return Boolean(window.customElements.get('dotlottie-player'));
+    return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true';
   });
-  const introFallbackTimerRef = useRef<number | null>(null);
-  const [introTargetRect, setIntroTargetRect] = useState({ top: 24, left: 24, width: 48, height: 48 });
   const [sessionExtendError, setSessionExtendError] = useState('');
   const [isExtendingSession, setIsExtendingSession] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -121,27 +110,7 @@ export default function App() {
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
-  const isIntroComplete = introStage === 'done';
-
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
-
-  const captureIntroFrame = useCallback(() => {
-    if (typeof window === 'undefined') return;
-
-    const rect = brandIconRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    setIntroTargetRect({
-      top: rect.top,
-      left: rect.left,
-      width: rect.width,
-      height: rect.height
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    captureIntroFrame();
-  }, [captureIntroFrame]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -152,67 +121,15 @@ export default function App() {
       const matches = event ? event.matches : mediaQuery.matches;
       setIsMobileView(matches);
       if (matches) setIsSidebarCollapsed(true);
-      captureIntroFrame();
     };
 
     updateMobileLayout();
-    window.addEventListener('resize', captureIntroFrame);
     mediaQuery.addEventListener('change', updateMobileLayout);
 
     return () => {
-      window.removeEventListener('resize', captureIntroFrame);
       mediaQuery.removeEventListener('change', updateMobileLayout);
     };
-  }, [captureIntroFrame]);
-
-  function finishIntro() {
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem(INTRO_PLAYED_STORAGE_KEY, 'true');
-    }
-    setIntroStage('done');
-  }
-
-  const clearIntroFallbackTimer = useCallback(() => {
-    if (introFallbackTimerRef.current !== null && typeof window !== 'undefined') {
-      window.clearTimeout(introFallbackTimerRef.current);
-      introFallbackTimerRef.current = null;
-    }
   }, []);
-
-  const triggerIntroZoom = useCallback(() => {
-    clearIntroFallbackTimer();
-
-    if (shouldReduceMotion) {
-      finishIntro();
-      return;
-    }
-
-    captureIntroFrame();
-    setIntroStage('zoom');
-  }, [captureIntroFrame, clearIntroFallbackTimer, shouldReduceMotion]);
-
-  const scheduleIntroFallback = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    clearIntroFallbackTimer();
-    introFallbackTimerRef.current = window.setTimeout(() => {
-      triggerIntroZoom();
-    }, 1200);
-  }, [clearIntroFallbackTimer, triggerIntroZoom]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || isLottieReady) return;
-
-    let isCancelled = false;
-    window.customElements.whenDefined('dotlottie-player').then(() => {
-      if (isCancelled) return;
-      setIsLottieReady(true);
-      setIsIntroAnimationHidden(false);
-    });
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [isLottieReady]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -220,34 +137,20 @@ export default function App() {
   }, [activeTab]);
 
   useEffect(() => {
-    if (introStage !== 'video') return;
+    if (typeof window === 'undefined' || isIntroComplete) return;
+    const introTimer = window.setTimeout(() => {
+      window.sessionStorage.setItem(INTRO_PLAYED_STORAGE_KEY, 'true');
+      setIsIntroComplete(true);
+    }, INTRO_DURATION_MS);
+    return () => window.clearTimeout(introTimer);
+  }, [isIntroComplete]);
 
-    if (typeof window === 'undefined') return;
-
-    const animationElement = introAnimationRef.current;
-    if (!isLottieReady || !animationElement) {
-      setIsIntroAnimationHidden(true);
-      scheduleIntroFallback();
-      return () => {
-        clearIntroFallbackTimer();
-      };
+  function onSkipIntro() {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(INTRO_PLAYED_STORAGE_KEY, 'true');
     }
-
-    const onAnimationComplete = () => triggerIntroZoom();
-    const onAnimationError = () => {
-      setIsIntroAnimationHidden(true);
-      scheduleIntroFallback();
-    };
-
-    animationElement.addEventListener('complete', onAnimationComplete);
-    animationElement.addEventListener('error', onAnimationError);
-
-    return () => {
-      animationElement.removeEventListener('complete', onAnimationComplete);
-      animationElement.removeEventListener('error', onAnimationError);
-      clearIntroFallbackTimer();
-    };
-  }, [clearIntroFallbackTimer, introStage, isLottieReady, scheduleIntroFallback, triggerIntroZoom]);
+    setIsIntroComplete(true);
+  }
 
   async function onExtendSession() {
     setIsExtendingSession(true);
@@ -289,7 +192,6 @@ export default function App() {
       <aside className={isSidebarCollapsed ? 'sidebar collapsed' : 'sidebar'}>
         <div className="sidebar-head">
           <button
-            ref={brandIconRef}
             type="button"
             className="brand-icon"
             aria-label="Toggle sidebar"
@@ -389,47 +291,16 @@ export default function App() {
       </section>
 
       {!isIntroComplete ? (
-        <motion.div
-          className="startup-splash"
-          initial={false}
-          animate={introStage === 'video' ? {
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            borderRadius: 0,
-            boxShadow: '0 0 0 rgba(0,0,0,0)',
-            backgroundColor: '#ffffff'
-          } : {
-            top: introTargetRect.top,
-            left: introTargetRect.left,
-            width: introTargetRect.width,
-            height: introTargetRect.height,
-            borderRadius: 14,
-            boxShadow: '0 16px 30px rgba(0,0,0,0.26)',
-            backgroundColor: '#ff6a00'
-          }}
-          transition={introStage === 'zoom'
-            ? { type: 'spring', stiffness: 170, damping: 18, mass: 0.85 }
-            : { duration: 0.01 }}
-          onAnimationComplete={() => {
-            if (introStage === 'zoom') finishIntro();
-          }}
-          aria-hidden
-        >
-          {!isIntroAnimationHidden ? (
-            <dotlottie-player
-              ref={introAnimationRef}
-              className="startup-animation"
-              src={STARTUP_LOTTIE_SOURCE}
-              autoplay
-            />
-          ) : (
-            <div className="startup-animation startup-animation-fallback" />
-          )}
-          {introStage === 'video' ? (
-            <button type="button" className="startup-skip" onClick={triggerIntroZoom}>Skip intro</button>
-          ) : null}
+        <motion.div className="startup-splash" initial={{ opacity: 1 }} animate={{ opacity: 1 }} aria-hidden>
+          <motion.img
+            className="startup-animation"
+            src={STARTUP_ICON_SOURCE}
+            alt=""
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: [0.85, 1, 0.96, 1], opacity: 1 }}
+            transition={{ duration: 1.1, times: [0, 0.45, 0.8, 1], ease: 'easeInOut' }}
+          />
+          <button type="button" className="startup-skip" onClick={onSkipIntro}>Skip intro</button>
         </motion.div>
       ) : null}
 
