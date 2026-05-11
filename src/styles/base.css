@@ -271,6 +271,20 @@ button:disabled {
   padding: 0;
 }
 
+
+.brand-icon,
+.brand-icon:hover:not(:disabled),
+.brand-icon:focus-visible,
+.brand-icon:active {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  filter: none;
+  transform: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
 .brand-icon .icon {
   width: 48px;
   height: 48px;
