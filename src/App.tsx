@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import AuthForm from './components/AuthForm';
@@ -16,7 +16,7 @@ interface IconProps {
 const STARTUP_ICON_SOURCE = 'https://cdn-icons-gif.flaticon.com/15578/15578744.gif';
 const INTRO_PLAYED_STORAGE_KEY = 'cooking-app-intro-played';
 const ACTIVE_TAB_STORAGE_KEY = 'cooking-app-active-tab';
-const INTRO_DURATION_MS = 2200;
+const INTRO_DURATION_MS = 3500;
 
 function MenuIcon({ className }: IconProps) {
   return <img src={iconAssets.menuChefHat} alt="" className={className} aria-hidden />;
@@ -109,6 +109,8 @@ export default function App() {
   });
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const sidebarToggleRef = useRef<HTMLButtonElement | null>(null);
+  const [introTargetOffset, setIntroTargetOffset] = useState({ x: 0, y: 0 });
   const sidebarTitle = user?.name || user?.email?.split('@')[0] || 'Username';
   const pageHeader = activeTab === 'settings' ? 'Settings' : pageHeaderByTab[activeTab];
 
@@ -135,6 +137,30 @@ export default function App() {
     if (typeof window === 'undefined') return;
     window.sessionStorage.setItem(ACTIVE_TAB_STORAGE_KEY, activeTab);
   }, [activeTab]);
+
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || isIntroComplete) return;
+
+    const updateIntroTargetOffset = () => {
+      const rect = sidebarToggleRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const targetX = rect.left + rect.width / 2;
+      const targetY = rect.top + rect.height / 2;
+
+      setIntroTargetOffset({ x: targetX - centerX, y: targetY - centerY });
+    };
+
+    updateIntroTargetOffset();
+    window.addEventListener('resize', updateIntroTargetOffset);
+
+    return () => {
+      window.removeEventListener('resize', updateIntroTargetOffset);
+    };
+  }, [isIntroComplete]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || isIntroComplete) return;
@@ -194,6 +220,7 @@ export default function App() {
           <button
             type="button"
             className="brand-icon"
+            ref={sidebarToggleRef}
             aria-label="Toggle sidebar"
             onClick={() => setIsSidebarCollapsed((prev) => !prev)}
           >
@@ -296,9 +323,14 @@ export default function App() {
             className="startup-animation"
             src={STARTUP_ICON_SOURCE}
             alt=""
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: [0.85, 1, 0.96, 1], opacity: 1 }}
-            transition={{ duration: 1.1, times: [0, 0.45, 0.8, 1], ease: 'easeInOut' }}
+            initial={{ scale: 0.7, opacity: 0, x: 0, y: 0 }}
+            animate={{
+              scale: [0.7, 1.08, 1, 0.26],
+              opacity: [0, 1, 1, 0.2],
+              x: [0, 0, introTargetOffset.x * 0.28, introTargetOffset.x],
+              y: [0, 0, introTargetOffset.y * 0.28, introTargetOffset.y]
+            }}
+            transition={{ duration: INTRO_DURATION_MS / 1000, times: [0, 0.28, 0.72, 1], ease: 'easeInOut' }}
           />
           <button type="button" className="startup-skip" onClick={onSkipIntro}>Skip intro</button>
         </motion.div>
