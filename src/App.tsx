@@ -101,7 +101,7 @@ export default function App() {
     if (typeof window === 'undefined') return 'video';
     return window.sessionStorage.getItem(INTRO_PLAYED_STORAGE_KEY) === 'true' ? 'done' : 'video';
   });
-  const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(false);
+  const [isIntroAnimationHidden, setIsIntroAnimationHidden] = useState(true);
   const [isLottieReady, setIsLottieReady] = useState(() => {
     if (typeof window === 'undefined') return false;
     return Boolean(window.customElements.get('dotlottie-player'));
@@ -206,7 +206,6 @@ export default function App() {
     window.customElements.whenDefined('dotlottie-player').then(() => {
       if (isCancelled) return;
       setIsLottieReady(true);
-      setIsIntroAnimationHidden(false);
     });
 
     return () => {
