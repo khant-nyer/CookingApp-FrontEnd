@@ -842,7 +842,10 @@ button:disabled {
 
 @media (max-width: 760px) {
   .brand-icon {
-    border-radius: 999px;
+    border-radius: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .app-shell {
@@ -907,7 +910,9 @@ button:disabled {
     margin-left: 0;
     width: 52px;
     height: 52px;
-    border-radius: 999px;
+    border-radius: 0;
+    border: 0;
+    background: transparent;
   }
 
   .content-shell {
