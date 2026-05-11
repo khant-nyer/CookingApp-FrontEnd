@@ -1,5 +1,5 @@
 export const iconAssets = {
-  menuChefHat: 'https://cdn-icons-png.flaticon.com/512/1830/1830767.png',
+  menuChefHat: 'https://cdn-icons-png.flaticon.com/512/1830/1830839.png',
   food: 'https://cdn-icons-png.flaticon.com/512/5746/5746471.png',
   ingredient: 'https://cdn-icons-png.flaticon.com/512/601/601990.png',
   recipe: 'https://cdn-icons-png.flaticon.com/512/13525/13525873.png',
